@@ -1,0 +1,82 @@
+:root {
+  font-family: system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background: #f6f6f4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 500;
+  margin: 0 0 0.5rem;
+}
+
+.subtitle {
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.command-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font: inherit;
+}
+
+button {
+  align-self: flex-start;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #2f5d50;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  overflow: auto;
+  font-size: 0.85rem;
+}
+
+.panel.error {
+  border-color: #c44;
+  color: #800;
+}
+
+.panel.muted {
+  color: #666;
+}

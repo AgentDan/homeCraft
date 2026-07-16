@@ -1,0 +1,57 @@
+import { z } from 'zod';
+
+export const WallSchema = z.object({
+  id: z.string(),
+  start: z.object({ x: z.number(), y: z.number() }),
+  end: z.object({ x: z.number(), y: z.number() }),
+  heightMm: z.number().positive()
+});
+
+export const OpeningSchema = z.object({
+  id: z.string(),
+  wallId: z.string(),
+  offsetMm: z.number().nonnegative(),
+  widthMm: z.number().positive(),
+  heightMm: z.number().positive(),
+  kind: z.enum(['door', 'window', 'passage'])
+});
+
+export const UtilityPointSchema = z.object({
+  id: z.string(),
+  kind: z.enum(['water', 'gas', 'electric', 'drain']),
+  position: z.object({ x: z.number(), y: z.number(), z: z.number() })
+});
+
+export const RoomDimensionsSchema = z.object({
+  widthMm: z.number().positive(),
+  depthMm: z.number().positive(),
+  heightMm: z.number().positive()
+});
+
+export const RoomShapeSchema = z.object({
+  dimensions: RoomDimensionsSchema,
+  walls: z.array(WallSchema),
+  openings: z.array(OpeningSchema),
+  utilities: z.array(UtilityPointSchema)
+});
+
+export type RoomShape = z.infer<typeof RoomShapeSchema>;
+
+export const RoomContextSchema = z.object({
+  projectId: z.string().min(1),
+  sessionId: z.string().min(1),
+  userId: z.string().optional(),
+  catalogSnapshotId: z.string().min(1),
+  roomShape: RoomShapeSchema,
+  budgetRub: z.number().nonnegative().optional(),
+  dialogTurns: z.array(
+    z.object({
+      role: z.enum(['user', 'assistant']),
+      text: z.string(),
+      at: z.string().datetime()
+    })
+  ),
+  updatedAt: z.string().datetime()
+});
+
+export type RoomContext = z.infer<typeof RoomContextSchema>;
