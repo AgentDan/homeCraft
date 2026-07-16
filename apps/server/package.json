@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/index.js",
+    "dev": "nodemon --config nodemon.json src/index.js",
     "start": "node src/index.js",
     "test": "node --test src/smoke.test.js",
     "catalog:index": "node src/knowledge-base/indexer-cli.js"

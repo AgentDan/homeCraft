@@ -1,0 +1,12 @@
+{
+  "watch": ["src"],
+  "ext": "js,mjs,cjs,json",
+  "ignore": [
+    "data/**",
+    "gltf/**",
+    "node_modules/**",
+    "**/*.test.js",
+    "**/smoke.test.js"
+  ],
+  "delay": 200
+}

@@ -121,7 +121,7 @@ docs/
 
 | Команда | Описание |
 |---------|----------|
-| `npm run dev` | Server (nodemon) + client (Vite) |
+| `npm run dev` | Server (nodemon, только `src/`) + client (Vite) |
 | `npm run dev:server` | Только API |
 | `npm run dev:client` | Только клиент |
 | `npm run build` | Сборка client → `apps/client/dist` |
