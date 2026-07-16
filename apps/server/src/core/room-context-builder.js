@@ -17,13 +17,15 @@ function defaultRoomShape() {
  * @param userId - Optional authenticated user
  * @param projectId - Active project identifier
  * @param sessionId - Dialog session id
+ * @param inputChannel - Text or voice source for MODE A
  * @returns RoomContext validated with Zod
  */
-export async function buildRoomContext(userId, projectId, sessionId) {
+export async function buildRoomContext(userId, projectId, sessionId, inputChannel = 'text') {
   const context = {
     projectId,
     sessionId,
     userId,
+    inputChannel,
     catalogSnapshotId: DEFAULT_SNAPSHOT,
     roomShape: defaultRoomShape(),
     dialogTurns: [],

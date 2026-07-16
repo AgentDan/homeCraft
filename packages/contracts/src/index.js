@@ -1,5 +1,6 @@
 export {
   ClientRequestSchema,
+  InputChannelSchema,
   InputModeSchema,
   PlanOperationSchema
 } from './client-request.js';
@@ -8,11 +9,23 @@ export {
   ClientResponseSchema,
   ClientResponseStatusSchema,
   ClientResponseTypeSchema,
+  ChangeSummarySchema,
+  InteractionOptionSchema,
+  InteractionSchema,
   SceneResultSchema,
+  ViewSchema,
+  createClarifyResponse,
+  createConfirmResponse,
+  createOptionsResponse,
   createStubClientResponse
 } from './client-response.js';
 
-export { ConfigurationPlanSchema, createEmptyPlan } from './configuration-plan.js';
+export {
+  ConfigurationPlanSchema,
+  PlanHistorySchema,
+  PlanVersionEntrySchema,
+  createEmptyPlan
+} from './configuration-plan.js';
 
 export {
   RoomContextSchema,

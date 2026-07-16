@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noImplicitAny": false,
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "maxNodeModuleJsDepth": 0,
+    "noUncheckedSideEffectImports": false,
+    "skipLibCheck": true
+  },
+  "include": ["apps/**/*.js", "apps/**/*.jsx", "apps/**/*.mjs", "packages/**/*.js"],
+  "exclude": ["**/node_modules/**", "apps/client/dist/**", "apps/server/data/**"]
+}

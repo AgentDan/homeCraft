@@ -1,7 +1,9 @@
 import { MongoClient } from 'mongodb';
 import { runtimeConfig } from '../config/runtime.js';
 
+/** @type {MongoClient | null} */
 let client = null;
+/** @type {import('mongodb').Db | null} */
 let db = null;
 
 /**

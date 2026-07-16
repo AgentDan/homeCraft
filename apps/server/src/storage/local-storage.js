@@ -1,6 +1,7 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PlanHistorySchema } from '@homecraft/contracts';
 
 const __dirnameStorage = path.dirname(fileURLToPath(import.meta.url));
 const serverPackageRoot = path.resolve(__dirnameStorage, '..', '..');
@@ -30,8 +31,19 @@ function sanitizeId(value, fallback) {
   return String(value || fallback).replace(/[^a-zA-Z0-9._-]/g, '-');
 }
 
+function sessionFilePath(sessionId) {
+  return path.join(
+    storagePaths.sessions,
+    `${sanitizeId(sessionId, 'local-session')}.json`
+  );
+}
+
 async function ensureDirectory(directoryPath) {
   await mkdir(directoryPath, { recursive: true });
+}
+
+function isNotFoundError(error) {
+  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
 }
 
 async function readJsonFile(filePath, fallback) {
@@ -39,7 +51,7 @@ async function readJsonFile(filePath, fallback) {
     const raw = await readFile(filePath, 'utf8');
     return JSON.parse(raw);
   } catch (error) {
-    if (error.code === 'ENOENT') {
+    if (isNotFoundError(error)) {
       return fallback;
     }
     throw error;
@@ -55,7 +67,7 @@ async function countFiles(directoryPath) {
   try {
     return (await readdir(directoryPath, { recursive: true })).length;
   } catch (error) {
-    if (error.code === 'ENOENT') {
+    if (isNotFoundError(error)) {
       return 0;
     }
     throw error;
@@ -82,7 +94,7 @@ export async function getStorageStatus() {
 export async function saveSession(session) {
   await ensureStorage();
   const sessionId = sanitizeId(session.sessionId, 'local-session');
-  const filePath = path.join(storagePaths.sessions, `${sessionId}.json`);
+  const filePath = sessionFilePath(sessionId);
   const previousSession = await readJsonFile(filePath, {});
   const nextSession = {
     ...previousSession,
@@ -101,4 +113,57 @@ export async function recordCommandRequest(clientRequest) {
     lastProjectId: clientRequest.projectId
   });
   return { session: sessionRef };
+}
+
+function createEmptyPlanHistory(projectId) {
+  return PlanHistorySchema.parse({
+    projectId,
+    entries: [],
+    currentIndex: -1,
+    nextVersion: 1
+  });
+}
+
+export async function loadPlanHistory(sessionId, projectId) {
+  await ensureStorage();
+  const session = await readJsonFile(sessionFilePath(sessionId), {});
+  if (!session.planHistory || session.planHistory.projectId !== projectId) {
+    return createEmptyPlanHistory(projectId);
+  }
+  return PlanHistorySchema.parse(structuredClone(session.planHistory));
+}
+
+export async function appendPlanVersion(sessionId, projectId, plan) {
+  const history = await loadPlanHistory(sessionId, projectId);
+  const retainedEntries = history.entries.slice(0, history.currentIndex + 1);
+  const entry = {
+    version: history.nextVersion,
+    plan: structuredClone(plan)
+  };
+  const nextHistory = PlanHistorySchema.parse({
+    projectId,
+    entries: [...retainedEntries, entry],
+    currentIndex: retainedEntries.length,
+    nextVersion: history.nextVersion + 1
+  });
+
+  await saveSession({ sessionId, planHistory: nextHistory });
+  return structuredClone(entry);
+}
+
+export async function navigatePlanHistory(sessionId, projectId, direction) {
+  const history = await loadPlanHistory(sessionId, projectId);
+  const offset = direction === 'undo' ? -1 : 1;
+  const targetIndex = history.currentIndex + offset;
+
+  if (targetIndex < 0 || targetIndex >= history.entries.length) {
+    return null;
+  }
+
+  const nextHistory = PlanHistorySchema.parse({
+    ...history,
+    currentIndex: targetIndex
+  });
+  await saveSession({ sessionId, planHistory: nextHistory });
+  return structuredClone(nextHistory.entries[targetIndex]);
 }

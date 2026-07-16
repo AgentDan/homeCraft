@@ -1,10 +1,14 @@
 const API_BASE = '/api';
 
 export async function postCommand(payload) {
+  const request = {
+    inputChannel: 'text',
+    ...structuredClone(payload)
+  };
   const response = await fetch(`${API_BASE}/commands`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(request)
   });
 
   const data = await response.json();

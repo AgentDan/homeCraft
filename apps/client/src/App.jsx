@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getHealth, postCommand } from './api/client.js';
 import { CommandInput } from './components/CommandInput.jsx';
+import { ResponseRouter } from './components/ResponseRouter.jsx';
 import { ResultViewer } from './components/ResultViewer.jsx';
 
+/** @param {string} prefix */
 function newId(prefix) {
   return `${prefix}-${crypto.randomUUID()}`;
 }
@@ -10,9 +12,11 @@ function newId(prefix) {
 export function App() {
   const [sessionId] = useState(() => newId('sess'));
   const [projectId] = useState(() => newId('proj'));
-  const [response, setResponse] = useState(null);
-  const [error, setError] = useState(null);
-  const [health, setHealth] = useState(null);
+  const [response, setResponse] = useState(
+    /** @type {{ requestId: string, [key: string]: unknown } | null} */ (null)
+  );
+  const [error, setError] = useState(/** @type {string | null} */ (null));
+  const [health, setHealth] = useState(/** @type {unknown} */ (null));
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -22,7 +26,11 @@ export function App() {
   }, []);
 
   const sendCommand = useCallback(
-    async (command) => {
+    /**
+     * @param {string} command
+     * @param {'text' | 'voice'} [inputChannel]
+     */
+    async (command, inputChannel = 'text') => {
       setLoading(true);
       setError(null);
       try {
@@ -31,6 +39,7 @@ export function App() {
           sessionId,
           projectId,
           inputMode: 'dialog',
+          inputChannel,
           command,
           clientState: {}
         });
@@ -49,11 +58,19 @@ export function App() {
       <header className="mb-6">
         <h1 className="mb-1 font-medium text-3xl text-stone-900">HomeCraft</h1>
         <p className="text-stone-600">
-          Step 0 — skeleton monorepo (dialog → API → pipeline stub)
+          Step 0 — диалог текстом или голосом → API → pipeline stub
         </p>
       </header>
       <CommandInput onSubmit={sendCommand} disabled={loading} />
-      <ResultViewer response={response} error={error} health={health} />
+      <div className="mb-6">
+        <ResponseRouter
+          key={response?.requestId}
+          response={response}
+          onCommand={sendCommand}
+          disabled={loading}
+        />
+      </div>
+      <ResultViewer response={null} error={error} health={health} />
     </main>
   );
 }

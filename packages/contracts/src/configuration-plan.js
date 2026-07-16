@@ -10,6 +10,18 @@ export const ConfigurationPlanSchema = z.object({
   createdAt: z.string().datetime()
 });
 
+export const PlanVersionEntrySchema = z.object({
+  version: z.number().int().nonnegative(),
+  plan: ConfigurationPlanSchema
+});
+
+export const PlanHistorySchema = z.object({
+  projectId: z.string().min(1),
+  entries: z.array(PlanVersionEntrySchema).default([]),
+  currentIndex: z.number().int().min(-1).default(-1),
+  nextVersion: z.number().int().positive().default(1)
+});
+
 export function createEmptyPlan(params) {
   return ConfigurationPlanSchema.parse({
     ...params,

@@ -20,6 +20,14 @@ const RULES = [
     patterns: [/сколько стоит|цена|price|стоимость/i]
   },
   {
+    kind: 'undo',
+    patterns: [/отмени|верни\s+как\s+было|назад|undo/i]
+  },
+  {
+    kind: 'redo',
+    patterns: [/^(верни|повтори|redo)(\s+последнее)?[.!?]?$/i]
+  },
+  {
     kind: 'help',
     patterns: [/помощь|help|что ты умеешь|what can you do/i]
   }

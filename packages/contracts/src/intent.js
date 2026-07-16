@@ -6,6 +6,8 @@ export const IntentKindSchema = z.enum([
   'change_finish',
   'set_budget',
   'show_price',
+  'undo',
+  'redo',
   'help',
   'unknown'
 ]);

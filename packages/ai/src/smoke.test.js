@@ -12,4 +12,9 @@ describe('@homecraft/ai smoke', () => {
     const result = matchIntent('что ты умеешь');
     assert.equal(result.kind, 'help');
   });
+
+  it('detects undo and redo without ambiguous fallback', () => {
+    assert.equal(matchIntent('верни как было').kind, 'undo');
+    assert.equal(matchIntent('повтори').kind, 'redo');
+  });
 });

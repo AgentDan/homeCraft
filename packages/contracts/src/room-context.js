@@ -39,6 +39,7 @@ export const RoomContextSchema = z.object({
   projectId: z.string().min(1),
   sessionId: z.string().min(1),
   userId: z.string().optional(),
+  inputChannel: z.enum(['text', 'voice']).default('text'),
   catalogSnapshotId: z.string().min(1),
   roomShape: RoomShapeSchema,
   budgetRub: z.number().nonnegative().optional(),

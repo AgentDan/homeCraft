@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const InputModeSchema = z.enum(['dialog', 'editor']);
+export const InputChannelSchema = z.enum(['text', 'voice']);
 export const ClientStateSchema = z.record(z.unknown()).default({});
 
 export const PlanOperationSchema = z.discriminatedUnion('type', [
@@ -32,6 +33,7 @@ export const ClientRequestSchema = z.object({
   sessionId: z.string().min(1),
   projectId: z.string().min(1),
   inputMode: InputModeSchema,
+  inputChannel: InputChannelSchema.default('text'),
   command: z.string().optional(),
   editorOperations: z.array(PlanOperationSchema).optional(),
   catalogSnapshotId: z.string().optional(),
