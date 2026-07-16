@@ -13,23 +13,23 @@
     "packages/contracts"
   ],
   "scripts": {
-    "build": "npm run build:packages && npm run build --workspace @homecraft/client",
-    "build:packages": "npm run build --workspace @homecraft/contracts && npm run build --workspace @homecraft/ai && npm run build --workspace @homecraft/catalog-schema",
-    "dev": "npm run build:packages && concurrently -n server,client -c blue,green \"npm run dev --workspace @homecraft/server\" \"npm run dev --workspace @homecraft/client\"",
-    "dev:server": "npm run build:packages && npm run dev --workspace @homecraft/server",
+    "build": "npm run build --workspace @homecraft/client",
+    "build:deploy": "npm run build",
+    "start": "npm run start --workspace @homecraft/server",
+    "dev": "concurrently -n server,client -c blue,green \"npm run dev --workspace @homecraft/server\" \"npm run dev --workspace @homecraft/client\"",
+    "dev:server": "npm run dev --workspace @homecraft/server",
     "dev:client": "npm run dev --workspace @homecraft/client",
     "dev:mobile": "npm run start --workspace @homecraft/mobile",
-    "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
-    "test": "npm run build:packages && npm run test --workspaces --if-present",
-    "catalog:index": "npm run build:packages && npm run catalog:index --workspace @homecraft/server"
+    "test": "npm run test --workspaces --if-present",
+    "catalog:index": "npm run catalog:index --workspace @homecraft/server"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
     "concurrently": "^9.2.1",
     "eslint": "^9.28.0",
+    "eslint-plugin-react": "^7.37.5",
     "globals": "^16.2.0",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.1"
+    "nodemon": "^3.1.14"
   }
 }

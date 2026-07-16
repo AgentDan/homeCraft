@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test smoke.test.mjs",
     "preview": "vite preview"
   },
@@ -17,10 +16,9 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@types/react": "^19.1.6",
-    "@types/react-dom": "^19.1.5",
+    "@tailwindcss/vite": "^4.1.8",
     "@vitejs/plugin-react": "^4.5.2",
-    "typescript": "^5.8.3",
+    "tailwindcss": "^4.1.8",
     "vite": "^6.3.5"
   }
 }

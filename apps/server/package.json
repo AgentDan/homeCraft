@@ -4,27 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test src/smoke.test.ts",
-    "catalog:index": "tsx src/knowledge-base/indexer-cli.ts"
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "test": "node --test src/smoke.test.js",
+    "catalog:index": "node src/knowledge-base/indexer-cli.js"
   },
   "dependencies": {
     "@homecraft/ai": "0.1.0",
     "@homecraft/catalog-schema": "0.1.0",
     "@homecraft/contracts": "0.1.0",
-    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "mongodb": "^6.17.0",
     "zod": "^3.25.56"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.18",
-    "@types/express": "^5.0.2",
-    "@types/node": "^22.15.29",
-    "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "nodemon": "^3.1.10"
   }
 }

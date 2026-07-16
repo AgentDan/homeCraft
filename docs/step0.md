@@ -19,7 +19,6 @@ Phase 0 deliverable for [Roadmap.md](./Roadmap.md).
 
 ```bash
 npm install
-npm run typecheck
 npm run lint
 npm run test
 npm run dev

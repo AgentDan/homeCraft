@@ -39,8 +39,8 @@ POST /api/commands
 ## Монорепозиторий
 
 ```
-apps/client   — React 19 + Vite
-apps/server   — Express + TypeScript
+apps/client   — React 19 + Vite + Tailwind
+apps/server   — Express (JavaScript ESM)
 apps/mobile   — stub (phase 6)
 packages/contracts, packages/ai, packages/catalog-schema
 ```
@@ -50,11 +50,32 @@ packages/contracts, packages/ai, packages/catalog-schema
 | Команда | Описание |
 |---------|----------|
 | `npm run dev` | Server + client |
-| `npm run typecheck` | TS check all workspaces |
 | `npm run lint` | ESLint |
 | `npm run test` | Smoke tests |
 | `npm run catalog:index` | RAG index (step0 stub) |
 | `npm run build` | Production client build |
+| `npm run build:deploy` | Сборка для деплоя (client → dist) |
+| `npm start` | Production server (`NODE_ENV=production`) |
+
+Plain **JavaScript** (ESM) + **Zod** validation. Client styled with **Tailwind CSS v4**.
+
+## Production deploy (как AIproject)
+
+```bash
+cp .env.example .env
+# NODE_ENV=production, CORS_ORIGIN, при необходимости CLIENT_DIST_PATH
+
+npm install
+npm run build:deploy
+NODE_ENV=production npm start
+```
+
+В production сервер:
+- слушает `HOST` (по умолчанию `0.0.0.0`) и `PORT` (3001)
+- раздаёт API на `/api/*`
+- раздаёт статику из `apps/client/dist` (SPA fallback)
+- отдаёт `/gltf` из `apps/server/gltf`
+- данные сессий — `apps/server/data` или `SERVER_STORAGE_DIR`
 
 ## Step 0 status
 

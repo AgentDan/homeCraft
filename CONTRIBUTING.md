@@ -9,7 +9,7 @@
 5. **`catalog-rag-retriever`** must be wired into `configuration-plan-generator` (no dead AI paths).
 6. **Catalog snapshots** — BOM reads frozen `catalogSnapshotId`, not live catalog.
 7. **Spatial index** for compatibility (no O(n²) in production hot path).
-8. **Zod** at every network/storage boundary.
+8. **Zod** at every network/storage boundary (plain JavaScript ESM, no TypeScript build step).
 9. **`structuredClone`** for cloning — `JSON.parse(JSON.stringify(...))` is banned (ESLint).
 10. **UI typography:** font-weight 400 and 500 only; sentence case.
 

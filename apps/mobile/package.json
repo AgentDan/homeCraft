@@ -5,7 +5,6 @@
   "description": "Expo mobile shell — full app in phase 6",
   "scripts": {
     "start": "node scripts/stub-start.mjs",
-    "typecheck": "node -e \"console.log('mobile stub: no TS yet')\"",
     "test": "node --test smoke.test.mjs"
   }
 }
