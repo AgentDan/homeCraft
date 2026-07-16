@@ -12,7 +12,6 @@ Phase 0 deliverable for [Roadmap.md](./Roadmap.md). **Status: completed.**
 - [x] Production deploy (`build:deploy`, `npm start`, SPA + API)
 - [x] Client shell (CommandInput + ResultViewer) + Tailwind CSS v4
 - [x] Mobile stub
-- [x] Docker Compose (MongoDB + Redis)
 - [x] CI workflow (lint, test, build)
 - [x] `local-storage.js` (AIproject pattern)
 

@@ -43,7 +43,6 @@
 | Mobile stub | ✅ |
 | Production deploy: `build:deploy` + `npm start` | ✅ |
 | SPA + API на одном порту (production) | ✅ |
-| Docker Compose (MongoDB + Redis) | ✅ |
 | CI: lint + test + build | ✅ |
 
 ### Ещё stub (ожидают фазу 1+)
@@ -158,7 +157,6 @@ homecraft/
 │   ├── Roadmap.md
 │   ├── step0.md
 │   └── dommaster-presentation-and-cursor-prompt.md
-├── docker-compose.yml
 ├── .env.example
 ├── eslint.config.js
 └── package.json
@@ -177,8 +175,8 @@ homecraft/
 | Client | React 19 + Vite + Tailwind v4 | ✅ shell |
 | Client 3D | React Three Fiber + Zustand | фаза 1 |
 | Mobile | Expo | stub, фаза 6 |
-| БД | MongoDB | connect ✅, persist фаза 1 |
-| Кэш | Redis | docker ✅, код фаза 3 |
+| БД | MongoDB (локально или удалённо, `MONGODB_URI`) | connect ✅, persist фаза 1 |
+| Кэш | Redis | фаза 3 |
 | Файлы | `apps/server/data/` | ✅ |
 | RAG index | file vector store | stub, фаза 1 |
 | CI | lint + test + build | ✅ |
@@ -231,9 +229,8 @@ npm run catalog:index    # stub
 | 0.11 | Mobile stub | ✅ |
 | 0.12 | README, CONTRIBUTING, .env.example | ✅ |
 | 0.13 | CI (lint, test, build) | ✅ |
-| 0.14 | Docker Compose MongoDB + Redis | ✅ |
-| 0.15 | local-storage.js | ✅ |
-| 0.16 | Production deploy (как AIproject) | ✅ |
+| 0.14 | local-storage.js | ✅ |
+| 0.15 | Production deploy (как AIproject) | ✅ |
 
 **Acceptance criteria:** все выполнены — см. [step0.md](step0.md).
 
