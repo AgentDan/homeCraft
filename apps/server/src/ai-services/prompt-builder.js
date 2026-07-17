@@ -1,11 +1,24 @@
-/**
- * Builds LLM prompt with RAG chunks. Step0: stub template only.
- */
+/** Builds an inspectable prompt for the future LLM path. */
 export function buildPrompt(input) {
+  const history = input.context.dialogTurns
+    .slice(-8)
+    .map((turn) => `${turn.role}: ${turn.text}`)
+    .join('\n');
+  const chunks = input.chunks
+    .map((chunk) =>
+      'sku' in chunk
+        ? `${chunk.sku}: ${chunk.name} (${chunk.dimensions.widthMm} мм)`
+        : chunk.text
+    )
+    .join('\n---\n');
   return [
-    '# HomeCraft prompt (step0 stub)',
+    '# HomeCraft catalog-grounded prompt',
     `Project: ${input.context.projectId}`,
     `Intent: ${input.intent.kind}`,
-    `Chunks: ${input.chunks.length}`
+    `Budget: ${input.context.budgetRub ?? 'not set'}`,
+    'Dialog:',
+    history || '(empty)',
+    'Retrieved context:',
+    chunks || '(no matching context)'
   ].join('\n');
 }

@@ -54,10 +54,10 @@ export async function route(request) {
     request.inputChannel
   );
 
-  const text = request.command ?? '';
-  context = appendDialogTurn(context, 'user', text);
+  context = appendDialogTurn(context, 'user', request.command);
+  await persistRoomContext(context);
 
-  const { intent, plan } = await runAiPipeline(request, context);
+  const { intent, plan, outcome } = await runAiPipeline(request, context);
 ```
 
 ## 3. AI pipeline распознаёт намерение
@@ -71,7 +71,7 @@ intent-detector
 → configuration-plan-generator
 ```
 
-После этого получается единый `ConfigurationPlan`.
+Catalog RAG читает только активный snapshot, а platform-rules retrieval добавляет правила платформы. Rule-based generator возвращает cumulative `ConfigurationPlan` и outcome (`applied`, `clarify` или `read_only`).
 
 ## 4. Обрабатываются специальные команды
 
@@ -97,7 +97,7 @@ const versionEntry =
     : null;
 ```
 
-Версии плана сохраняются на диске в `apps/server/data/sessions/`.
+Версии плана сохраняются на диске в `apps/server/data/sessions/`. Диалоговый контекст также сохраняется в MongoDB, если она доступна, с local fallback.
 
 ## 5. Ответ состоит из трёх каналов
 
@@ -145,36 +145,23 @@ confirm
 
 Выбор кнопки снова отправляется как обычная текстовая команда.
 
-## Важные ограничения текущего step0
+## Ограничения Phase 1
 
-### История реплик фактически не сохраняется
+### Генерация плана rule-based
 
-`buildRoomContext()` на каждом запросе создаёт `dialogTurns: []`, после чего добавляется только текущая команда.
+Intent и slots преобразуются в операции детерминированными правилами. Свободное понимание сложных фраз и LLM function calling запланированы на фазу 5.
 
-`apps/server/src/core/room-context-builder.js`, строки 23–32:
+### Упрощённая расстановка
 
-```js
-export async function buildRoomContext(userId, projectId, sessionId, inputChannel = 'text') {
-  const context = {
-    // ...
-    dialogTurns: [],
-    updatedAt: new Date().toISOString()
-  };
-```
+Новые модули ставятся последовательно вдоль одной стены. Угловые и многорядные layouts потребуют расширения domain pipeline.
 
-Поэтому система пока не понимает выражения вроде «сделай его шире» на основе предыдущей реплики.
+### Базовая совместимость
 
-### Планы из текста пока пустые
+Проверяются границы комнаты, overlap и высота крепления. Utilities, полные clearances и подбор аналогов расширяются в фазе 2.
 
-На step0 генератор плана из диалоговой команды возвращает `operations: []`.
+### Упрощённая 3D-сцена
 
-### Сцена пока является заглушкой
-
-Реальной 2D/3D-визуализации нет.
-
-### Интерактивные ответы подключены только на уровне каркаса
-
-`clarify`, `options` и `confirm` существуют в контракте и UI, но AI pipeline ещё почти не создаёт такие ответы.
+Preview3D использует геометрические боксы по каталожным размерам. GLTF-модели производителя пока не подключены.
 
 ### TTS не подключён
 
@@ -182,4 +169,4 @@ export async function buildRoomContext(userId, projectId, sessionId, inputChanne
 
 ## Итог
 
-Транспорт, intents, богатый контракт ответа, UI-маршрутизация и `undo`/`redo` уже работают. Полноценная многоходовая память, STT/TTS и генерация реальных операций остаются следующими этапами.
+Catalog-grounded intents, реальные операции, multi-turn persistence, compatibility, BOM, 3D preview и `undo`/`redo` работают. STT/TTS, LLM и производственные GLTF остаются следующими этапами.

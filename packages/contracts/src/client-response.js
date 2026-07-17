@@ -44,6 +44,13 @@ export const SceneResultSchema = z.object({
     z.object({
       instanceId: z.string(),
       sku: z.string(),
+      name: z.string(),
+      category: z.string(),
+      dimensions: z.object({
+        widthMm: z.number().positive(),
+        heightMm: z.number().positive(),
+        depthMm: z.number().positive()
+      }),
       position: z.object({ x: z.number(), y: z.number(), z: z.number() }),
       rotationY: z.number(),
       finishId: z.string().optional()
@@ -78,10 +85,10 @@ export function createStubClientResponse(request, overrides = {}) {
     ...request,
     status: 'ok',
     responseType: 'scene',
-    message: 'HomeCraft step0 stub response.',
+    message: 'Команда обработана.',
     speech: 'Команда обработана.',
-    explanation: 'Pipeline skeleton is wired; business logic arrives in phase 1.',
-    changeSummary: { text: 'Изменений пока нет.' },
+    explanation: 'HomeCraft dialog pipeline response.',
+    changeSummary: { text: 'Изменений нет.' },
     view: { kind: '2d_plan', render: 'full' },
     interaction: { expects: 'none' },
     planVersion: 0,

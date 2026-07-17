@@ -1,7 +1,11 @@
 import { detectIntent } from './intent-detector.js';
 import { generatePlan } from './configuration-plan-generator.js';
 import { buildPrompt } from './prompt-builder.js';
-import { retrieve } from './catalog-rag-retriever.js';
+import {
+  retrieve,
+  retrievePlatformRules
+} from './catalog-rag-retriever.js';
+import { runtimeConfig } from '../config/runtime.js';
 
 /**
  * AI pipeline: intent → retrieve → prompt → plan.
@@ -11,14 +15,24 @@ export async function runAiPipeline(request, context) {
   const dialogText = request.command;
   const intent = await detectIntent(dialogText);
 
-  const chunks = await retrieve(dialogText, context.catalogSnapshotId, 5);
-  buildPrompt({ context, intent, chunks });
-
-  const plan = await generatePlan({
-    intent,
+  const [candidates, platformRules] = await Promise.all([
+    retrieve(dialogText, context.catalogSnapshotId, runtimeConfig.kbTopK),
+    retrievePlatformRules(dialogText, 3)
+  ]);
+  const prompt = buildPrompt({
     context,
-    dialogText
+    intent,
+    chunks: [...candidates, ...platformRules]
   });
 
-  return { intent, plan };
+  const { plan, outcome } = await generatePlan({
+    intent,
+    context,
+    dialogText,
+    candidates,
+    platformRules,
+    prompt
+  });
+
+  return { intent, plan, outcome, candidates };
 }

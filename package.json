@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "AI-powered furniture design platform — dialog and editor to production-ready BOM.",
+  "description": "AI-powered furniture design platform — dialog to production-ready BOM.",
   "workspaces": [
     "apps/client",
     "apps/mobile",

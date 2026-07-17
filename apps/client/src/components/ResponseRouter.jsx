@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { ResultViewer } from './ResultViewer.jsx';
-import { ScenePreview } from './ScenePreview.jsx';
+
+const ScenePreview = lazy(() =>
+  import('./ScenePreview.jsx').then((module) => ({
+    default: module.ScenePreview
+  }))
+);
 
 function ChangeSummary({ summary }) {
   if (!summary) return null;
@@ -79,7 +84,13 @@ export function ResponseRouter({ response, onCommand, disabled }) {
       return (
         <section className="space-y-4">
           <TextResponse response={response} />
-          <ScenePreview sceneResult={response.sceneResult} view={response.view} />
+          <Suspense
+            fallback={
+              <div className="h-96 animate-pulse rounded-lg bg-stone-200" />
+            }
+          >
+            <ScenePreview sceneResult={response.sceneResult} view={response.view} />
+          </Suspense>
           <ChangeSummary summary={response.changeSummary} />
         </section>
       );

@@ -34,6 +34,6 @@ NODE_ENV=production npm start
 # http://localhost:3001 — SPA + /api/health
 ```
 
-## Next: Phase 1
+## After step0
 
-See Roadmap § «Фаза 1. MVP диалога + Kitchen demo».
+Phase 1 is now complete. See Roadmap § «Фаза 1. MVP диалога + Kitchen demo» for the implemented catalog, RAG, plan, compatibility, BOM and 3D scope.

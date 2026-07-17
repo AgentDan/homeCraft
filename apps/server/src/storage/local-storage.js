@@ -106,6 +106,25 @@ export async function saveSession(session) {
   return { sessionId, filePath };
 }
 
+export async function loadSessionDocument(sessionId) {
+  await ensureStorage();
+  return readJsonFile(sessionFilePath(sessionId), {});
+}
+
+export async function saveRoomContextState(sessionId, context) {
+  return saveSession({
+    sessionId,
+    roomContext: {
+      projectId: context.projectId,
+      catalogSnapshotId: context.catalogSnapshotId,
+      roomShape: structuredClone(context.roomShape),
+      budgetRub: context.budgetRub,
+      dialogTurns: structuredClone(context.dialogTurns),
+      updatedAt: context.updatedAt
+    }
+  });
+}
+
 export async function recordCommandRequest(clientRequest) {
   const sessionRef = await saveSession({
     sessionId: clientRequest.sessionId,

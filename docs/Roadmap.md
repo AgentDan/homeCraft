@@ -3,8 +3,8 @@
 > **HomeCraft** — AI-платформа для диалоговой сборки мебельных проектов из реального каталога производителя.
 > Архитектурный каркас — [AIproject](https://github.com/AgentDan/AIproject); домен мебели: Compatibility Engine, Pricing, BOM, production export.
 
-**Статус:** ✅ **Фаза 0 завершена** (skeleton, deploy, Zod-контракты, JS monorepo).
-**Следующий шаг:** **Фаза 1** — MVP диалога + kitchen demo.
+**Статус:** ✅ **Фаза 1 завершена** (MVP диалога, kitchen demo, 3D, BOM, compatibility).
+**Следующий шаг:** **Фаза 2** — расширение Compatibility Engine.
 **Целевой MVP:** 4–5 месяцев при команде 2–3 человека.
 **Принцип:** contract-first (Zod), skeleton → logic file-by-file, без «мёртвых» стадий пайплайна.
 
@@ -12,7 +12,7 @@
 
 ## Содержание
 
-1. [Текущее состояние (фаза 0)](#1-текущее-состояние-фаза-0)
+1. [Текущее состояние (фазы 0–1)](#1-текущее-состояние-фазы-01)
 2. [Чем HomeCraft похож на AIproject](#2-чем-homecraft-похож-на-aiproject)
 3. [Архитектурные инварианты](#3-архитектурные-инварианты)
 4. [Структура монорепозитория (факт)](#4-структура-монорепозитория-факт)
@@ -25,7 +25,7 @@
 
 ---
 
-## 1. Текущее состояние (фаза 0)
+## 1. Текущее состояние (фазы 0–1)
 
 ### Реализовано
 
@@ -45,15 +45,16 @@
 | SPA + API на одном порту (production) | ✅ |
 | CI: lint + test + build | ✅ |
 
-### Ещё stub (ожидают фазу 1+)
+### Реализовано в фазе 1
 
-- RAG retrieval (пустой массив)
-- `configuration-plan-generator` (пустой plan)
-- `assertCompatible` (всегда valid)
-- `calculateBOM` (пустой BOM)
-- `kitchen/pipeline` (пустая сцена)
-- Preview3D / R3F — нет
-- MongoDB persist проектов — нет
+- демо-каталог из 18 kitchen-модулей, snapshot и MongoDB seed;
+- файловый vector index и catalog/platform-rules retrieval;
+- rule-based `configuration-plan-generator`;
+- три базовые проверки compatibility + spatial index;
+- реальный BOM по frozen snapshot;
+- детерминированная kitchen scene и Preview3D на R3F;
+- локальная и MongoDB persistence контекста, multi-turn dialog;
+- Help service и RU intent corpus.
 
 Подробности: [docs/step0.md](step0.md).
 
@@ -85,7 +86,7 @@
 
 - Compatibility Engine, Pricing Engine, catalog-schema
 - RoomContext, ConfigurationPlan, BOM
-- MongoDB для structured data (фаза 1+)
+- MongoDB для каталога и контекста проекта с local fallback
 
 ---
 
@@ -173,12 +174,12 @@ homecraft/
 | Runtime | Node.js 20 | ✅ |
 | API | Express 5 + Zod | ✅ |
 | Client | React 19 + Vite + Tailwind v4 | ✅ shell |
-| Client 3D | React Three Fiber + Zustand | фаза 1 |
+| Client 3D | React Three Fiber + Zustand | ✅ Preview3D |
 | Mobile | Expo | stub, фаза 6 |
-| БД | MongoDB (локально или удалённо, `MONGODB_URI`) | connect ✅, persist фаза 1 |
+| БД | MongoDB (локально или удалённо, `MONGODB_URI`) | ✅ + local fallback |
 | Кэш | Redis | фаза 3 |
 | Файлы | `apps/server/data/` | ✅ |
-| RAG index | file vector store | stub, фаза 1 |
+| RAG index | file vector store | ✅ |
 | CI | lint + test + build | ✅ |
 
 ### Переменные окружения
@@ -203,7 +204,7 @@ npm run build:deploy     # client → dist
 npm start                # production (API + SPA)
 npm run test
 npm run lint
-npm run catalog:index    # stub
+npm run catalog:index    # rebuild catalog and platform-rules index
 ```
 
 ---
@@ -236,30 +237,30 @@ npm run catalog:index    # stub
 
 ---
 
-### 🔜 Фаза 1. MVP диалога + Kitchen demo (3–4 недели)
+### ✅ Фаза 1. MVP диалога + Kitchen demo
 
 **Цель:** диалог → plan из демо-каталога, 3D-превью, базовая совместимость.
 
-| # | Задача |
-|---|--------|
-| 1.1 | Демо-каталог kitchen (15–25 модулей) → MongoDB |
-| 1.2 | Catalog indexer + file vector store (`npm run catalog:index`) |
-| 1.3 | 7 интентов RU в intent-detector |
-| 1.4 | catalog-rag-retriever — реальный top-K |
-| 1.5 | configuration-plan-generator — rule-based |
-| 1.6 | room-context-builder — persist MongoDB |
-| 1.7 | kitchen/runPipeline — позиции модулей |
-| 1.8 | assertCompatible — 3 базовых правила |
-| 1.9 | calculateBOM — сумма по snapshot |
-| 1.10 | output-builder — полный ClientResponse |
-| 1.11 | Client: Preview3D (R3F) |
-| 1.12 | Client: multi-turn dialog |
-| 1.13 | Help service |
-| 1.14 | platform-rules RAG |
+| # | Задача | Статус |
+|---|--------|--------|
+| 1.1 | Демо-каталог kitchen (15–25 модулей) → MongoDB | ✅ 18 модулей |
+| 1.2 | Catalog indexer + file vector store (`npm run catalog:index`) | ✅ |
+| 1.3 | 7 интентов RU в intent-detector | ✅ |
+| 1.4 | catalog-rag-retriever — реальный top-K | ✅ |
+| 1.5 | configuration-plan-generator — rule-based | ✅ |
+| 1.6 | room-context-builder — persist MongoDB | ✅ + local fallback |
+| 1.7 | kitchen/runPipeline — позиции модулей | ✅ |
+| 1.8 | assertCompatible — 3 базовых правила | ✅ |
+| 1.9 | calculateBOM — сумма по snapshot | ✅ |
+| 1.10 | output-builder — полный ClientResponse | ✅ |
+| 1.11 | Client: Preview3D (R3F) | ✅ |
+| 1.12 | Client: multi-turn dialog | ✅ |
+| 1.13 | Help service | ✅ |
+| 1.14 | platform-rules RAG | ✅ |
 
 **7 интентов MVP:** `add_module`, `remove_module`, `change_finish`, `set_budget`, `show_price`, `help`, `unknown`.
 
-**Acceptance:** диалог «кухня 3×4» → plan + 3D; RAG только из каталога; overlap → `valid: false`; intent ≥ 85% на 50 фраз; P95 ≤ 800 ms.
+**Acceptance:** ✅ «кухня 3×4» → plan + 3D; catalog-grounded RAG; overlap → `valid: false`; intent ≥ 85% на 53 фразах; измеренный P95 411 ms ≤ 800 ms.
 
 ---
 
@@ -290,7 +291,7 @@ Wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 | AIproject | HomeCraft | Статус |
 |-----------|-----------|--------|
 | `core/orchestrator.js` | `core/orchestrator.js` | ✅ dialog-only |
-| `scene-context-builder.js` | `room-context-builder.js` | ✅ stub |
+| `scene-context-builder.js` | `room-context-builder.js` | ✅ persisted |
 | `output-builder.js` | `output-builder.js` | ✅ расширен |
 | `core/api/routes.js` | `core/api/routes.js` | ✅ mountRoutes |
 | `core/api/middleware.js` | `core/api/middleware.js` | ✅ + Zod |
@@ -300,8 +301,8 @@ Wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 | `ai-services/pipeline.js` | `ai-services/pipeline.js` | ✅ |
 | `packages/contracts` | `packages/contracts` (Zod) | ✅ |
 | `packages/ai/IntentRegistry` | `packages/ai/intent-registry.js` | ✅ |
-| — | `compatibility-engine/*` | stub |
-| — | `pricing-engine/*` | stub |
+| — | `compatibility-engine/*` | ✅ базовые правила |
+| — | `pricing-engine/*` | ✅ snapshot BOM |
 | — | `catalog-schema/*` | ✅ stub |
 | — | `storage/mongo.js` | ✅ connect |
 
@@ -346,7 +347,7 @@ Wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 | 4 | Plan format | JSON + Zod | ✅ фаза 0 |
 | 5 | LLM provider | Feature flag, stub | фаза 5 |
 | 6 | Auth | JWT → OAuth2 | фаза 6d |
-| 7 | Demo catalog | Synthetic JSON | фаза 1 |
+| 7 | Demo catalog | Synthetic JSON, 18 kitchen modules | ✅ фаза 1 |
 | 8 | Input model | Только диалог; ручной редактор исключён | ✅ |
 
 ---
@@ -362,7 +363,7 @@ Wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 
 **MVP для pilot:** конец фазы 4.
 
-**Следующий шаг:** [Фаза 1](#-фаза-1-mvp-диалога--kitchen-demo-3-4-недели).
+**Следующий шаг:** [Фаза 2](#фаза-2-compatibility-engine-2-3-нед).
 
 ---
 

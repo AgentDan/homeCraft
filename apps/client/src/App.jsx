@@ -9,6 +9,26 @@ function newId(prefix) {
   return `${prefix}-${crypto.randomUUID()}`;
 }
 
+function DialogHistory({ turns }) {
+  if (turns.length === 0) return null;
+  return (
+    <section className="mb-4 space-y-2" aria-label="История диалога">
+      {turns.map((turn) => (
+        <div
+          key={turn.id}
+          className={
+            turn.role === 'user'
+              ? 'ml-auto max-w-2xl rounded-lg bg-emerald-800 px-4 py-3 text-white'
+              : 'mr-auto max-w-2xl rounded-lg border border-stone-200 bg-white px-4 py-3 text-stone-800'
+          }
+        >
+          {turn.text}
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export function App() {
   const [sessionId] = useState(() => newId('sess'));
   const [projectId] = useState(() => newId('proj'));
@@ -18,6 +38,9 @@ export function App() {
   const [error, setError] = useState(/** @type {string | null} */ (null));
   const [health, setHealth] = useState(/** @type {unknown} */ (null));
   const [loading, setLoading] = useState(false);
+  const [turns, setTurns] = useState(
+    /** @type {Array<{id: string, role: 'user' | 'assistant', text: string}>} */ ([])
+  );
 
   useEffect(() => {
     getHealth()
@@ -33,6 +56,11 @@ export function App() {
     async (command, inputChannel = 'text') => {
       setLoading(true);
       setError(null);
+      setResponse(null);
+      setTurns((current) => [
+        ...current,
+        { id: newId('turn'), role: 'user', text: command }
+      ]);
       try {
         const result = await postCommand({
           requestId: newId('req'),
@@ -43,6 +71,10 @@ export function App() {
           clientState: {}
         });
         setResponse(result);
+        setTurns((current) => [
+          ...current,
+          { id: newId('turn'), role: 'assistant', text: result.message }
+        ]);
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       } finally {
@@ -53,13 +85,14 @@ export function App() {
   );
 
   return (
-    <main className="mx-auto min-h-screen max-w-3xl bg-stone-100 px-6 py-8 font-normal text-stone-900">
+    <main className="mx-auto min-h-screen max-w-5xl bg-stone-100 px-6 py-8 font-normal text-stone-900">
       <header className="mb-6">
         <h1 className="mb-1 font-medium text-3xl text-stone-900">HomeCraft</h1>
         <p className="text-stone-600">
-          Step 0 — диалог текстом или голосом → API → pipeline stub
+          MVP — соберите кухню в диалоге и посмотрите результат в 3D
         </p>
       </header>
+      <DialogHistory turns={response ? turns.slice(0, -1) : turns} />
       <CommandInput onSubmit={sendCommand} disabled={loading} />
       <div className="mb-6">
         <ResponseRouter

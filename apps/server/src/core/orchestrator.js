@@ -8,8 +8,10 @@ import {
 } from './output-builder.js';
 import {
   appendDialogTurn,
-  buildRoomContext
+  buildRoomContext,
+  persistRoomContext
 } from './room-context-builder.js';
+import { getHelpMessage } from './help-service.js';
 import { runPipeline as runKitchenPipeline } from '../domain-modules/kitchen/pipeline.js';
 import { calculateBOM } from '../pricing-engine/calculateBOM.js';
 import {
@@ -24,6 +26,7 @@ async function runDownstream({
   plan,
   message,
   explanation,
+  persistVersion = true,
   existingVersion = /** @type {number | undefined} */ (undefined),
   changeSummary = /** @type {{
     text: string,
@@ -39,10 +42,20 @@ async function runDownstream({
   const compatibility = await assertCompatible(plan, context);
   const scene = await runKitchenPipeline(plan, context);
   const bom = await calculateBOM(plan, plan.catalogSnapshotId);
+  const effectiveMessage = compatibility.valid
+    ? message
+    : `Изменения отклонены: ${compatibility.conflicts
+      .map((conflict) => conflict.message)
+      .join(' ')}`;
   const versionEntry =
-    existingVersion === undefined && compatibility.valid
+    persistVersion && existingVersion === undefined && compatibility.valid
       ? await appendPlanVersion(request.sessionId, request.projectId, plan)
       : null;
+
+  const budgetExplanation =
+    context.budgetRub !== undefined && bom.totalRub > context.budgetRub
+      ? `Стоимость превышает бюджет на ${bom.totalRub - context.budgetRub} ₽.`
+      : undefined;
 
   return buildOutput({
     request,
@@ -50,12 +63,35 @@ async function runDownstream({
     scene,
     bom,
     compatibility,
-    message,
-    explanation,
-    changeSummary,
+    message: effectiveMessage,
+    explanation: budgetExplanation
+      ? [explanation, budgetExplanation].filter(Boolean).join(' ')
+      : explanation,
+    changeSummary: compatibility.valid
+      ? changeSummary
+      : {
+        text: effectiveMessage,
+        added: [],
+        removed: [],
+        moved: []
+      },
     view,
-    planVersion: existingVersion ?? versionEntry?.version ?? 0
+    planVersion: existingVersion ?? versionEntry?.version ?? context.planVersion ?? 0
   });
+}
+
+async function finalizeResponse(context, response) {
+  let nextContext = context;
+  if (response.plan && response.compatibility?.valid) {
+    nextContext = {
+      ...nextContext,
+      planOperations: structuredClone(response.plan.operations),
+      planVersion: response.planVersion
+    };
+  }
+  nextContext = appendDialogTurn(nextContext, 'assistant', response.message);
+  await persistRoomContext(nextContext);
+  return { response, statusCode: 200 };
 }
 
 async function handleHistoryIntent(request, context, intentKind) {
@@ -94,9 +130,6 @@ async function handleHistoryIntent(request, context, intentKind) {
  * Routes a dialog command through intent detection and the shared downstream pipeline.
  */
 export async function route(request) {
-
-  console.log('request', request);
-
   await recordCommandRequest(request);
 
   let context = await buildRoomContext(
@@ -109,43 +142,95 @@ export async function route(request) {
     context = { ...context, catalogSnapshotId: request.catalogSnapshotId };
   }
 
-  console.log('context', context);
-
   context = appendDialogTurn(context, 'user', request.command);
+  await persistRoomContext(context);
 
-  console.log('context appendDialogTurn', context);
-
-  const { intent, plan } = await runAiPipeline(request, context);
-
-  console.log('intent', intent);
-
-  console.log('plan', plan);
+  const { intent, plan, outcome } = await runAiPipeline(request, context);
+  if (intent.slots?.roomWidthMm && intent.slots?.roomDepthMm) {
+    context = {
+      ...context,
+      roomShape: {
+        ...context.roomShape,
+        dimensions: {
+          ...context.roomShape.dimensions,
+          widthMm: intent.slots.roomWidthMm,
+          depthMm: intent.slots.roomDepthMm
+        }
+      }
+    };
+  }
 
   if (intent.kind === 'undo' || intent.kind === 'redo') {
     const response = await handleHistoryIntent(request, context, intent.kind);
-    return { response, statusCode: 200 };
+    return finalizeResponse(context, response);
   }
 
   if (intent.kind === 'help') {
-    const help = buildHelpResponse(request);
-    return { response: help, statusCode: 200 };
+    const help = buildHelpResponse(request, getHelpMessage());
+    return finalizeResponse(context, help);
   }
 
   if (intent.kind === 'unknown') {
     const unknown = buildUnknownIntentResponse(request, context);
-    return { response: unknown, statusCode: 200 };
+    return finalizeResponse(context, unknown);
   }
 
-  // TODO(phase 1): route plan-generator clarify/options/confirm outcomes here.
+  if (outcome.kind === 'clarify') {
+    const clarify = buildClarifyResponse(
+      request,
+      outcome.prompt,
+      context.planVersion
+    );
+    return finalizeResponse(context, clarify);
+  }
+
+  if (intent.kind === 'set_budget') {
+    if (intent.slots?.budgetRub === undefined) {
+      const clarify = buildClarifyResponse(
+        request,
+        'Укажите бюджет числом, например «бюджет до 150000».',
+        context.planVersion
+      );
+      return finalizeResponse(context, clarify);
+    }
+    context = { ...context, budgetRub: intent.slots.budgetRub };
+  }
+
+  const messages = {
+    add_module:
+      (outcome.addedCount ?? 0) > 1
+        ? `Добавлена стартовая кухня: ${outcome.addedCount} модуля.`
+        : `Добавлен модуль ${outcome.sku}.`,
+    remove_module: `Удалён модуль ${outcome.instanceId}.`,
+    change_finish: `Для ${outcome.instanceId} выбрана отделка ${outcome.finishId}.`,
+    set_budget: `Бюджет установлен: ${intent.slots?.budgetRub} ₽.`,
+    show_price: 'Стоимость проекта рассчитана.'
+  };
+
+  const readOnly = intent.kind === 'show_price' || intent.kind === 'set_budget';
+  const newOperations = plan.operations.slice(context.planOperations.length);
+  const changeSummary = {
+    text: messages[intent.kind] ?? 'Команда выполнена.',
+    added: newOperations
+      .filter((operation) => operation.type === 'add_module')
+      .map((operation) => operation.sku),
+    removed: newOperations
+      .filter((operation) => operation.type === 'remove_module')
+      .map((operation) => operation.instanceId),
+    moved: newOperations
+      .filter((operation) => operation.type === 'move_module')
+      .map((operation) => operation.instanceId)
+  };
   const response = await runDownstream({
     request,
     context,
     plan,
-    message: 'Dialog command processed (step0).',
-    explanation: `Intent: ${intent.kind}`
+    message: messages[intent.kind] ?? 'Команда выполнена.',
+    explanation: `Intent: ${intent.kind}`,
+    persistVersion: !readOnly,
+    existingVersion: readOnly ? context.planVersion : undefined,
+    changeSummary,
+    view: { kind: '3d_scene', render: 'full' }
   });
-
-  console.log('response', response);
-
-  return { response, statusCode: 200 };
+  return finalizeResponse(context, response);
 }

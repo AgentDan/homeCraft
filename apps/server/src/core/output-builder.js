@@ -80,8 +80,8 @@ export function buildUnknownIntentResponse(request, _context) {
   });
 }
 
-export function buildHelpResponse(request) {
-  const message = 'HomeCraft step0: опишите кухню текстом или голосом.';
+export function buildHelpResponse(request, helpMessage) {
+  const message = helpMessage ?? 'Опишите кухню текстом или голосом.';
   return ClientResponseSchema.parse({
     requestId: request.requestId,
     sessionId: request.sessionId,
@@ -90,7 +90,7 @@ export function buildHelpResponse(request) {
     responseType: 'help',
     message,
     speech: message,
-    explanation: 'Available intents will expand in phase 1.',
+    explanation: 'Доступные команды сформированы Help service.',
     interaction: { expects: 'none' },
     planVersion: 0,
     errors: [],
