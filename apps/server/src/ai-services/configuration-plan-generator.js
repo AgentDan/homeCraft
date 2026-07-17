@@ -9,18 +9,9 @@ export async function generatePlan(input) {
   const query = input.dialogText ?? '';
   await retrieve(query, catalogId, 5);
 
-  const operations =
-    input.sourceInputMode === 'editor' && input.editorOperations
-      ? structuredClone(input.editorOperations)
-      : [];
-
-  return {
-    ...createEmptyPlan({
-      planId: `plan-${Date.now()}`,
-      projectId: input.context.projectId,
-      catalogSnapshotId: catalogId,
-      sourceInputMode: input.sourceInputMode
-    }),
-    operations
-  };
+  return createEmptyPlan({
+    planId: `plan-${Date.now()}`,
+    projectId: input.context.projectId,
+    catalogSnapshotId: catalogId
+  });
 }

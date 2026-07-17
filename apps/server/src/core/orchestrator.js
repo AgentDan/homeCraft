@@ -91,13 +91,13 @@ async function handleHistoryIntent(request, context, intentKind) {
 }
 
 /**
- * Single entry for MODE A (dialog) and MODE B (editor).
- * Both converge to ConfigurationPlan and the same downstream pipeline.
+ * Routes a dialog command through intent detection and the shared downstream pipeline.
  */
 export async function route(request) {
-  await recordCommandRequest(request);
 
   console.log('request', request);
+
+  await recordCommandRequest(request);
 
   let context = await buildRoomContext(
     undefined,
@@ -109,48 +109,40 @@ export async function route(request) {
     context = { ...context, catalogSnapshotId: request.catalogSnapshotId };
   }
 
-  if (request.inputMode === 'dialog') {
-    const text = request.command ?? '';
-    context = appendDialogTurn(context, 'user', text);
+  console.log('context', context);
 
-    const { intent, plan } = await runAiPipeline(request, context);
+  context = appendDialogTurn(context, 'user', request.command);
 
-    if (intent.kind === 'undo' || intent.kind === 'redo') {
-      const response = await handleHistoryIntent(request, context, intent.kind);
-      return { response, statusCode: 200 };
-    }
+  console.log('context appendDialogTurn', context);
 
-    if (intent.kind === 'help') {
-      const help = buildHelpResponse(request);
-      return { response: help, statusCode: 200 };
-    }
+  const { intent, plan } = await runAiPipeline(request, context);
 
-    if (intent.kind === 'unknown') {
-      const unknown = buildUnknownIntentResponse(request, context);
-      return { response: unknown, statusCode: 200 };
-    }
+  console.log('intent', intent);
 
-    // TODO(phase 1): route plan-generator clarify/options/confirm outcomes here.
-    const response = await runDownstream({
-      request,
-      context,
-      plan,
-      message: 'Dialog command processed (step0).',
-      explanation: `Intent: ${intent.kind}`
-    });
+  console.log('plan', plan);
 
+  if (intent.kind === 'undo' || intent.kind === 'redo') {
+    const response = await handleHistoryIntent(request, context, intent.kind);
     return { response, statusCode: 200 };
   }
 
-  // MODE B — editor
-  const { plan } = await runAiPipeline(request, context);
+  if (intent.kind === 'help') {
+    const help = buildHelpResponse(request);
+    return { response: help, statusCode: 200 };
+  }
 
+  if (intent.kind === 'unknown') {
+    const unknown = buildUnknownIntentResponse(request, context);
+    return { response: unknown, statusCode: 200 };
+  }
+
+  // TODO(phase 1): route plan-generator clarify/options/confirm outcomes here.
   const response = await runDownstream({
     request,
     context,
     plan,
-    message: 'Editor operations applied (step0).',
-    explanation: 'MODE B uses the same pipeline as MODE A.'
+    message: 'Dialog command processed (step0).',
+    explanation: `Intent: ${intent.kind}`
   });
 
   return { response, statusCode: 200 };

@@ -2,7 +2,7 @@
 
 ## Architecture invariants (non-negotiable)
 
-1. **MODE A** (dialog) and **MODE B** (editor) converge to one `ConfigurationPlan` in `orchestrator.route()` and share the same downstream pipeline.
+1. **Dialog is the only input path:** every command becomes one `ConfigurationPlan` in `orchestrator.route()` and then uses the shared downstream pipeline.
 2. **`assertCompatible()`** is the **only** stage that may reject a plan (`valid: false`).
 3. **`calculateBOM()`** is a pure calculator — never blocks on budget.
 4. **Intent detection** is RU-first; no silent fallback — use `UnknownIntent`.

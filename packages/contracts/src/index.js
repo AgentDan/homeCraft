@@ -1,8 +1,6 @@
 export {
   ClientRequestSchema,
-  InputChannelSchema,
-  InputModeSchema,
-  PlanOperationSchema
+  InputChannelSchema
 } from './client-request.js';
 
 export {
@@ -22,6 +20,7 @@ export {
 
 export {
   ConfigurationPlanSchema,
+  PlanOperationSchema,
   PlanHistorySchema,
   PlanVersionEntrySchema,
   createEmptyPlan

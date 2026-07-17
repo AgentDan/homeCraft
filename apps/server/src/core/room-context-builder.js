@@ -17,7 +17,7 @@ function defaultRoomShape() {
  * @param userId - Optional authenticated user
  * @param projectId - Active project identifier
  * @param sessionId - Dialog session id
- * @param inputChannel - Text or voice source for MODE A
+ * @param inputChannel - Text or voice source for the dialog command
  * @returns RoomContext validated with Zod
  */
 export async function buildRoomContext(userId, projectId, sessionId, inputChannel = 'text') {

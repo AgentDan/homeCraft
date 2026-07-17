@@ -8,11 +8,8 @@ import { retrieve } from './catalog-rag-retriever.js';
  * All ai-services stages are invoked from here (invariant: no dead paths).
  */
 export async function runAiPipeline(request, context) {
-  const dialogText = request.command ?? '';
-  const intent =
-    request.inputMode === 'editor'
-      ? { kind: 'unknown', rawText: '', reason: 'editor_mode' }
-      : await detectIntent(dialogText);
+  const dialogText = request.command;
+  const intent = await detectIntent(dialogText);
 
   const chunks = await retrieve(dialogText, context.catalogSnapshotId, 5);
   buildPrompt({ context, intent, chunks });
@@ -20,9 +17,7 @@ export async function runAiPipeline(request, context) {
   const plan = await generatePlan({
     intent,
     context,
-    dialogText,
-    editorOperations: request.editorOperations,
-    sourceInputMode: request.inputMode
+    dialogText
   });
 
   return { intent, plan };

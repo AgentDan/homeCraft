@@ -36,7 +36,7 @@
 | `packages/ai` — IntentRegistry RU/EN | ✅ |
 | `packages/catalog-schema` — validator stub | ✅ |
 | Server skeleton + `POST /api/commands` | ✅ |
-| Orchestrator MODE A/B → единый pipeline | ✅ |
+| Диалоговый orchestrator → единый pipeline | ✅ |
 | `local-storage.js` (AIproject pattern) | ✅ |
 | MongoDB lazy connect | ✅ |
 | Client: CommandInput + ResultViewer + Tailwind | ✅ |
@@ -65,7 +65,7 @@
 |--------|-----------|-------------------|
 | Язык | JavaScript ESM | JavaScript ESM |
 | Домен | 3D/product-сцены | Мебель (кухня → …) |
-| Ввод | Только диалог | MODE A + MODE B (editor stub) |
+| Ввод | Только диалог | Только диалог |
 | AI | Intent + RAG → ActionPlan | Intent + RAG → ConfigurationPlan |
 | Детерминизм | Scene Modules | Compatibility + Pricing + domain pipeline |
 | Файлы | `apps/server/data/` | `apps/server/data/` (тот же паттерн) |
@@ -93,7 +93,7 @@
 
 См. [CONTRIBUTING.md](../CONTRIBUTING.md). Кратко:
 
-1. MODE A и MODE B → один `ConfigurationPlan` → один downstream pipeline.
+1. Диалог — единственный путь ввода: команда → один `ConfigurationPlan` → один downstream pipeline.
 2. Только `assertCompatible()` может отклонить план.
 3. `calculateBOM()` — чистый калькулятор, без блокировки по бюджету.
 4. RU-first intent, без silent fallback → `UnknownIntent`.
@@ -118,7 +118,7 @@ homecraft/
 │   │   │   ├── index.css              # Tailwind v4
 │   │   │   ├── api/client.js
 │   │   │   └── components/
-│   │   │       ├── CommandInput.jsx   # MODE A
+│   │   │       ├── CommandInput.jsx   # dialog input
 │   │   │       └── ResultViewer.jsx
 │   │   └── vite.config.js
 │   ├── mobile/                        # stub
@@ -156,13 +156,13 @@ homecraft/
 ├── docs/
 │   ├── Roadmap.md
 │   ├── step0.md
-│   └── dommaster-presentation-and-cursor-prompt.md
+│   └── dialog-flow.md
 ├── .env.example
 ├── eslint.config.js
 └── package.json
 ```
 
-**Планируется (фазы 1–6):** `Preview3D.jsx`, `RoomEditor.jsx`, R3F, полный RAG indexer, MongoDB persist.
+**Планируется (фазы 1–6):** `Preview3D.jsx`, R3F, полный RAG indexer, MongoDB persist.
 
 ---
 
@@ -224,7 +224,7 @@ npm run catalog:index    # stub
 | 0.6 | catalog-schema stub | ✅ |
 | 0.7 | Server skeleton | ✅ |
 | 0.8 | POST /api/commands + Zod | ✅ |
-| 0.9 | Orchestrator MODE A/B | ✅ |
+| 0.9 | Диалоговый orchestrator | ✅ |
 | 0.10 | Client shell + Tailwind | ✅ |
 | 0.11 | Mobile stub | ✅ |
 | 0.12 | README, CONTRIBUTING, .env.example | ✅ |
@@ -279,9 +279,9 @@ PDF spec, export в `data/exports/`, download API.
 
 llm-client, function calling, multi-turn, eval 200 RU phrases.
 
-### Фаза 6. MODE B + масштабирование
+### Фаза 6. Масштабирование и платформы
 
-RoomEditor, wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
+Wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 
 ---
 
@@ -289,7 +289,7 @@ RoomEditor, wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 
 | AIproject | HomeCraft | Статус |
 |-----------|-----------|--------|
-| `core/orchestrator.js` | `core/orchestrator.js` | ✅ + MODE B |
+| `core/orchestrator.js` | `core/orchestrator.js` | ✅ dialog-only |
 | `scene-context-builder.js` | `room-context-builder.js` | ✅ stub |
 | `output-builder.js` | `output-builder.js` | ✅ расширен |
 | `core/api/routes.js` | `core/api/routes.js` | ✅ mountRoutes |
@@ -333,7 +333,6 @@ RoomEditor, wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 | LLM галлюцинирует SKU | RAG-only + Zod boundary |
 | O(n²) compatibility | spatial index с фазы 2 |
 | Express 5 vs AIproject Express 4 | SPA fallback через middleware, не `*` |
-| MODE B раньше MODE A | editor только фаза 6a |
 
 ---
 
@@ -348,6 +347,7 @@ RoomEditor, wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 | 5 | LLM provider | Feature flag, stub | фаза 5 |
 | 6 | Auth | JWT → OAuth2 | фаза 6d |
 | 7 | Demo catalog | Synthetic JSON | фаза 1 |
+| 8 | Input model | Только диалог; ручной редактор исключён | ✅ |
 
 ---
 
@@ -369,6 +369,6 @@ RoomEditor, wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 ## Связанные документы
 
 - [step0.md](step0.md) — итоги фазы 0
-- [dommaster-presentation-and-cursor-prompt.md](dommaster-presentation-and-cursor-prompt.md)
+- [dialog-flow.md](dialog-flow.md) — поток диалога и API
 - [AIproject](https://github.com/AgentDan/AIproject)
 - [README.md](../README.md)

@@ -14,12 +14,38 @@ describe('@homecraft/contracts smoke', () => {
       requestId: 'req-1',
       sessionId: 'sess-1',
       projectId: 'proj-1',
-      inputMode: 'dialog',
       command: 'привет',
       clientState: {}
     });
-    assert.equal(parsed.inputMode, 'dialog');
+    assert.equal(parsed.command, 'привет');
     assert.equal(parsed.inputChannel, 'text');
+  });
+
+  it('rejects the removed editor-only request shape', () => {
+    assert.throws(() =>
+      ClientRequestSchema.parse({
+        requestId: 'req-1',
+        sessionId: 'sess-1',
+        projectId: 'proj-1',
+        inputMode: 'editor',
+        editorOperations: [],
+        clientState: {}
+      })
+    );
+  });
+
+  it('rejects legacy editor fields even when command is present', () => {
+    assert.throws(() =>
+      ClientRequestSchema.parse({
+        requestId: 'req-1',
+        sessionId: 'sess-1',
+        projectId: 'proj-1',
+        command: 'передвинь шкаф',
+        inputMode: 'editor',
+        editorOperations: [],
+        clientState: {}
+      })
+    );
   });
 
   it('creates stub client response', () => {

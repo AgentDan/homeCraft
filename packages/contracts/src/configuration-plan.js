@@ -1,12 +1,34 @@
 import { z } from 'zod';
-import { PlanOperationSchema } from './client-request.js';
+
+export const PlanOperationSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('add_module'),
+    sku: z.string().min(1),
+    position: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+    rotationY: z.number().default(0)
+  }),
+  z.object({
+    type: z.literal('remove_module'),
+    instanceId: z.string().min(1)
+  }),
+  z.object({
+    type: z.literal('move_module'),
+    instanceId: z.string().min(1),
+    position: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+    rotationY: z.number().optional()
+  }),
+  z.object({
+    type: z.literal('change_finish'),
+    instanceId: z.string().min(1),
+    finishId: z.string().min(1)
+  })
+]);
 
 export const ConfigurationPlanSchema = z.object({
   planId: z.string().min(1),
   projectId: z.string().min(1),
   catalogSnapshotId: z.string().min(1),
   operations: z.array(PlanOperationSchema),
-  sourceInputMode: z.enum(['dialog', 'editor']),
   createdAt: z.string().datetime()
 });
 

@@ -38,7 +38,6 @@ export function App() {
           requestId: newId('req'),
           sessionId,
           projectId,
-          inputMode: 'dialog',
           inputChannel,
           command,
           clientState: {}

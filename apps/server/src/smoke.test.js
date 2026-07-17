@@ -11,8 +11,7 @@ describe('@homecraft/server smoke', () => {
     const plan = createEmptyPlan({
       planId: 'p1',
       projectId: 'proj-1',
-      catalogSnapshotId: 'snap-1',
-      sourceInputMode: 'dialog'
+      catalogSnapshotId: 'snap-1'
     });
     const report = await assertCompatible(plan, {
       projectId: 'proj-1',
@@ -28,6 +27,46 @@ describe('@homecraft/server smoke', () => {
       updatedAt: new Date().toISOString()
     });
     assert.equal(report.valid, true);
+  });
+
+  it('rejects legacy editor request shape over HTTP', async () => {
+    const storageRoot = await mkdtemp(path.join(tmpdir(), 'homecraft-smoke-'));
+    process.env.SERVER_STORAGE_DIR = storageRoot;
+    const { createApp } = await import('./app.js');
+    const app = createApp();
+    const server = app.listen(0, '127.0.0.1');
+    await new Promise((resolve, reject) => {
+      server.once('listening', resolve);
+      server.once('error', reject);
+    });
+    const address = server.address();
+    if (!address || typeof address === 'string') {
+      throw new Error('Test server did not expose a TCP port.');
+    }
+    const endpoint = `http://127.0.0.1:${address.port}/api/commands`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId: 'req-editor',
+          sessionId: 'sess-editor',
+          projectId: 'proj-editor',
+          inputMode: 'editor',
+          editorOperations: [],
+          command: 'передвинь шкаф',
+          clientState: {}
+        })
+      });
+      assert.equal(response.status, 400);
+      const body = await response.json();
+      assert.equal(body.status, 'error');
+      assert.equal(body.message, 'Validation failed');
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+      await rm(storageRoot, { recursive: true, force: true });
+    }
   });
 
   it('accepts voice commands and supports undo over HTTP', async () => {
@@ -56,7 +95,6 @@ describe('@homecraft/server smoke', () => {
           requestId,
           sessionId,
           projectId,
-          inputMode: 'dialog',
           inputChannel,
           command,
           clientState: {}

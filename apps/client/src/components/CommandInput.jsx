@@ -14,7 +14,7 @@ export function CommandInput({ onSubmit, disabled }) {
   return (
     <form className="mb-6 flex flex-col gap-2" onSubmit={handleSubmit}>
       <label htmlFor="command" className="font-medium text-stone-800">
-        Команда (MODE A — диалог)
+        Команда
       </label>
       <textarea
         id="command"

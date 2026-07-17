@@ -9,6 +9,7 @@ Phase 0 deliverable for [Roadmap.md](./Roadmap.md). **Status: completed.**
 - [x] `@homecraft/ai` — IntentRegistry (RU, no silent fallback)
 - [x] `@homecraft/catalog-schema` — catalog validator stub
 - [x] Server skeleton + working `POST /api/commands`
+- [x] Единый dialog-only контракт запроса (`command` + `inputChannel`, без ручного редактора)
 - [x] Production deploy (`build:deploy`, `npm start`, SPA + API)
 - [x] Client shell (CommandInput + ResultViewer) + Tailwind CSS v4
 - [x] Mobile stub
