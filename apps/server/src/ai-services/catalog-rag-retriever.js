@@ -6,15 +6,12 @@ import {
 } from '../knowledge-base/indexer.js';
 
 const STOP_WORDS = new Set([
-  'добавь',
-  'добавить',
-  'поставь',
-  'пожалуйста',
-  'мне',
-  'для',
-  'кухни',
   'module',
-  'add'
+  'add',
+  'please',
+  'my',
+  'for',
+  'kitchen'
 ]);
 
 function tokenMatches(queryToken, indexedToken) {
@@ -65,7 +62,7 @@ export async function retrieve(query, catalogId, k = 5) {
 
   if (
     ranked.length === 0
-    && /модул|шкаф|module|cabinet/i.test(query)
+    && /module|cabinet/i.test(query)
   ) {
     const fallback = index.modules.find((entry) => entry.module.sku === 'BASE-600');
     if (fallback) {

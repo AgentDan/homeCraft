@@ -104,7 +104,7 @@ export async function generatePlan(input) {
         plan: createPlan(input, operations),
         outcome: {
           kind: 'clarify',
-          prompt: 'Какой модуль нужно добавить? Укажите тип и ширину, например «нижний шкаф 600».'
+          prompt: 'Which module should be added? Enter a type and width, for example "base cabinet 600".'
         }
       };
     }
@@ -130,7 +130,7 @@ export async function generatePlan(input) {
     if (!target) {
       return {
         plan: createPlan(input, operations),
-        outcome: { kind: 'clarify', prompt: 'В проекте нет модуля, который можно удалить.' }
+        outcome: { kind: 'clarify', prompt: 'The project has no module that can be removed.' }
       };
     }
     operations.push({ type: 'remove_module', instanceId: target });
@@ -148,7 +148,7 @@ export async function generatePlan(input) {
         plan: createPlan(input, operations),
         outcome: {
           kind: 'clarify',
-          prompt: 'Укажите отделку и модуль, например «сделай последний шкаф дубовым».'
+          prompt: 'Specify a finish and module, for example "change the last cabinet to oak".'
         }
       };
     }

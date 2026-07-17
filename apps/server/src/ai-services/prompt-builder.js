@@ -7,7 +7,7 @@ export function buildPrompt(input) {
   const chunks = input.chunks
     .map((chunk) =>
       'sku' in chunk
-        ? `${chunk.sku}: ${chunk.name} (${chunk.dimensions.widthMm} мм)`
+        ? `${chunk.sku}: ${chunk.name} (${chunk.dimensions.widthMm} mm)`
         : chunk.text
     )
     .join('\n---\n');

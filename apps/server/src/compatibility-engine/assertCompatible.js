@@ -50,7 +50,7 @@ export async function assertCompatible(plan, context) {
     ) {
       conflicts.push({
         kind: 'dimension_exceeded',
-        message: `${module.name} выходит за границы комнаты.`,
+        message: `${module.name} extends beyond the room boundaries.`,
         instanceIds: [module.instanceId],
         suggestedSkus: []
       });
@@ -63,7 +63,7 @@ export async function assertCompatible(plan, context) {
     ) {
       conflicts.push({
         kind: 'mounting_mismatch',
-        message: `${module.name} установлен на неподходящей высоте.`,
+        message: `${module.name} is installed at an unsuitable height.`,
         instanceIds: [module.instanceId],
         suggestedSkus: []
       });
@@ -82,7 +82,7 @@ export async function assertCompatible(plan, context) {
       if (neighbor && overlaps(module, neighbor)) {
         conflicts.push({
           kind: 'overlap',
-          message: `${module.name} пересекается с ${neighbor.name}.`,
+          message: `${module.name} overlaps ${neighbor.name}.`,
           instanceIds: [module.instanceId, neighbor.instanceId],
           suggestedSkus: []
         });

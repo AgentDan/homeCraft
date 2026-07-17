@@ -13,8 +13,7 @@ const platformRulesPath = fileURLToPath(
 
 export function tokenize(value) {
   return String(value)
-    .toLocaleLowerCase('ru-RU')
-    .replace(/ё/g, 'е')
+    .toLocaleLowerCase('en-US')
     .split(/[^\p{L}\p{N}-]+/u)
     .filter((token) => token.length > 1);
 }

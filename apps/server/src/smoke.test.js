@@ -15,7 +15,7 @@ import { retrieve } from './ai-services/catalog-rag-retriever.js';
 describe('@homecraft/server smoke', () => {
   it('retrieves grounded modules from the demo catalog', async () => {
     const modules = await retrieve(
-      'добавь шкаф под мойку 800',
+      'add sink cabinet 800',
       'kitchen-demo-v1',
       3
     );
@@ -115,7 +115,7 @@ describe('@homecraft/server smoke', () => {
           projectId: 'proj-editor',
           inputMode: 'editor',
           editorOperations: [],
-          command: 'передвинь шкаф',
+          command: 'move cabinet',
           clientState: {}
         })
       });
@@ -174,7 +174,7 @@ describe('@homecraft/server smoke', () => {
           sessionId: `${sessionId}-starter`,
           projectId: `${projectId}-starter`,
           inputChannel: 'text',
-          command: 'кухня 3×4',
+          command: 'add kitchen cabinet 3x4',
           clientState: {}
         })
       });
@@ -184,40 +184,40 @@ describe('@homecraft/server smoke', () => {
       assert.equal(starter.view?.kind, '3d_scene');
       assert.equal(starter.sceneResult?.modules.length, 4);
 
-      const voice = await postCommand('добавь модуль', 'req-voice', 'voice');
+      const voice = await postCommand('add module', 'req-voice', 'voice');
       assert.equal(voice.responseType, 'scene');
       assert.equal(voice.planVersion, 1);
       assert.equal(voice.plan?.operations.length, 1);
       assert.equal(voice.sceneResult?.modules.length, 1);
       assert.ok((voice.bom?.totalRub ?? 0) > 0);
 
-      const second = await postCommand('цвет дуб', 'req-second');
+      const second = await postCommand('oak finish', 'req-second');
       assert.equal(second.planVersion, 2);
       assert.equal(second.sceneResult?.modules[0].finishId, 'oak');
 
-      const budget = await postCommand('бюджет до 10000', 'req-budget');
+      const budget = await postCommand('budget up to 10000', 'req-budget');
       assert.equal(budget.planVersion, 2);
-      assert.match(budget.explanation ?? '', /превышает бюджет/);
+      assert.match(budget.explanation ?? '', /exceeds the budget/);
 
-      const price = await postCommand('покажи стоимость', 'req-price');
+      const price = await postCommand('show price', 'req-price');
       assert.equal(price.planVersion, 2);
       assert.ok((price.bom?.totalRub ?? 0) > 0);
 
-      const help = await postCommand('помощь', 'req-help');
+      const help = await postCommand('help', 'req-help');
       assert.equal(help.responseType, 'help');
-      assert.match(help.message, /Примеры команд/);
+      assert.match(help.message, /Example commands/);
 
-      const undo = await postCommand('отмени', 'req-undo');
+      const undo = await postCommand('undo', 'req-undo');
       assert.equal(undo.responseType, 'scene');
       assert.equal(undo.planVersion, 1);
       assert.ok(undo.view);
       assert.equal(undo.view.render, 'full');
 
-      const noMoreUndo = await postCommand('отмени', 'req-empty-undo');
+      const noMoreUndo = await postCommand('undo', 'req-empty-undo');
       assert.equal(noMoreUndo.responseType, 'clarify');
       assert.equal(noMoreUndo.interaction.expects, 'free_text');
 
-      const redo = await postCommand('повтори', 'req-redo');
+      const redo = await postCommand('redo', 'req-redo');
       assert.equal(redo.responseType, 'scene');
       assert.equal(redo.planVersion, 2);
       assert.ok(redo.view);

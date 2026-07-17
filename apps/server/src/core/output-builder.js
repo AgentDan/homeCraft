@@ -63,7 +63,7 @@ export function buildOutput(input) {
 }
 
 export function buildUnknownIntentResponse(request, _context) {
-  const prompt = 'Не удалось понять команду. Переформулируйте, пожалуйста.';
+  const prompt = 'The command was not understood. Please rephrase it.';
   return ClientResponseSchema.parse({
     requestId: request.requestId,
     sessionId: request.sessionId,
@@ -81,7 +81,7 @@ export function buildUnknownIntentResponse(request, _context) {
 }
 
 export function buildHelpResponse(request, helpMessage) {
-  const message = helpMessage ?? 'Опишите кухню текстом или голосом.';
+  const message = helpMessage ?? 'Describe the kitchen by text or voice.';
   return ClientResponseSchema.parse({
     requestId: request.requestId,
     sessionId: request.sessionId,
@@ -90,7 +90,7 @@ export function buildHelpResponse(request, helpMessage) {
     responseType: 'help',
     message,
     speech: message,
-    explanation: 'Доступные команды сформированы Help service.',
+    explanation: 'Available commands were provided by the Help service.',
     interaction: { expects: 'none' },
     planVersion: 0,
     errors: [],

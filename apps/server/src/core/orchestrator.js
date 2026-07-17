@@ -44,7 +44,7 @@ async function runDownstream({
   const bom = await calculateBOM(plan, plan.catalogSnapshotId);
   const effectiveMessage = compatibility.valid
     ? message
-    : `Изменения отклонены: ${compatibility.conflicts
+    : `Changes rejected: ${compatibility.conflicts
       .map((conflict) => conflict.message)
       .join(' ')}`;
   const versionEntry =
@@ -54,7 +54,7 @@ async function runDownstream({
 
   const budgetExplanation =
     context.budgetRub !== undefined && bom.totalRub > context.budgetRub
-      ? `Стоимость превышает бюджет на ${bom.totalRub - context.budgetRub} ₽.`
+      ? `The cost exceeds the budget by ${bom.totalRub - context.budgetRub} RUB.`
       : undefined;
 
   return buildOutput({
@@ -105,15 +105,15 @@ async function handleHistoryIntent(request, context, intentKind) {
     // TODO(phase 1): tailor this clarification using persisted dialog context.
     const prompt =
       intentKind === 'undo'
-        ? 'Нечего отменять. Опишите, что нужно изменить.'
-        : 'Нечего возвращать. Сначала отмените изменение.';
+        ? 'There is nothing to undo. Describe what you want to change.'
+        : 'There is nothing to redo. Undo a change first.';
     return buildClarifyResponse(request, prompt);
   }
 
   const message =
     intentKind === 'undo'
-      ? 'Последнее изменение отменено.'
-      : 'Отменённое изменение возвращено.';
+      ? 'The last change was undone.'
+      : 'The undone change was restored.';
   return runDownstream({
     request,
     context,
@@ -132,6 +132,8 @@ async function handleHistoryIntent(request, context, intentKind) {
 export async function route(request) {
   await recordCommandRequest(request);
 
+  console.log('request', request);
+
   let context = await buildRoomContext(
     undefined,
     request.projectId,
@@ -142,8 +144,12 @@ export async function route(request) {
     context = { ...context, catalogSnapshotId: request.catalogSnapshotId };
   }
 
+  console.log('contextBuildRoomContext', context);
+
   context = appendDialogTurn(context, 'user', request.command);
   await persistRoomContext(context);
+
+  console.log('contextAppendDialogTurn', context);
 
   const { intent, plan, outcome } = await runAiPipeline(request, context);
   if (intent.slots?.roomWidthMm && intent.slots?.roomDepthMm) {
@@ -159,6 +165,10 @@ export async function route(request) {
       }
     };
   }
+
+  console.log('intent', intent);
+  console.log('plan', plan);
+  console.log('outcome', outcome);
 
   if (intent.kind === 'undo' || intent.kind === 'redo') {
     const response = await handleHistoryIntent(request, context, intent.kind);
@@ -188,7 +198,7 @@ export async function route(request) {
     if (intent.slots?.budgetRub === undefined) {
       const clarify = buildClarifyResponse(
         request,
-        'Укажите бюджет числом, например «бюджет до 150000».',
+        'Enter a numeric budget, for example "budget up to 150000".',
         context.planVersion
       );
       return finalizeResponse(context, clarify);
@@ -199,18 +209,18 @@ export async function route(request) {
   const messages = {
     add_module:
       (outcome.addedCount ?? 0) > 1
-        ? `Добавлена стартовая кухня: ${outcome.addedCount} модуля.`
-        : `Добавлен модуль ${outcome.sku}.`,
-    remove_module: `Удалён модуль ${outcome.instanceId}.`,
-    change_finish: `Для ${outcome.instanceId} выбрана отделка ${outcome.finishId}.`,
-    set_budget: `Бюджет установлен: ${intent.slots?.budgetRub} ₽.`,
-    show_price: 'Стоимость проекта рассчитана.'
+        ? `Starter kitchen added: ${outcome.addedCount} modules.`
+        : `Module ${outcome.sku} added.`,
+    remove_module: `Module ${outcome.instanceId} removed.`,
+    change_finish: `Finish ${outcome.finishId} selected for ${outcome.instanceId}.`,
+    set_budget: `Budget set to ${intent.slots?.budgetRub} RUB.`,
+    show_price: 'Project cost calculated.'
   };
 
   const readOnly = intent.kind === 'show_price' || intent.kind === 'set_budget';
   const newOperations = plan.operations.slice(context.planOperations.length);
   const changeSummary = {
-    text: messages[intent.kind] ?? 'Команда выполнена.',
+    text: messages[intent.kind] ?? 'Command completed.',
     added: newOperations
       .filter((operation) => operation.type === 'add_module')
       .map((operation) => operation.sku),
@@ -225,7 +235,7 @@ export async function route(request) {
     request,
     context,
     plan,
-    message: messages[intent.kind] ?? 'Команда выполнена.',
+    message: messages[intent.kind] ?? 'Command completed.',
     explanation: `Intent: ${intent.kind}`,
     persistVersion: !readOnly,
     existingVersion: readOnly ? context.planVersion : undefined,

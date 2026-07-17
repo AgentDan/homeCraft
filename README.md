@@ -1,29 +1,29 @@
 # HomeCraft
 
-AI-платформа для диалоговой сборки мебельных проектов из каталога производителя.
+An AI platform for conversationally assembling furniture projects from a manufacturer's catalog.
 
-Архитектурный каркас — как [AIproject](https://github.com/AgentDan/AIproject): orchestrator, RAG, детерминированные domain modules. Домен мебели: Compatibility Engine, Pricing, BOM, production export.
+The architectural foundation follows [AIproject](https://github.com/AgentDan/AIproject): an orchestrator, RAG, and deterministic domain modules. The furniture domain adds a Compatibility Engine, Pricing, BOM, and production export.
 
-**Текущий статус:** фаза 1 завершена — demo catalog, file vector RAG, rule-based plans, 3D preview, compatibility, BOM и multi-turn dialog.
+**Current status:** Phase 1 is complete — demo catalog, file-vector RAG, rule-based plans, 3D preview, compatibility, BOM, and multi-turn dialog.
 
-Диалоговый вход принимает текст или расшифровку голоса через единый `command`; `inputChannel` только отмечает источник (`text`/`voice`). Команды преобразуются в cumulative `ConfigurationPlan`, проверяются Compatibility Engine, визуализируются в R3F и рассчитываются в BOM. Версии плана поддерживают undo/redo.
+Dialog input accepts text or a voice transcript through a single `command`; `inputChannel` only identifies the source (`text`/`voice`). Commands are converted into a cumulative `ConfigurationPlan`, validated by the Compatibility Engine, visualized in R3F, and calculated as a BOM. Plan versions support undo/redo.
 
 ---
 
-## Стек
+## Stack
 
-| Слой | Технология |
-|------|------------|
-| Язык | JavaScript (ESM), без TypeScript |
+| Layer | Technology |
+|-------|------------|
+| Language | JavaScript (ESM), without TypeScript |
 | API | Node.js 20 + Express 5 + Zod |
 | Client | React 19 + Vite + Tailwind CSS v4 |
-| БД | MongoDB (lazy connect) |
-| Файлы | `apps/server/data/` — как AIproject |
+| Database | MongoDB (lazy connection) |
+| Files | `apps/server/data/` — following AIproject |
 | Monorepo | npm workspaces |
 
 ---
 
-## Быстрый старт (development)
+## Quick start (development)
 
 ```bash
 cp .env.example .env
@@ -31,39 +31,39 @@ npm install
 npm run dev
 ```
 
-| Сервис | URL |
-|--------|-----|
+| Service | URL |
+|---------|-----|
 | API | http://localhost:3001 |
 | Client (Vite) | http://localhost:5173 |
 | Health | http://localhost:3001/api/health |
 
-Dev-режим: API и клиент раздельно (Vite proxy → `/api`).
+Development mode runs the API and client separately (Vite proxy → `/api`).
 
 ---
 
-## Production deploy (как AIproject)
+## Production deployment (following AIproject)
 
 ```bash
 cp .env.example .env
-# В .env: NODE_ENV=production, CORS_ORIGIN=https://your-domain.com
+# In .env: NODE_ENV=production, CORS_ORIGIN=https://your-domain.com
 
 npm install
 npm run build:deploy
 npm start
 ```
 
-Один процесс на `HOST:PORT` (по умолчанию `0.0.0.0:3001`):
+One process listens on `HOST:PORT` (`0.0.0.0:3001` by default):
 
 - **API** — `/api/*`
-- **SPA** — статика из `apps/client/dist` (fallback на `index.html`)
-- **GLTF** — `/gltf` из `apps/server/gltf`
-- **Сессии** — `apps/server/data/` или `SERVER_STORAGE_DIR`
+- **SPA** — static files from `apps/client/dist` (fallback to `index.html`)
+- **GLTF** — `/gltf` from `apps/server/gltf`
+- **Sessions** — `apps/server/data/` or `SERVER_STORAGE_DIR`
 
 ---
 
-## Переменные окружения
+## Environment variables
 
-Файл **`.env` в корне монорепо** (шаблон — `.env.example`):
+Use the **`.env` file at the monorepo root** (template: `.env.example`):
 
 ```bash
 PORT=3001
@@ -73,16 +73,16 @@ NODE_ENV=development
 MONGODB_URI=mongodb://localhost:27017/homecraft
 MONGODB_TIMEOUT_MS=500
 
-# SERVER_STORAGE_DIR=       # по умолчанию apps/server/data
+# SERVER_STORAGE_DIR=       # defaults to apps/server/data
 # CORS_ORIGIN=              # production
-# CLIENT_DIST_PATH=         # по умолчанию apps/client/dist
+# CLIENT_DIST_PATH=         # defaults to apps/client/dist
 ```
 
-Загрузка: `apps/server/src/config/load-env.js`.
+Loaded by `apps/server/src/config/load-env.js`.
 
 ---
 
-## Пайплайн
+## Pipeline
 
 ```
 POST /api/commands
@@ -92,7 +92,7 @@ POST /api/commands
         → intent-detector             [AI]
         → catalog-rag-retriever       [file vector index]
         → configuration-plan-generator [rule-based]
-      → assertCompatible()            [единственный rejector]
+      → assertCompatible()            [only rejection stage]
       → domain-modules/kitchen/runPipeline()
       → calculateBOM()
     → output-builder → ClientResponse
@@ -100,55 +100,55 @@ POST /api/commands
 
 ---
 
-## Структура монорепо
+## Monorepo structure
 
 ```
 apps/
   client/          React + Vite + Tailwind + R3F
   server/          Express API, orchestrator, engines, storage
-  mobile/          stub (фаза 6)
+  mobile/          stub (Phase 6)
 packages/
-  contracts/       Zod-схемы (ClientRequest, ConfigurationPlan, BOM, …)
-  ai/              IntentRegistry RU/EN, llm-client stub
-  catalog-schema/  Zod-схема каталога производителя
+  contracts/       Zod schemas (ClientRequest, ConfigurationPlan, BOM, …)
+  ai/              English-only IntentRegistry, llm-client stub
+  catalog-schema/  Zod schema for manufacturer catalogs
 docs/
-  Roadmap.md       план фаз
-  step0.md         итоги фазы 0
+  Roadmap.md       development phases
+  step0.md         Phase 0 results
 ```
 
 ---
 
-## Скрипты
+## Scripts
 
-| Команда | Описание |
-|---------|----------|
-| `npm run dev` | Server (nodemon, только `src/`) + client (Vite) |
-| `npm run dev:server` | Только API |
-| `npm run dev:client` | Только клиент |
-| `npm run build` | Сборка client → `apps/client/dist` |
-| `npm run build:deploy` | То же — для деплоя |
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Server (nodemon, `src/` only) + client (Vite) |
+| `npm run dev:server` | API only |
+| `npm run dev:client` | Client only |
+| `npm run build` | Build client → `apps/client/dist` |
+| `npm run build:deploy` | Same build for deployment |
 | `npm start` | Production server |
-| `npm run test` | Smoke tests (все workspaces) |
+| `npm run test` | Smoke tests (all workspaces) |
 | `npm run lint` | ESLint |
-| `npm run catalog:index` | Пересобрать catalog/platform-rules vector index и seed MongoDB |
+| `npm run catalog:index` | Rebuild the catalog/platform-rules vector index and seed MongoDB |
 
 ---
 
 ## API (Phase 1)
 
-| Метод | Путь | Описание |
-|-------|------|----------|
-| GET | `/health` | Краткий health |
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Brief health check |
 | GET | `/api/health` | Health + storage + MongoDB |
-| GET | `/api` | Список endpoints |
-| GET | `/api/storage/status` | Статус local storage |
-| POST | `/api/commands` | Основной пайплайн |
+| GET | `/api` | Endpoint list |
+| GET | `/api/storage/status` | Local storage status |
+| POST | `/api/commands` | Main pipeline |
 
 ---
 
-## Документация
+## Documentation
 
-- [docs/Roadmap.md](docs/Roadmap.md) — фазы разработки
-- [docs/step0.md](docs/step0.md) — что сделано в фазе 0
-- [CONTRIBUTING.md](CONTRIBUTING.md) — инварианты и code review
-- [docs/dialog-flow.md](docs/dialog-flow.md) — поток диалога и API
+- [docs/Roadmap.md](docs/Roadmap.md) — development phases
+- [docs/step0.md](docs/step0.md) — work completed in Phase 0
+- [CONTRIBUTING.md](CONTRIBUTING.md) — invariants and code review
+- [docs/dialog-flow.md](docs/dialog-flow.md) — dialog flow and API

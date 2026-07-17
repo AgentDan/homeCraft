@@ -1,113 +1,113 @@
 # HomeCraft — Roadmap
 
-> **HomeCraft** — AI-платформа для диалоговой сборки мебельных проектов из реального каталога производителя.
-> Архитектурный каркас — [AIproject](https://github.com/AgentDan/AIproject); домен мебели: Compatibility Engine, Pricing, BOM, production export.
+> **HomeCraft** — an AI platform for conversationally assembling furniture projects from a real manufacturer catalog.
+> The architectural foundation is [AIproject](https://github.com/AgentDan/AIproject); the furniture domain adds a Compatibility Engine, Pricing, BOM, and production export.
 
-**Статус:** ✅ **Фаза 1 завершена** (MVP диалога, kitchen demo, 3D, BOM, compatibility).
-**Следующий шаг:** **Фаза 2** — расширение Compatibility Engine.
-**Целевой MVP:** 4–5 месяцев при команде 2–3 человека.
-**Принцип:** contract-first (Zod), skeleton → logic file-by-file, без «мёртвых» стадий пайплайна.
-
----
-
-## Содержание
-
-1. [Текущее состояние (фазы 0–1)](#1-текущее-состояние-фазы-01)
-2. [Чем HomeCraft похож на AIproject](#2-чем-homecraft-похож-на-aiproject)
-3. [Архитектурные инварианты](#3-архитектурные-инварианты)
-4. [Структура монорепозитория (факт)](#4-структура-монорепозитория-факт)
-5. [Стек и инфраструктура](#5-стек-и-инфраструктура)
-6. [Фазы разработки](#6-фазы-разработки)
-7. [Маппинг: AIproject → HomeCraft](#7-маппинг-aiproject--homecraft)
-8. [Метрики и Definition of Done](#8-метрики-и-definition-of-done)
-9. [Риски](#9-риски)
-10. [Открытые решения](#10-открытые-решения)
+**Status:** ✅ **Phase 1 complete** (dialog MVP, kitchen demo, 3D, BOM, compatibility).
+**Next step:** **Phase 2** — expand the Compatibility Engine.
+**Target MVP:** 4–5 months with a team of 2–3 people.
+**Principle:** contract-first (Zod), skeleton → logic file by file, with no dead pipeline stages.
 
 ---
 
-## 1. Текущее состояние (фазы 0–1)
+## Contents
 
-### Реализовано
+1. [Current state (Phases 0–1)](#1-current-state-phases-01)
+2. [How HomeCraft follows AIproject](#2-how-homecraft-follows-aiproject)
+3. [Architecture invariants](#3-architecture-invariants)
+4. [Current monorepo structure](#4-current-monorepo-structure)
+5. [Stack and infrastructure](#5-stack-and-infrastructure)
+6. [Development phases](#6-development-phases)
+7. [Mapping: AIproject → HomeCraft](#7-mapping-aiproject--homecraft)
+8. [Metrics and Definition of Done](#8-metrics-and-definition-of-done)
+9. [Risks](#9-risks)
+10. [Open decisions](#10-open-decisions)
 
-| Компонент | Статус |
+---
+
+## 1. Current state (Phases 0–1)
+
+### Implemented
+
+| Component | Status |
 |-----------|--------|
 | npm workspaces monorepo | ✅ |
-| `packages/contracts` — Zod-схемы | ✅ |
-| `packages/ai` — IntentRegistry RU/EN | ✅ |
+| `packages/contracts` — Zod schemas | ✅ |
+| `packages/ai` — English-only IntentRegistry | ✅ |
 | `packages/catalog-schema` — validator stub | ✅ |
 | Server skeleton + `POST /api/commands` | ✅ |
-| Диалоговый orchestrator → единый pipeline | ✅ |
+| Dialog orchestrator → unified pipeline | ✅ |
 | `local-storage.js` (AIproject pattern) | ✅ |
 | MongoDB lazy connect | ✅ |
 | Client: CommandInput + ResultViewer + Tailwind | ✅ |
 | Mobile stub | ✅ |
 | Production deploy: `build:deploy` + `npm start` | ✅ |
-| SPA + API на одном порту (production) | ✅ |
+| SPA + API on one port (production) | ✅ |
 | CI: lint + test + build | ✅ |
 
-### Реализовано в фазе 1
+### Implemented in Phase 1
 
-- демо-каталог из 18 kitchen-модулей, snapshot и MongoDB seed;
-- файловый vector index и catalog/platform-rules retrieval;
+- demo catalog of 18 kitchen modules, snapshot, and MongoDB seed;
+- file-based vector index and catalog/platform-rules retrieval;
 - rule-based `configuration-plan-generator`;
-- три базовые проверки compatibility + spatial index;
-- реальный BOM по frozen snapshot;
-- детерминированная kitchen scene и Preview3D на R3F;
-- локальная и MongoDB persistence контекста, multi-turn dialog;
-- Help service и RU intent corpus.
+- three basic compatibility checks plus a spatial index;
+- real BOM from a frozen snapshot;
+- deterministic kitchen scene and R3F Preview3D;
+- local and MongoDB context persistence, multi-turn dialog;
+- Help service and English intent corpus.
 
-Подробности: [docs/step0.md](step0.md).
+Details: [docs/step0.md](step0.md).
 
 ---
 
-## 2. Чем HomeCraft похож на AIproject
+## 2. How HomeCraft follows AIproject
 
-| Аспект | AIproject | HomeCraft (сейчас) |
-|--------|-----------|-------------------|
-| Язык | JavaScript ESM | JavaScript ESM |
-| Домен | 3D/product-сцены | Мебель (кухня → …) |
-| Ввод | Только диалог | Только диалог |
+| Aspect | AIproject | HomeCraft (current) |
+|--------|-----------|---------------------|
+| Language | JavaScript ESM | JavaScript ESM |
+| Domain | 3D/product scenes | Furniture (kitchen → …) |
+| Input | Dialog only | Dialog only |
 | AI | Intent + RAG → ActionPlan | Intent + RAG → ConfigurationPlan |
-| Детерминизм | Scene Modules | Compatibility + Pricing + domain pipeline |
-| Файлы | `apps/server/data/` | `apps/server/data/` (тот же паттерн) |
+| Determinism | Scene Modules | Compatibility + Pricing + domain pipeline |
+| Files | `apps/server/data/` | `apps/server/data/` (same pattern) |
 | Deploy | server.js + static dist | server.js + static dist (Express 5) |
-| БД | — | MongoDB (добавлено) |
-| Контракты | JS validators | **Zod** в `@homecraft/contracts` |
+| Database | — | MongoDB (added) |
+| Contracts | JS validators | **Zod** in `@homecraft/contracts` |
 | Client | React + Vite | React 19 + Vite + **Tailwind v4** |
 
-**Перенесено из AIproject:**
+**Carried over from AIproject:**
 
 - orchestrator → context builder → AI pipeline → domain modules → output builder
-- LLM не мутирует сцену/цену — только план
+- the LLM does not mutate the scene or price — only the plan
 - `local-storage`, `/gltf`, `load-env`, `mountRoutes`, production SPA
 - npm workspaces, `POST /api/commands`
 
-**Новое в HomeCraft:**
+**New in HomeCraft:**
 
 - Compatibility Engine, Pricing Engine, catalog-schema
 - RoomContext, ConfigurationPlan, BOM
-- MongoDB для каталога и контекста проекта с local fallback
+- MongoDB for the catalog and project context, with a local fallback
 
 ---
 
-## 3. Архитектурные инварианты
+## 3. Architecture invariants
 
-См. [CONTRIBUTING.md](../CONTRIBUTING.md). Кратко:
+See [CONTRIBUTING.md](../CONTRIBUTING.md). In brief:
 
-1. Диалог — единственный путь ввода: команда → один `ConfigurationPlan` → один downstream pipeline.
-2. Только `assertCompatible()` может отклонить план.
-3. `calculateBOM()` — чистый калькулятор, без блокировки по бюджету.
-4. RU-first intent, без silent fallback → `UnknownIntent`.
-5. `catalog-rag-retriever` подключён к `configuration-plan-generator`.
-6. Catalog snapshot для стабильных цен.
-7. Spatial index в compatibility (не O(n²)).
-8. Zod на границах API и storage.
-9. `structuredClone`, не `JSON.parse(JSON.stringify(...))`.
+1. Dialog is the only input path: command → one `ConfigurationPlan` → one downstream pipeline.
+2. Only `assertCompatible()` may reject a plan.
+3. `calculateBOM()` is a pure calculator and does not block based on budget.
+4. English-only intents, with no silent fallback → `UnknownIntent`.
+5. `catalog-rag-retriever` is connected to `configuration-plan-generator`.
+6. Catalog snapshots provide stable prices.
+7. Compatibility uses a spatial index (not O(n²)).
+8. Zod is used at API and storage boundaries.
+9. Use `structuredClone`, not `JSON.parse(JSON.stringify(...))`.
 10. UI: font-weight 400/500, sentence case (Tailwind).
 
 ---
 
-## 4. Структура монорепозитория (факт)
+## 4. Current monorepo structure
 
 ```
 homecraft/
@@ -163,29 +163,29 @@ homecraft/
 └── package.json
 ```
 
-**Планируется (фазы 1–6):** `Preview3D.jsx`, R3F, полный RAG indexer, MongoDB persist.
+**Planned (Phases 1–6):** `Preview3D.jsx`, R3F, full RAG indexer, MongoDB persistence.
 
 ---
 
-## 5. Стек и инфраструктура
+## 5. Stack and infrastructure
 
-| Слой | Технология | Статус |
-|------|------------|--------|
+| Layer | Technology | Status |
+|-------|------------|--------|
 | Runtime | Node.js 20 | ✅ |
 | API | Express 5 + Zod | ✅ |
 | Client | React 19 + Vite + Tailwind v4 | ✅ shell |
 | Client 3D | React Three Fiber + Zustand | ✅ Preview3D |
-| Mobile | Expo | stub, фаза 6 |
-| БД | MongoDB (локально или удалённо, `MONGODB_URI`) | ✅ + local fallback |
-| Кэш | Redis | фаза 3 |
-| Файлы | `apps/server/data/` | ✅ |
+| Mobile | Expo | stub, Phase 6 |
+| Database | MongoDB (local or remote, `MONGODB_URI`) | ✅ + local fallback |
+| Cache | Redis | Phase 3 |
+| Files | `apps/server/data/` | ✅ |
 | RAG index | file vector store | ✅ |
 | CI | lint + test + build | ✅ |
 
-### Переменные окружения
+### Environment variables
 
 ```bash
-# .env в корне монорепо
+# .env at the monorepo root
 PORT=3001
 HOST=0.0.0.0
 NODE_ENV=development
@@ -195,7 +195,7 @@ MONGODB_URI=mongodb://localhost:27017/homecraft
 # CLIENT_DIST_PATH=
 ```
 
-### Команды
+### Commands
 
 ```bash
 npm install
@@ -209,90 +209,90 @@ npm run catalog:index    # rebuild catalog and platform-rules index
 
 ---
 
-## 6. Фазы разработки
+## 6. Development phases
 
-### ✅ Фаза 0. Фундамент — ЗАВЕРШЕНА
+### ✅ Phase 0. Foundation — COMPLETE
 
-**Цель:** monorepo, контракты, pipeline end-to-end, deploy.
+**Goal:** monorepo, contracts, end-to-end pipeline, deployment.
 
-| # | Задача | Статус |
-|---|--------|--------|
+| # | Task | Status |
+|---|------|--------|
 | 0.1 | npm workspaces | ✅ |
-| 0.2 | JavaScript ESM (без TSC) | ✅ |
+| 0.2 | JavaScript ESM (without TSC) | ✅ |
 | 0.3 | ESLint + ban JSON clone | ✅ |
-| 0.4 | Zod schemas в contracts | ✅ |
-| 0.5 | IntentRegistry RU/EN | ✅ |
+| 0.4 | Zod schemas in contracts | ✅ |
+| 0.5 | English-only IntentRegistry | ✅ |
 | 0.6 | catalog-schema stub | ✅ |
 | 0.7 | Server skeleton | ✅ |
 | 0.8 | POST /api/commands + Zod | ✅ |
-| 0.9 | Диалоговый orchestrator | ✅ |
+| 0.9 | Dialog orchestrator | ✅ |
 | 0.10 | Client shell + Tailwind | ✅ |
 | 0.11 | Mobile stub | ✅ |
 | 0.12 | README, CONTRIBUTING, .env.example | ✅ |
 | 0.13 | CI (lint, test, build) | ✅ |
 | 0.14 | local-storage.js | ✅ |
-| 0.15 | Production deploy (как AIproject) | ✅ |
+| 0.15 | Production deployment (following AIproject) | ✅ |
 
-**Acceptance criteria:** все выполнены — см. [step0.md](step0.md).
+**Acceptance criteria:** all complete — see [step0.md](step0.md).
 
 ---
 
-### ✅ Фаза 1. MVP диалога + Kitchen demo
+### ✅ Phase 1. Dialog MVP + Kitchen demo
 
-**Цель:** диалог → plan из демо-каталога, 3D-превью, базовая совместимость.
+**Goal:** dialog → plan from the demo catalog, 3D preview, basic compatibility.
 
-| # | Задача | Статус |
-|---|--------|--------|
-| 1.1 | Демо-каталог kitchen (15–25 модулей) → MongoDB | ✅ 18 модулей |
+| # | Task | Status |
+|---|------|--------|
+| 1.1 | Demo kitchen catalog (15–25 modules) → MongoDB | ✅ 18 modules |
 | 1.2 | Catalog indexer + file vector store (`npm run catalog:index`) | ✅ |
-| 1.3 | 7 интентов RU в intent-detector | ✅ |
-| 1.4 | catalog-rag-retriever — реальный top-K | ✅ |
+| 1.3 | 7 English intents in intent-detector | ✅ |
+| 1.4 | catalog-rag-retriever — real top-K | ✅ |
 | 1.5 | configuration-plan-generator — rule-based | ✅ |
 | 1.6 | room-context-builder — persist MongoDB | ✅ + local fallback |
-| 1.7 | kitchen/runPipeline — позиции модулей | ✅ |
-| 1.8 | assertCompatible — 3 базовых правила | ✅ |
-| 1.9 | calculateBOM — сумма по snapshot | ✅ |
-| 1.10 | output-builder — полный ClientResponse | ✅ |
+| 1.7 | kitchen/runPipeline — module positions | ✅ |
+| 1.8 | assertCompatible — 3 basic rules | ✅ |
+| 1.9 | calculateBOM — total from snapshot | ✅ |
+| 1.10 | output-builder — complete ClientResponse | ✅ |
 | 1.11 | Client: Preview3D (R3F) | ✅ |
 | 1.12 | Client: multi-turn dialog | ✅ |
 | 1.13 | Help service | ✅ |
 | 1.14 | platform-rules RAG | ✅ |
 
-**7 интентов MVP:** `add_module`, `remove_module`, `change_finish`, `set_budget`, `show_price`, `help`, `unknown`.
+**7 MVP intents:** `add_module`, `remove_module`, `change_finish`, `set_budget`, `show_price`, `help`, `unknown`.
 
-**Acceptance:** ✅ «кухня 3×4» → plan + 3D; catalog-grounded RAG; overlap → `valid: false`; intent ≥ 85% на 53 фразах; измеренный P95 411 ms ≤ 800 ms.
+**Acceptance:** ✅ "3×4 kitchen" → plan + 3D; catalog-grounded RAG; overlap → `valid: false`; intent accuracy ≥ 85% across 53 phrases; measured P95 of 411 ms ≤ 800 ms.
 
 ---
 
-### Фаза 2. Compatibility Engine (2–3 нед)
+### Phase 2. Compatibility Engine (2–3 weeks)
 
 Spatial index, rules (mounting, utilities, clearances), analog suggester, conflict UI.
 
-### Фаза 3. Pricing & BOM (2 нед)
+### Phase 3. Pricing & BOM (2 weeks)
 
-Catalog snapshots, Redis cache, BOM table, budget indicator в client.
+Catalog snapshots, Redis cache, BOM table, and a budget indicator in the client.
 
-### Фаза 4. Production Export (2–3 нед)
+### Phase 4. Production Export (2–3 weeks)
 
-PDF spec, export в `data/exports/`, download API.
+PDF specification, export to `data/exports/`, and download API.
 
-### Фаза 5. Реальная LLM (3–4 нед)
+### Phase 5. Production LLM (3–4 weeks)
 
-llm-client, function calling, multi-turn, eval 200 RU phrases.
+llm-client, function calling, multi-turn, and evaluation across 200 English phrases.
 
-### Фаза 6. Масштабирование и платформы
+### Phase 6. Scaling and platforms
 
 Wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 
 ---
 
-## 7. Маппинг: AIproject → HomeCraft
+## 7. Mapping: AIproject → HomeCraft
 
-| AIproject | HomeCraft | Статус |
+| AIproject | HomeCraft | Status |
 |-----------|-----------|--------|
 | `core/orchestrator.js` | `core/orchestrator.js` | ✅ dialog-only |
 | `scene-context-builder.js` | `room-context-builder.js` | ✅ persisted |
-| `output-builder.js` | `output-builder.js` | ✅ расширен |
+| `output-builder.js` | `output-builder.js` | ✅ extended |
 | `core/api/routes.js` | `core/api/routes.js` | ✅ mountRoutes |
 | `core/api/middleware.js` | `core/api/middleware.js` | ✅ + Zod |
 | `config/load-env.js` | `config/load-env.js` | ✅ |
@@ -301,54 +301,54 @@ Wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 | `ai-services/pipeline.js` | `ai-services/pipeline.js` | ✅ |
 | `packages/contracts` | `packages/contracts` (Zod) | ✅ |
 | `packages/ai/IntentRegistry` | `packages/ai/intent-registry.js` | ✅ |
-| — | `compatibility-engine/*` | ✅ базовые правила |
+| — | `compatibility-engine/*` | ✅ basic rules |
 | — | `pricing-engine/*` | ✅ snapshot BOM |
 | — | `catalog-schema/*` | ✅ stub |
 | — | `storage/mongo.js` | ✅ connect |
 
 ---
 
-## 8. Метрики и Definition of Done
+## 8. Metrics and Definition of Done
 
-| Метрика | Цель | С фазы |
-|---------|------|--------|
-| P95 pipeline (без LLM) | ≤ 800 ms | 1 |
+| Metric | Target | Starting phase |
+|--------|--------|----------------|
+| P95 pipeline (without LLM) | ≤ 800 ms | 1 |
 | Compatibility hit-rate | ≥ 70% | 2 |
-| Intent accuracy RU | ≥ 90% | 5 |
+| English intent accuracy | ≥ 90% | 5 |
 | BOM cache hit-rate | ≥ 60% | 3 |
 
-**DoD каждой фазы:**
+**DoD for each phase:**
 
-- [ ] Acceptance criteria выполнены
-- [ ] `npm run lint`, `npm run test`, `npm run build` — зелёные
-- [ ] README / Roadmap актуальны
-- [ ] 10 инвариантов не нарушены
-
----
-
-## 9. Риски
-
-| Риск | Митигация |
-|------|-----------|
-| Грязные каталоги | `catalog-schema/normalizer.js` + ETL |
-| LLM галлюцинирует SKU | RAG-only + Zod boundary |
-| O(n²) compatibility | spatial index с фазы 2 |
-| Express 5 vs AIproject Express 4 | SPA fallback через middleware, не `*` |
+- [ ] Acceptance criteria are met
+- [ ] `npm run lint`, `npm run test`, and `npm run build` pass
+- [ ] README / Roadmap are current
+- [ ] All 10 invariants are preserved
 
 ---
 
-## 10. Открытые решения
+## 9. Risks
 
-| # | Вопрос | Решение | Когда |
-|---|--------|---------|-------|
-| 1 | Vector search | File index (как AIproject) | ✅ MVP |
-| 2 | Язык кода | JavaScript ESM + Zod | ✅ фаза 0 |
-| 3 | npm scope | `@homecraft/*` | ✅ фаза 0 |
-| 4 | Plan format | JSON + Zod | ✅ фаза 0 |
-| 5 | LLM provider | Feature flag, stub | фаза 5 |
-| 6 | Auth | JWT → OAuth2 | фаза 6d |
-| 7 | Demo catalog | Synthetic JSON, 18 kitchen modules | ✅ фаза 1 |
-| 8 | Input model | Только диалог; ручной редактор исключён | ✅ |
+| Risk | Mitigation |
+|------|------------|
+| Unclean catalogs | `catalog-schema/normalizer.js` + ETL |
+| LLM hallucinates SKUs | RAG-only + Zod boundary |
+| O(n²) compatibility | spatial index from Phase 2 |
+| Express 5 vs AIproject Express 4 | SPA fallback through middleware, not `*` |
+
+---
+
+## 10. Open decisions
+
+| # | Question | Decision | When |
+|---|----------|----------|------|
+| 1 | Vector search | File index (following AIproject) | ✅ MVP |
+| 2 | Code language | JavaScript ESM + Zod | ✅ Phase 0 |
+| 3 | npm scope | `@homecraft/*` | ✅ Phase 0 |
+| 4 | Plan format | JSON + Zod | ✅ Phase 0 |
+| 5 | LLM provider | Feature flag, stub | Phase 5 |
+| 6 | Auth | JWT → OAuth2 | Phase 6d |
+| 7 | Demo catalog | Synthetic JSON, 18 kitchen modules | ✅ Phase 1 |
+| 8 | Input model | Dialog only; manual editor excluded | ✅ |
 
 ---
 
@@ -356,20 +356,20 @@ Wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 
 ```
          ✅ done   → next
-Неделя   1–2    3–6      7–9      10–11    12–14    15–18    19+
+Week     1–2    3–6      7–9      10–11    12–14    15–18    19+
          ├──────┼────────┼────────┼────────┼────────┼────────┼────→
-Фаза     0      1        2        3        4        5        6
+Phase    0      1        2        3        4        5        6
 ```
 
-**MVP для pilot:** конец фазы 4.
+**Pilot MVP:** end of Phase 4.
 
-**Следующий шаг:** [Фаза 2](#фаза-2-compatibility-engine-2-3-нед).
+**Next step:** [Phase 2](#phase-2-compatibility-engine-23-weeks).
 
 ---
 
-## Связанные документы
+## Related documents
 
-- [step0.md](step0.md) — итоги фазы 0
-- [dialog-flow.md](dialog-flow.md) — поток диалога и API
+- [step0.md](step0.md) — Phase 0 results
+- [dialog-flow.md](dialog-flow.md) — dialog flow and API
 - [AIproject](https://github.com/AgentDan/AIproject)
 - [README.md](../README.md)

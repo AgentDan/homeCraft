@@ -15,14 +15,14 @@ export const IntentKindSchema = z.enum([
 export const IntentSchema = z.object({
   kind: IntentKindSchema.exclude(['unknown']),
   confidence: z.number().min(0).max(1),
-  language: z.enum(['ru', 'en']),
+  language: z.literal('en'),
   rawText: z.string(),
   slots: z.record(z.unknown()).default({})
 });
 
 export const UnknownIntentSchema = z.object({
   kind: z.literal('unknown'),
-  language: z.enum(['ru', 'en']).optional(),
+  language: z.literal('en').optional(),
   rawText: z.string(),
   reason: z.string().default('no_pattern_match')
 });

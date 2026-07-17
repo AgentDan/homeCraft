@@ -1,0 +1,72 @@
+import { useEffect, useRef } from 'react';
+
+/**
+ * @param {{
+ *   turns: Array<{ id: string, role: 'user' | 'assistant', text: string }>,
+ *   error?: string | null,
+ *   loading?: boolean,
+ *   online?: boolean,
+ *   tools?: import('react').ReactNode
+ * }} props
+ */
+export function ChatPanel({ turns, error = null, loading = false, online = true, tools = null }) {
+  const bottomRef = useRef(/** @type {HTMLDivElement | null} */ (null));
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [turns, error, loading]);
+
+  return (
+    <section className="hc-glass-strong flex max-h-[36vh] min-h-[11rem] flex-col overflow-hidden">
+      <div className="flex items-center justify-between gap-2 border-b border-[var(--hc-border)] px-3 py-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-[11px] font-medium tracking-wide text-[var(--hc-muted)] uppercase">
+            Chat
+          </h3>
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              error ? 'bg-[var(--hc-danger)]' : online ? 'bg-[var(--hc-accent)]' : 'bg-[var(--hc-muted)]'
+            }`}
+            aria-hidden="true"
+          />
+        </div>
+        {tools}
+      </div>
+
+      <div className="hc-scroll flex-1 space-y-2 overflow-auto px-3 py-2.5" aria-live="polite">
+        {turns.length === 0 && !error && !loading && (
+          <p className="text-xs leading-relaxed text-[var(--hc-muted)]">
+            Describe what you want — for example, “add a 600 mm cabinet”.
+          </p>
+        )}
+
+        {turns.map((turn) => (
+          <div
+            key={turn.id}
+            className={
+              turn.role === 'user'
+                ? 'ml-6 rounded-[12px] bg-[var(--hc-accent)]/15 px-3 py-2 text-sm text-[var(--hc-text)]'
+                : 'mr-4 rounded-[12px] border border-[var(--hc-border)] bg-black/35 px-3 py-2 text-sm text-[var(--hc-muted)]'
+            }
+          >
+            {turn.text}
+          </div>
+        ))}
+
+        {loading && (
+          <div className="mr-4 rounded-[12px] border border-[var(--hc-border)] bg-black/35 px-3 py-2 text-xs text-[var(--hc-muted)]">
+            Thinking…
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-[12px] border border-[var(--hc-danger)]/40 bg-[var(--hc-danger)]/10 px-3 py-2 text-xs text-[var(--hc-danger)]">
+            {error}
+          </div>
+        )}
+
+        <div ref={bottomRef} />
+      </div>
+    </section>
+  );
+}

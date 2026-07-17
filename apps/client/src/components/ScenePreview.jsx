@@ -1,11 +1,23 @@
 /* eslint-disable react/no-unknown-property -- React Three Fiber JSX props */
 import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 
 const FINISH_COLORS = {
   white: '#f5f5f4',
-  oak: '#b7834f'
+  oak: '#c08a4f'
 };
 
+/**
+ * @typedef {{
+ *   instanceId: string,
+ *   finishId?: string,
+ *   rotationY: number,
+ *   position: { x: number, y: number, z: number },
+ *   dimensions: { widthMm: number, heightMm: number, depthMm: number }
+ * }} SceneModule
+ */
+
+/** @param {{ module: SceneModule }} props */
 function ModuleBox({ module }) {
   const width = module.dimensions.widthMm / 1000;
   const height = module.dimensions.heightMm / 1000;
@@ -24,44 +36,61 @@ function ModuleBox({ module }) {
     >
       <boxGeometry args={[width, height, depth]} />
       <meshStandardMaterial
-        color={FINISH_COLORS[module.finishId] ?? '#86a789'}
-        roughness={0.75}
+        color={FINISH_COLORS[module.finishId] ?? '#6d8f71'}
+        roughness={0.7}
       />
     </mesh>
   );
 }
 
-export function ScenePreview({ sceneResult, view }) {
-  const viewKind = view?.kind ?? '2d_plan';
-  const title = viewKind === '3d_scene' ? '3D-сцена' : '2D-план';
-  const modules = sceneResult?.modules ?? [];
+function Floor() {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+      <planeGeometry args={[20, 20]} />
+      <meshStandardMaterial color="#1a1d22" roughness={0.95} />
+    </mesh>
+  );
+}
+
+/**
+ * @param {{
+ *   sceneResult: { projectId: string, modules?: any[] } | null,
+ *   view?: { kind: '2d_plan' | '3d_scene', render: 'full' | 'delta' }
+ * }} props
+ */
+export function ScenePreview({ sceneResult, view: _view }) {
+  /** @type {SceneModule[]} */
+  const modules = /** @type {SceneModule[]} */ (sceneResult?.modules ?? []);
 
   return (
-    <section className="overflow-hidden rounded-lg border border-emerald-700 bg-emerald-50">
-      <div className="flex items-center justify-between px-4 py-3">
-        <h3 className="font-medium text-emerald-950">{title}</h3>
-        <span className="text-sm text-stone-600">Модулей: {modules.length}</span>
-      </div>
-      <div className="h-96 bg-stone-100">
-        <Canvas shadows camera={{ position: [4, 3.5, 5], fov: 45 }}>
-          <color attach="background" args={['#f5f5f4']} />
-          <ambientLight intensity={1.4} />
-          <directionalLight
-            position={[3, 6, 4]}
-            intensity={2}
-            castShadow
-          />
-          <gridHelper args={[8, 16, '#a8a29e', '#d6d3d1']} />
-          {modules.map((module) => (
-            <ModuleBox key={module.instanceId} module={module} />
-          ))}
-        </Canvas>
-      </div>
-      {modules.length === 0 && (
-        <p className="px-4 py-3 text-sm text-stone-600">
-          Добавьте модуль, чтобы увидеть проект.
-        </p>
-      )}
-    </section>
+    <div className="absolute inset-0 bg-[var(--hc-bg)]" aria-label="3D kitchen preview">
+      <Canvas shadows camera={{ position: [4.2, 3.2, 5.2], fov: 42 }}>
+        <color attach="background" args={['#0f1216']} />
+        <fog attach="fog" args={['#0f1216', 10, 22]} />
+        <ambientLight intensity={0.55} />
+        <directionalLight
+          position={[4, 8, 3]}
+          intensity={1.6}
+          castShadow
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
+        />
+        <directionalLight position={[-3, 4, -2]} intensity={0.35} />
+        <Floor />
+        <gridHelper args={[12, 24, '#3a424c', '#232830']} position={[0, 0.01, 0]} />
+        {modules.map((module) => (
+          <ModuleBox key={module.instanceId} module={module} />
+        ))}
+        <OrbitControls
+          makeDefault
+          enableDamping
+          dampingFactor={0.08}
+          minDistance={2}
+          maxDistance={18}
+          maxPolarAngle={Math.PI / 2.05}
+          target={[1.2, 0.6, 0.8]}
+        />
+      </Canvas>
+    </div>
   );
 }

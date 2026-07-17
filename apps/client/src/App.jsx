@@ -1,31 +1,46 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { getHealth, postCommand } from './api/client.js';
+import { ChatPanel } from './components/ChatPanel.jsx';
 import { CommandInput } from './components/CommandInput.jsx';
 import { ResponseRouter } from './components/ResponseRouter.jsx';
-import { ResultViewer } from './components/ResultViewer.jsx';
+
+const ScenePreview = lazy(() =>
+  import('./components/ScenePreview.jsx').then((module) => ({
+    default: module.ScenePreview
+  }))
+);
 
 /** @param {string} prefix */
 function newId(prefix) {
   return `${prefix}-${crypto.randomUUID()}`;
 }
 
-function DialogHistory({ turns }) {
-  if (turns.length === 0) return null;
+function Toolstrip({ onVoice, disabled }) {
   return (
-    <section className="mb-4 space-y-2" aria-label="История диалога">
-      {turns.map((turn) => (
-        <div
-          key={turn.id}
-          className={
-            turn.role === 'user'
-              ? 'ml-auto max-w-2xl rounded-lg bg-emerald-800 px-4 py-3 text-white'
-              : 'mr-auto max-w-2xl rounded-lg border border-stone-200 bg-white px-4 py-3 text-stone-800'
-          }
-        >
-          {turn.text}
-        </div>
-      ))}
-    </section>
+    <div className="flex items-center gap-1" aria-label="Quick tools">
+      <button
+        type="button"
+        className="hc-icon-btn hc-icon-btn--ghost"
+        disabled={disabled}
+        title="Voice command"
+        onClick={onVoice}
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z" />
+          <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v3M8 21h8" />
+        </svg>
+      </button>
+      <button type="button" className="hc-icon-btn hc-icon-btn--ghost" title="Home view" disabled>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5z" />
+        </svg>
+      </button>
+      <button type="button" className="hc-icon-btn hc-icon-btn--ghost" title="Menu" disabled>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+    </div>
   );
 }
 
@@ -33,19 +48,27 @@ export function App() {
   const [sessionId] = useState(() => newId('sess'));
   const [projectId] = useState(() => newId('proj'));
   const [response, setResponse] = useState(
-    /** @type {{ requestId: string, [key: string]: unknown } | null} */ (null)
+    /** @type {{ requestId: string, message?: string, [key: string]: unknown } | null} */ (null)
   );
-  const [error, setError] = useState(/** @type {string | null} */ (null));
-  const [health, setHealth] = useState(/** @type {unknown} */ (null));
+  const [online, setOnline] = useState(false);
   const [loading, setLoading] = useState(false);
   const [turns, setTurns] = useState(
-    /** @type {Array<{id: string, role: 'user' | 'assistant', text: string}>} */ ([])
+    /** @type {Array<{ id: string, role: 'user' | 'assistant', text: string }>} */ ([])
+  );
+  const [sceneResult, setSceneResult] = useState(
+    /** @type {{ projectId: string, modules: unknown[] } | null} */ (null)
+  );
+  const [view, setView] = useState(
+    /** @type {{ kind: '2d_plan' | '3d_scene', render: 'full' | 'delta' }} */ ({
+      kind: '3d_scene',
+      render: 'full'
+    })
   );
 
   useEffect(() => {
     getHealth()
-      .then(setHealth)
-      .catch((err) => setError(String(err)));
+      .then(() => setOnline(true))
+      .catch(() => setOnline(false));
   }, []);
 
   const sendCommand = useCallback(
@@ -55,8 +78,6 @@ export function App() {
      */
     async (command, inputChannel = 'text') => {
       setLoading(true);
-      setError(null);
-      setResponse(null);
       setTurns((current) => [
         ...current,
         { id: newId('turn'), role: 'user', text: command }
@@ -71,12 +92,26 @@ export function App() {
           clientState: {}
         });
         setResponse(result);
+        if (result.sceneResult) {
+          setSceneResult(result.sceneResult);
+        }
+        if (result.view) {
+          setView(result.view);
+        }
         setTurns((current) => [
           ...current,
-          { id: newId('turn'), role: 'assistant', text: result.message }
+          {
+            id: newId('turn'),
+            role: 'assistant',
+            text: result.message ?? 'Done.'
+          }
         ]);
       } catch (err) {
-        setError(err instanceof Error ? err.message : String(err));
+        const message = err instanceof Error ? err.message : String(err);
+        setTurns((current) => [
+          ...current,
+          { id: newId('turn'), role: 'assistant', text: message }
+        ]);
       } finally {
         setLoading(false);
       }
@@ -85,24 +120,49 @@ export function App() {
   );
 
   return (
-    <main className="mx-auto min-h-screen max-w-5xl bg-stone-100 px-6 py-8 font-normal text-stone-900">
-      <header className="mb-6">
-        <h1 className="mb-1 font-medium text-3xl text-stone-900">HomeCraft</h1>
-        <p className="text-stone-600">
-          MVP — соберите кухню в диалоге и посмотрите результат в 3D
-        </p>
-      </header>
-      <DialogHistory turns={response ? turns.slice(0, -1) : turns} />
-      <CommandInput onSubmit={sendCommand} disabled={loading} />
-      <div className="mb-6">
+    <div className="relative h-dvh w-full overflow-hidden text-[var(--hc-text)]">
+      <Suspense fallback={<div className="absolute inset-0 animate-pulse bg-[var(--hc-bg)]" />}>
+        <ScenePreview
+          sceneResult={sceneResult ?? { projectId, modules: [] }}
+          view={view}
+        />
+      </Suspense>
+
+      <div
+        className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_42%,rgba(0,0,0,0.45)_100%)]"
+        aria-hidden="true"
+      />
+
+      <div className="pointer-events-none absolute top-4 left-5 z-20 flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full bg-[var(--hc-accent)] shadow-[0_0_10px_var(--hc-accent)]" />
+        <span className="text-sm font-semibold tracking-wide text-white/90">HomeCraft</span>
+      </div>
+
+      {/* Right HUD: Command above Chat */}
+      <div className="pointer-events-auto absolute right-4 bottom-5 z-20 flex w-[min(100%-2rem,22rem)] flex-col gap-2">
+        <CommandInput onSubmit={sendCommand} disabled={loading} />
         <ResponseRouter
           key={response?.requestId}
           response={response}
           onCommand={sendCommand}
           disabled={loading}
+          compact
+        />
+        <ChatPanel
+          turns={turns}
+          loading={loading}
+          online={online}
+          tools={
+            <Toolstrip
+              disabled={loading}
+              onVoice={() => {
+                const sample = window.prompt('Voice transcript (demo):', 'add module');
+                if (sample?.trim()) sendCommand(sample.trim(), 'voice');
+              }}
+            />
+          }
         />
       </div>
-      <ResultViewer response={null} error={error} health={health} />
-    </main>
+    </div>
   );
 }

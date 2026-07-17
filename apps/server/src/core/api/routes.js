@@ -18,7 +18,7 @@ const serverRoot = path.join(__dirnameRoutes, '..', '..', '..');
 const gltfDir = path.join(serverRoot, 'gltf');
 
 /**
- * Регистрирует HTTP-маршруты и статику (API Layer).
+ * Registers HTTP routes and static assets (API Layer).
  * @param {import('express').Express} app
  */
 export function mountRoutes(app) {
