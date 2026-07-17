@@ -145,5 +145,7 @@ export async function route(request) {
     explanation: `Intent: ${intent.kind}`
   });
 
+  console.log('response', response);
+
   return { response, statusCode: 200 };
 }
