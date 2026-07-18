@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ConfigurationPlanSchema } from './configuration-plan.js';
 import { BOMSchema } from './bom.js';
 import { CompatibilityReportSchema } from './compatibility.js';
+import { RoomShapeSchema } from './room-context.js';
 
 export const ClientResponseStatusSchema = z.enum(['ok', 'error', 'needs_input']);
 export const ClientResponseTypeSchema = z.enum([
@@ -73,6 +74,7 @@ export const ClientResponseSchema = z.object({
   planVersion: z.number().int().nonnegative().default(0),
   plan: ConfigurationPlanSchema.optional(),
   sceneResult: SceneResultSchema.nullable().optional(),
+  roomShape: RoomShapeSchema.nullable().optional(),
   bom: BOMSchema.nullable().optional(),
   compatibility: CompatibilityReportSchema.nullable().optional(),
   downloadUrl: z.string().url().nullable().optional(),

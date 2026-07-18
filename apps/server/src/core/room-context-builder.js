@@ -48,7 +48,7 @@ export async function buildRoomContext(userId, projectId, sessionId, inputChanne
     inputChannel,
     catalogSnapshotId: persisted.catalogSnapshotId ?? DEFAULT_SNAPSHOT,
     roomShape: persisted.roomShape ?? defaultRoomShape(),
-    budgetRub: persisted.budgetRub,
+    budgetEur: persisted.budgetEur,
     planOperations: currentPlan?.operations ?? mongoProject?.planOperations ?? [],
     planVersion:
       history.entries[history.currentIndex]?.version
@@ -85,7 +85,7 @@ export async function persistRoomContext(context) {
     sessionId: validated.sessionId,
     catalogSnapshotId: validated.catalogSnapshotId,
     roomShape: validated.roomShape,
-    budgetRub: validated.budgetRub,
+    budgetEur: validated.budgetEur,
     planOperations: validated.planOperations,
     planVersion: validated.planVersion,
     dialogTurns: validated.dialogTurns

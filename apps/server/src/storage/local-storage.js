@@ -118,7 +118,7 @@ export async function saveRoomContextState(sessionId, context) {
       projectId: context.projectId,
       catalogSnapshotId: context.catalogSnapshotId,
       roomShape: structuredClone(context.roomShape),
-      budgetRub: context.budgetRub,
+      budgetEur: context.budgetEur,
       dialogTurns: structuredClone(context.dialogTurns),
       updatedAt: context.updatedAt
     }

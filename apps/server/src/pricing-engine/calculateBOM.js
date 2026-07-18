@@ -8,33 +8,33 @@ export async function calculateBOM(plan, catalogSnapshotId) {
 
   for (const module of modules) {
     const finish = module.finishes.find((item) => item.id === module.finishId);
-    const unitPriceRub = module.priceRub + (finish?.priceDeltaRub ?? 0);
+    const unitPriceEur = module.priceEur + (finish?.priceDeltaEur ?? 0);
     const key = `${module.sku}:${module.finishId ?? ''}`;
     const current = grouped.get(key);
     if (current) {
       current.quantity += 1;
-      current.lineTotalRub = current.quantity * current.unitPriceRub;
+      current.lineTotalEur = current.quantity * current.unitPriceEur;
     } else {
       grouped.set(key, {
         sku: module.sku,
         name: module.name,
         quantity: 1,
-        unitPriceRub,
-        lineTotalRub: unitPriceRub,
+        unitPriceEur,
+        lineTotalEur: unitPriceEur,
         finishId: module.finishId
       });
     }
   }
 
   const lines = [...grouped.values()];
-  const subtotalRub = lines.reduce((sum, line) => sum + line.lineTotalRub, 0);
-  const vatRub = Math.round((subtotalRub * 20) / 120);
+  const subtotalEur = lines.reduce((sum, line) => sum + line.lineTotalEur, 0);
+  const vatEur = Math.round((subtotalEur * 20) / 120);
   return BOMSchema.parse({
     catalogSnapshotId,
     lines,
-    subtotalRub,
-    vatRub,
-    totalRub: subtotalRub,
+    subtotalEur,
+    vatEur,
+    totalEur: subtotalEur,
     calculatedAt: new Date().toISOString()
   });
 }

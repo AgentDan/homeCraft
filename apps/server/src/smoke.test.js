@@ -189,7 +189,7 @@ describe('@homecraft/server smoke', () => {
       assert.equal(voice.planVersion, 1);
       assert.equal(voice.plan?.operations.length, 1);
       assert.equal(voice.sceneResult?.modules.length, 1);
-      assert.ok((voice.bom?.totalRub ?? 0) > 0);
+      assert.ok((voice.bom?.totalEur ?? 0) > 0);
 
       const second = await postCommand('oak finish', 'req-second');
       assert.equal(second.planVersion, 2);
@@ -201,7 +201,7 @@ describe('@homecraft/server smoke', () => {
 
       const price = await postCommand('show price', 'req-price');
       assert.equal(price.planVersion, 2);
-      assert.ok((price.bom?.totalRub ?? 0) > 0);
+      assert.ok((price.bom?.totalEur ?? 0) > 0);
 
       const help = await postCommand('help', 'req-help');
       assert.equal(help.responseType, 'help');

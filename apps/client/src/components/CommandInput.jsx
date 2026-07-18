@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * @param {{
@@ -8,6 +8,34 @@ import { useState } from 'react';
  */
 export function CommandInput({ onSubmit, disabled }) {
   const [value, setValue] = useState('');
+  const inputRef = useRef(/** @type {HTMLInputElement | null} */ (null));
+
+  useEffect(() => {
+    /**
+     * @param {KeyboardEvent} event
+     */
+    function handleKeyDown(event) {
+      if (event.code !== 'Space' && event.key !== ' ') return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT')
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      inputRef.current?.focus();
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -24,9 +52,13 @@ export function CommandInput({ onSubmit, disabled }) {
         className="mb-1.5 block text-[11px] font-medium tracking-wide text-[var(--hc-muted)] uppercase"
       >
         Command
+        <span className="ml-2 font-normal normal-case tracking-normal text-[var(--hc-muted)]/70">
+          Space
+        </span>
       </label>
-      <div className="flex items-center gap-1.5 rounded-[12px] border border-[var(--hc-border)] bg-black/50 p-1">
+      <div className="flex items-center gap-1.5 rounded-[12px] border border-[var(--hc-border)] bg-black/50 p-1 focus-within:border-[var(--hc-accent)]/50">
         <input
+          ref={inputRef}
           id="command"
           type="text"
           value={value}

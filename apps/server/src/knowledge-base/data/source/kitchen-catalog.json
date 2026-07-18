@@ -1,7 +1,7 @@
 {
   "manufacturerId": "homecraft-demo",
   "catalogVersion": "kitchen-demo-v1",
-  "currency": "RUB",
+  "currency": "EUR",
   "importedAt": "2026-07-17T00:00:00.000Z",
   "modules": [
     {
@@ -9,12 +9,12 @@
       "name": "Base Cabinet 400",
       "category": "base_cabinet",
       "dimensions": { "widthMm": 400, "heightMm": 720, "depthMm": 560 },
-      "priceRub": 12900,
+      "priceEur": 12900,
       "mounting": "floor",
       "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 20 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 1800 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 1800 }
       ],
       "utilities": []
     },
@@ -23,12 +23,12 @@
       "name": "Base Cabinet 600",
       "category": "base_cabinet",
       "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 560 },
-      "priceRub": 14900,
+      "priceEur": 14900,
       "mounting": "floor",
       "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 20 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 2200 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2200 }
       ],
       "utilities": []
     },
@@ -37,12 +37,12 @@
       "name": "Base Cabinet 800",
       "category": "base_cabinet",
       "dimensions": { "widthMm": 800, "heightMm": 720, "depthMm": 560 },
-      "priceRub": 16900,
+      "priceEur": 16900,
       "mounting": "floor",
       "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 20 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 2600 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2600 }
       ],
       "utilities": []
     },
@@ -51,12 +51,12 @@
       "name": "Drawer Base Cabinet 400",
       "category": "drawer_cabinet",
       "dimensions": { "widthMm": 400, "heightMm": 720, "depthMm": 560 },
-      "priceRub": 18900,
+      "priceEur": 18900,
       "mounting": "floor",
       "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 20 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 2000 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2000 }
       ],
       "utilities": []
     },
@@ -65,12 +65,12 @@
       "name": "Drawer Base Cabinet 600",
       "category": "drawer_cabinet",
       "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 560 },
-      "priceRub": 21900,
+      "priceEur": 21900,
       "mounting": "floor",
       "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 20 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 2400 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2400 }
       ],
       "utilities": []
     },
@@ -79,12 +79,12 @@
       "name": "Sink Base Cabinet 600",
       "category": "sink_cabinet",
       "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 560 },
-      "priceRub": 16900,
+      "priceEur": 16900,
       "mounting": "floor",
       "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 10, "rightMm": 10, "backMm": 80 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 2200 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2200 }
       ],
       "utilities": ["water", "drain"]
     },
@@ -93,12 +93,12 @@
       "name": "Sink Base Cabinet 800",
       "category": "sink_cabinet",
       "dimensions": { "widthMm": 800, "heightMm": 720, "depthMm": 560 },
-      "priceRub": 18900,
+      "priceEur": 18900,
       "mounting": "floor",
       "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 10, "rightMm": 10, "backMm": 80 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 2600 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2600 }
       ],
       "utilities": ["water", "drain"]
     },
@@ -107,12 +107,12 @@
       "name": "Hob Base Cabinet 600",
       "category": "hob_cabinet",
       "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 560 },
-      "priceRub": 17900,
+      "priceEur": 17900,
       "mounting": "floor",
       "clearances": { "topMm": 30, "bottomMm": 0, "leftMm": 50, "rightMm": 50, "backMm": 50 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 2200 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2200 }
       ],
       "utilities": ["electric"]
     },
@@ -121,12 +121,12 @@
       "name": "Oven Base Cabinet 600",
       "category": "oven_cabinet",
       "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 560 },
-      "priceRub": 18500,
+      "priceEur": 18500,
       "mounting": "floor",
       "clearances": { "topMm": 20, "bottomMm": 0, "leftMm": 20, "rightMm": 20, "backMm": 60 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 1600 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 1600 }
       ],
       "utilities": ["electric"]
     },
@@ -135,12 +135,12 @@
       "name": "Corner Base Cabinet 900",
       "category": "corner_cabinet",
       "dimensions": { "widthMm": 900, "heightMm": 720, "depthMm": 900 },
-      "priceRub": 25900,
+      "priceEur": 25900,
       "mounting": "corner",
       "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 10, "rightMm": 10, "backMm": 20 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 3200 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 3200 }
       ],
       "utilities": []
     },
@@ -149,12 +149,12 @@
       "name": "Wall Cabinet 400",
       "category": "wall_cabinet",
       "dimensions": { "widthMm": 400, "heightMm": 720, "depthMm": 320 },
-      "priceRub": 9900,
+      "priceEur": 9900,
       "mounting": "wall",
       "clearances": { "topMm": 50, "bottomMm": 450, "leftMm": 5, "rightMm": 5, "backMm": 0 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 1400 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 1400 }
       ],
       "utilities": []
     },
@@ -163,12 +163,12 @@
       "name": "Wall Cabinet 600",
       "category": "wall_cabinet",
       "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 320 },
-      "priceRub": 11900,
+      "priceEur": 11900,
       "mounting": "wall",
       "clearances": { "topMm": 50, "bottomMm": 450, "leftMm": 5, "rightMm": 5, "backMm": 0 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 1800 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 1800 }
       ],
       "utilities": []
     },
@@ -177,12 +177,12 @@
       "name": "Wall Cabinet 800",
       "category": "wall_cabinet",
       "dimensions": { "widthMm": 800, "heightMm": 720, "depthMm": 320 },
-      "priceRub": 13900,
+      "priceEur": 13900,
       "mounting": "wall",
       "clearances": { "topMm": 50, "bottomMm": 450, "leftMm": 5, "rightMm": 5, "backMm": 0 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 2200 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2200 }
       ],
       "utilities": []
     },
@@ -191,12 +191,12 @@
       "name": "Extractor Hood Wall Cabinet 600",
       "category": "hood_cabinet",
       "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 320 },
-      "priceRub": 12900,
+      "priceEur": 12900,
       "mounting": "wall",
       "clearances": { "topMm": 50, "bottomMm": 650, "leftMm": 50, "rightMm": 50, "backMm": 0 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 1600 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 1600 }
       ],
       "utilities": ["electric"]
     },
@@ -205,12 +205,12 @@
       "name": "Tall Pantry Cabinet 600",
       "category": "tall_cabinet",
       "dimensions": { "widthMm": 600, "heightMm": 2100, "depthMm": 560 },
-      "priceRub": 29900,
+      "priceEur": 29900,
       "mounting": "tall",
       "clearances": { "topMm": 50, "bottomMm": 0, "leftMm": 10, "rightMm": 10, "backMm": 20 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 4200 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 4200 }
       ],
       "utilities": []
     },
@@ -219,12 +219,12 @@
       "name": "Tall Oven Cabinet 600",
       "category": "tall_oven_cabinet",
       "dimensions": { "widthMm": 600, "heightMm": 2100, "depthMm": 560 },
-      "priceRub": 32900,
+      "priceEur": 32900,
       "mounting": "tall",
       "clearances": { "topMm": 50, "bottomMm": 0, "leftMm": 20, "rightMm": 20, "backMm": 60 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 3600 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 3600 }
       ],
       "utilities": ["electric"]
     },
@@ -233,12 +233,12 @@
       "name": "Refrigerator Tall Cabinet 600",
       "category": "fridge_cabinet",
       "dimensions": { "widthMm": 600, "heightMm": 2100, "depthMm": 620 },
-      "priceRub": 34900,
+      "priceEur": 34900,
       "mounting": "tall",
       "clearances": { "topMm": 100, "bottomMm": 0, "leftMm": 30, "rightMm": 30, "backMm": 80 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 3800 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 3800 }
       ],
       "utilities": ["electric"]
     },
@@ -247,12 +247,12 @@
       "name": "Dishwasher Front Panel 600",
       "category": "dishwasher_front",
       "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 20 },
-      "priceRub": 8900,
+      "priceEur": 8900,
       "mounting": "floor",
       "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 560 },
       "finishes": [
-        { "id": "white", "name": "White", "priceDeltaRub": 0 },
-        { "id": "oak", "name": "Oak", "priceDeltaRub": 2400 }
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2400 }
       ],
       "utilities": ["water", "drain", "electric"]
     }

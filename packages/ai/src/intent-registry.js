@@ -49,7 +49,26 @@ function parseMetricPair(rawText) {
   };
 }
 
+/**
+ * @typedef {object} IntentSlots
+ * @property {number} [widthMm]
+ * @property {number} [budgetEur]
+ * @property {string} [sku]
+ * @property {string} [instanceId]
+ * @property {string} [finishId]
+ * @property {string} [category]
+ * @property {string} [layout]
+ * @property {number} [roomWidthMm]
+ * @property {number} [roomDepthMm]
+ */
+
+/**
+ * @param {string} rawText
+ * @param {string} kind
+ * @returns {IntentSlots}
+ */
 function extractSlots(rawText, kind) {
+  /** @type {IntentSlots} */
   const slots = {};
   const widthMatch = rawText.match(/(?:width\s*)?(\d{3,4})\s*(?:mm)?/i);
   const budgetMatch = rawText.match(/(?:budget|up\s+to)\s*(?:of\s*)?[$£€]?([\d\s,]{3,})/i);
@@ -57,7 +76,7 @@ function extractSlots(rawText, kind) {
   const instanceMatch = rawText.match(/\bmodule-\d+\b/i);
 
   if (widthMatch) slots.widthMm = Number(widthMatch[1]);
-  if (budgetMatch) slots.budgetRub = Number(budgetMatch[1].replace(/[\s,]/g, ''));
+  if (budgetMatch) slots.budgetEur = Number(budgetMatch[1].replace(/[\s,]/g, ''));
   if (skuMatch) slots.sku = skuMatch[0].toUpperCase();
   if (instanceMatch) slots.instanceId = instanceMatch[0].toLowerCase();
   if (/\boak\b/i.test(rawText)) slots.finishId = 'oak';
@@ -72,7 +91,9 @@ function extractSlots(rawText, kind) {
 
   if (kind === 'add_module' && /\bkitchen\b/i.test(rawText)) {
     slots.layout = 'starter_kitchen';
-    Object.assign(slots, parseMetricPair(rawText));
+    const room = parseMetricPair(rawText);
+    if (room.roomWidthMm != null) slots.roomWidthMm = room.roomWidthMm;
+    if (room.roomDepthMm != null) slots.roomDepthMm = room.roomDepthMm;
   }
   return slots;
 }
@@ -93,6 +114,7 @@ export function matchIntent(text) {
         confidence: 0.75,
         language,
         rawText,
+        /** @type {IntentSlots} */
         slots: extractSlots(rawText, rule.kind)
       };
     }

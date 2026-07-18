@@ -9,10 +9,10 @@ export async function detectIntent(text, lang) {
   const detected = matchIntent(text);
   const slots = { ...(detected.slots ?? {}) };
 
-  if (detected.kind === 'set_budget' && slots.budgetRub === undefined) {
+  if (detected.kind === 'set_budget' && slots.budgetEur === undefined) {
     const budgetMatch = text.match(/\bbudget(?:\s+(?:up\s+to|of))?\s+([\d,\s]{3,})/i);
     if (budgetMatch) {
-      slots.budgetRub = Number(budgetMatch[1].replace(/[,\s]/g, ''));
+      slots.budgetEur = Number(budgetMatch[1].replace(/[,\s]/g, ''));
     }
   }
 

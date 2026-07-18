@@ -15,7 +15,7 @@ export function buildPrompt(input) {
     '# HomeCraft catalog-grounded prompt',
     `Project: ${input.context.projectId}`,
     `Intent: ${input.intent.kind}`,
-    `Budget: ${input.context.budgetRub ?? 'not set'}`,
+    `Budget: ${input.context.budgetEur ?? 'not set'}`,
     'Dialog:',
     history || '(empty)',
     'Retrieved context:',

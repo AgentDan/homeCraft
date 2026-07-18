@@ -50,6 +50,7 @@ export { BOMSchema, BOMLineSchema, createEmptyBOM } from './bom.js';
 export {
   IntentSchema,
   IntentKindSchema,
+  IntentSlotsSchema,
   UnknownIntentSchema,
   IntentResultSchema
 } from './intent.js';

@@ -53,8 +53,8 @@ async function runDownstream({
       : null;
 
   const budgetExplanation =
-    context.budgetRub !== undefined && bom.totalRub > context.budgetRub
-      ? `The cost exceeds the budget by ${bom.totalRub - context.budgetRub} RUB.`
+    context.budgetEur !== undefined && bom.totalEur > context.budgetEur
+      ? `The cost exceeds the budget by €${bom.totalEur - context.budgetEur}.`
       : undefined;
 
   return buildOutput({
@@ -63,6 +63,7 @@ async function runDownstream({
     scene,
     bom,
     compatibility,
+    roomShape: context.roomShape,
     message: effectiveMessage,
     explanation: budgetExplanation
       ? [explanation, budgetExplanation].filter(Boolean).join(' ')
@@ -147,9 +148,10 @@ export async function route(request) {
   console.log('contextBuildRoomContext', context);
 
   context = appendDialogTurn(context, 'user', request.command);
-  await persistRoomContext(context);
 
   console.log('contextAppendDialogTurn', context);
+  await persistRoomContext(context);
+  console.log('contextPersistRoomContext', context);
 
   const { intent, plan, outcome } = await runAiPipeline(request, context);
   if (intent.slots?.roomWidthMm && intent.slots?.roomDepthMm) {
@@ -165,10 +167,6 @@ export async function route(request) {
       }
     };
   }
-
-  console.log('intent', intent);
-  console.log('plan', plan);
-  console.log('outcome', outcome);
 
   if (intent.kind === 'undo' || intent.kind === 'redo') {
     const response = await handleHistoryIntent(request, context, intent.kind);
@@ -195,7 +193,7 @@ export async function route(request) {
   }
 
   if (intent.kind === 'set_budget') {
-    if (intent.slots?.budgetRub === undefined) {
+    if (intent.slots?.budgetEur === undefined) {
       const clarify = buildClarifyResponse(
         request,
         'Enter a numeric budget, for example "budget up to 150000".',
@@ -203,7 +201,7 @@ export async function route(request) {
       );
       return finalizeResponse(context, clarify);
     }
-    context = { ...context, budgetRub: intent.slots.budgetRub };
+    context = { ...context, budgetEur: intent.slots.budgetEur };
   }
 
   const messages = {
@@ -213,7 +211,7 @@ export async function route(request) {
         : `Module ${outcome.sku} added.`,
     remove_module: `Module ${outcome.instanceId} removed.`,
     change_finish: `Finish ${outcome.finishId} selected for ${outcome.instanceId}.`,
-    set_budget: `Budget set to ${intent.slots?.budgetRub} RUB.`,
+    set_budget: `Budget set to €${intent.slots?.budgetEur}.`,
     show_price: 'Project cost calculated.'
   };
 
