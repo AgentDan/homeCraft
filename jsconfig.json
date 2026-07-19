@@ -7,6 +7,11 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "paths": {
+      "@homecraft/ai": ["./packages/ai/src/index.js"],
+      "@homecraft/contracts": ["./packages/contracts/src/index.js"],
+      "@homecraft/catalog-schema": ["./packages/catalog-schema/src/index.js"]
+    },
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM"],

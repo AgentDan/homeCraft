@@ -133,8 +133,6 @@ async function handleHistoryIntent(request, context, intentKind) {
 export async function route(request) {
   await recordCommandRequest(request);
 
-  console.log('request', request);
-
   let context = await buildRoomContext(
     undefined,
     request.projectId,
@@ -145,15 +143,12 @@ export async function route(request) {
     context = { ...context, catalogSnapshotId: request.catalogSnapshotId };
   }
 
-  console.log('contextBuildRoomContext', context);
-
   context = appendDialogTurn(context, 'user', request.command);
 
-  console.log('contextAppendDialogTurn', context);
   await persistRoomContext(context);
-  console.log('contextPersistRoomContext', context);
 
   const { intent, plan, outcome } = await runAiPipeline(request, context);
+
   if (intent.slots?.roomWidthMm && intent.slots?.roomDepthMm) {
     context = {
       ...context,
@@ -240,5 +235,6 @@ export async function route(request) {
     changeSummary,
     view: { kind: '3d_scene', render: 'full' }
   });
+  console.log('response', response);
   return finalizeResponse(context, response);
 }
