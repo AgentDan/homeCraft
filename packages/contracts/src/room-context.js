@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PlanOperationSchema } from './configuration-plan.js';
 
 export const WallSchema = z.object({
   id: z.string(),
@@ -42,7 +43,9 @@ export const RoomContextSchema = z.object({
   inputChannel: z.enum(['text', 'voice']).default('text'),
   catalogSnapshotId: z.string().min(1),
   roomShape: RoomShapeSchema,
-  budgetRub: z.number().nonnegative().optional(),
+  budgetEur: z.number().nonnegative().optional(),
+  planOperations: z.array(PlanOperationSchema).default([]),
+  planVersion: z.number().int().nonnegative().default(0),
   dialogTurns: z.array(
     z.object({
       role: z.enum(['user', 'assistant']),

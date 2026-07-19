@@ -1,14 +1,9 @@
 /**
- * Detects user intent from natural language. RU-first, no silent fallback.
+ * Detects user intent from English natural language with no silent fallback.
  *
- * @param text - User command
- * @param [lang] - Optional language hint
+ * @param {string} text - User command
  */
-export async function detectIntent(text, lang) {
+export async function detectIntent(text) {
   const { matchIntent } = await import('@homecraft/ai');
-  const result = matchIntent(text);
-  if (lang && result.kind !== 'unknown') {
-    return { ...result, language: lang };
-  }
-  return result;
+  return matchIntent(text);
 }

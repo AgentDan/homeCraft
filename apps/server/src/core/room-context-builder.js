@@ -1,6 +1,16 @@
 import { RoomContextSchema } from '@homecraft/contracts';
+import {
+  loadPlanHistory,
+  loadSessionDocument,
+  saveRoomContextState
+} from '../storage/local-storage.js';
+import {
+  loadProjectDocument,
+  saveProjectDocument
+} from '../storage/mongo.js';
+import { DEFAULT_CATALOG_SNAPSHOT_ID } from '../knowledge-base/catalog-store.js';
 
-const DEFAULT_SNAPSHOT = 'snapshot-step0';
+const DEFAULT_SNAPSHOT = DEFAULT_CATALOG_SNAPSHOT_ID;
 
 function defaultRoomShape() {
   return {
@@ -21,14 +31,30 @@ function defaultRoomShape() {
  * @returns RoomContext validated with Zod
  */
 export async function buildRoomContext(userId, projectId, sessionId, inputChannel = 'text') {
+  const [session, history, mongoProject] = await Promise.all([
+    loadSessionDocument(sessionId),
+    loadPlanHistory(sessionId, projectId),
+    loadProjectDocument(projectId)
+  ]);
+  const persisted =
+    session.roomContext?.projectId === projectId
+      ? session.roomContext
+      : mongoProject ?? {};
+  const currentPlan = history.entries[history.currentIndex]?.plan;
   const context = {
     projectId,
     sessionId,
     userId,
     inputChannel,
-    catalogSnapshotId: DEFAULT_SNAPSHOT,
-    roomShape: defaultRoomShape(),
-    dialogTurns: [],
+    catalogSnapshotId: persisted.catalogSnapshotId ?? DEFAULT_SNAPSHOT,
+    roomShape: persisted.roomShape ?? defaultRoomShape(),
+    budgetEur: persisted.budgetEur,
+    planOperations: currentPlan?.operations ?? mongoProject?.planOperations ?? [],
+    planVersion:
+      history.entries[history.currentIndex]?.version
+      ?? mongoProject?.planVersion
+      ?? 0,
+    dialogTurns: persisted.dialogTurns ?? [],
     updatedAt: new Date().toISOString()
   };
   return RoomContextSchema.parse(context);
@@ -46,4 +72,23 @@ export function appendDialogTurn(context, role, text) {
 
 export function resolveSnapshotId(request, context) {
   return request.catalogSnapshotId ?? context.catalogSnapshotId ?? DEFAULT_SNAPSHOT;
+}
+
+export async function persistRoomContext(context) {
+  const validated = RoomContextSchema.parse({
+    ...context,
+    updatedAt: new Date().toISOString()
+  });
+  await saveRoomContextState(validated.sessionId, validated);
+  await saveProjectDocument({
+    projectId: validated.projectId,
+    sessionId: validated.sessionId,
+    catalogSnapshotId: validated.catalogSnapshotId,
+    roomShape: validated.roomShape,
+    budgetEur: validated.budgetEur,
+    planOperations: validated.planOperations,
+    planVersion: validated.planVersion,
+    dialogTurns: validated.dialogTurns
+  });
+  return validated;
 }

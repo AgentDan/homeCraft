@@ -48,6 +48,7 @@ export function buildOutput(input) {
       planVersion: input.planVersion ?? 0,
       plan: input.plan,
       sceneResult: input.scene,
+      roomShape: input.roomShape ?? null,
       bom: input.bom,
       compatibility: input.compatibility,
       responseType: input.compatibility.valid ? 'scene' : 'conflict'
@@ -63,7 +64,7 @@ export function buildOutput(input) {
 }
 
 export function buildUnknownIntentResponse(request, _context) {
-  const prompt = 'Не удалось понять команду. Переформулируйте, пожалуйста.';
+  const prompt = 'The command was not understood. Please rephrase it.';
   return ClientResponseSchema.parse({
     requestId: request.requestId,
     sessionId: request.sessionId,
@@ -80,8 +81,8 @@ export function buildUnknownIntentResponse(request, _context) {
   });
 }
 
-export function buildHelpResponse(request) {
-  const message = 'HomeCraft step0: опишите кухню текстом или голосом.';
+export function buildHelpResponse(request, helpMessage) {
+  const message = helpMessage ?? 'Describe the kitchen by text or voice.';
   return ClientResponseSchema.parse({
     requestId: request.requestId,
     sessionId: request.sessionId,
@@ -90,7 +91,7 @@ export function buildHelpResponse(request) {
     responseType: 'help',
     message,
     speech: message,
-    explanation: 'Available intents will expand in phase 1.',
+    explanation: 'Available commands were provided by the Help service.',
     interaction: { expects: 'none' },
     planVersion: 0,
     errors: [],

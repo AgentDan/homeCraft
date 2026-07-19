@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ConfigurationPlanSchema } from './configuration-plan.js';
 import { BOMSchema } from './bom.js';
 import { CompatibilityReportSchema } from './compatibility.js';
+import { RoomShapeSchema } from './room-context.js';
 
 export const ClientResponseStatusSchema = z.enum(['ok', 'error', 'needs_input']);
 export const ClientResponseTypeSchema = z.enum([
@@ -44,6 +45,13 @@ export const SceneResultSchema = z.object({
     z.object({
       instanceId: z.string(),
       sku: z.string(),
+      name: z.string(),
+      category: z.string(),
+      dimensions: z.object({
+        widthMm: z.number().positive(),
+        heightMm: z.number().positive(),
+        depthMm: z.number().positive()
+      }),
       position: z.object({ x: z.number(), y: z.number(), z: z.number() }),
       rotationY: z.number(),
       finishId: z.string().optional()
@@ -66,6 +74,7 @@ export const ClientResponseSchema = z.object({
   planVersion: z.number().int().nonnegative().default(0),
   plan: ConfigurationPlanSchema.optional(),
   sceneResult: SceneResultSchema.nullable().optional(),
+  roomShape: RoomShapeSchema.nullable().optional(),
   bom: BOMSchema.nullable().optional(),
   compatibility: CompatibilityReportSchema.nullable().optional(),
   downloadUrl: z.string().url().nullable().optional(),
@@ -78,10 +87,10 @@ export function createStubClientResponse(request, overrides = {}) {
     ...request,
     status: 'ok',
     responseType: 'scene',
-    message: 'HomeCraft step0 stub response.',
-    speech: 'Команда обработана.',
-    explanation: 'Pipeline skeleton is wired; business logic arrives in phase 1.',
-    changeSummary: { text: 'Изменений пока нет.' },
+    message: 'Command processed.',
+    speech: 'Command processed.',
+    explanation: 'HomeCraft dialog pipeline response.',
+    changeSummary: { text: 'No changes.' },
     view: { kind: '2d_plan', render: 'full' },
     interaction: { expects: 'none' },
     planVersion: 0,

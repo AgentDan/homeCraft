@@ -1,7 +1,41 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+/**
+ * @param {{
+ *   onSubmit: (command: string, inputChannel?: 'text' | 'voice') => void,
+ *   disabled?: boolean
+ * }} props
+ */
 export function CommandInput({ onSubmit, disabled }) {
   const [value, setValue] = useState('');
+  const inputRef = useRef(/** @type {HTMLInputElement | null} */ (null));
+
+  useEffect(() => {
+    /**
+     * @param {KeyboardEvent} event
+     */
+    function handleKeyDown(event) {
+      if (event.code !== 'Space' && event.key !== ' ') return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT')
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      inputRef.current?.focus();
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -12,26 +46,35 @@ export function CommandInput({ onSubmit, disabled }) {
   }
 
   return (
-    <form className="mb-6 flex flex-col gap-2" onSubmit={handleSubmit}>
-      <label htmlFor="command" className="font-medium text-stone-800">
-        Команда
-      </label>
-      <textarea
-        id="command"
-        rows={3}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Например: help"
-        disabled={disabled}
-        className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-normal text-stone-900 outline-none focus:border-emerald-700"
-      />
-      <button
-        type="submit"
-        disabled={disabled}
-        className="self-start rounded-lg bg-emerald-800 px-4 py-2 font-medium text-white hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-60"
+    <form className="hc-glass hc-glass--compact px-3 pt-2.5 pb-3" onSubmit={handleSubmit}>
+      <label
+        htmlFor="command"
+        className="mb-1.5 block text-[11px] font-medium tracking-wide text-[var(--hc-muted)] uppercase"
       >
-        Отправить
-      </button>
+        Command
+        <span className="ml-2 font-normal normal-case tracking-normal text-[var(--hc-muted)]/70">
+          Space
+        </span>
+      </label>
+      <div className="flex items-center gap-1.5 rounded-[12px] border border-[var(--hc-border)] bg-black/50 p-1 focus-within:border-[var(--hc-accent)]/50">
+        <input
+          ref={inputRef}
+          id="command"
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="add a 600 mm cabinet"
+          disabled={disabled}
+          className="min-w-0 flex-1 bg-transparent px-2.5 py-2 text-sm text-[var(--hc-text)] outline-none placeholder:text-[var(--hc-muted)]/70 disabled:opacity-60"
+        />
+        <button
+          type="submit"
+          disabled={disabled}
+          className="hc-btn-accent shrink-0 rounded-[10px] px-3.5 py-2 text-xs font-semibold"
+        >
+          Send
+        </button>
+      </div>
     </form>
   );
 }

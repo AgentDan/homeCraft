@@ -5,21 +5,26 @@ import { runtimeConfig } from '../config/runtime.js';
 let client = null;
 /** @type {import('mongodb').Db | null} */
 let db = null;
+let connectionAttempted = false;
 
-/**
- * Connects to MongoDB. Step0: connection is lazy; failures are logged, not fatal for stub API.
- */
+/** Connects lazily; local persistence remains available when MongoDB is offline. */
 export async function connectMongo() {
   if (db) {
     return db;
   }
+  if (connectionAttempted) {
+    return null;
+  }
+  connectionAttempted = true;
   try {
-    client = new MongoClient(runtimeConfig.mongodbUri);
+    client = new MongoClient(runtimeConfig.mongodbUri, {
+      serverSelectionTimeoutMS: runtimeConfig.mongodbTimeoutMs
+    });
     await client.connect();
     db = client.db();
     return db;
   } catch (error) {
-    console.warn('[mongo] connection failed (step0 continues with local storage):', error);
+    console.warn('[mongo] connection failed; using local storage:', error);
     return null;
   }
 }
@@ -33,12 +38,30 @@ export async function closeMongo() {
     await client.close();
     client = null;
     db = null;
+    connectionAttempted = false;
   }
 }
 
-/**
- * @throws Error — not implemented in step0
- */
-export async function saveProjectDocument(_project) {
-  throw new Error('Not implemented');
+export async function saveProjectDocument(project) {
+  const database = await getMongoDb();
+  if (!database) {
+    return null;
+  }
+  await database.collection('projects').replaceOne(
+    { projectId: project.projectId },
+    { ...structuredClone(project), updatedAt: new Date().toISOString() },
+    { upsert: true }
+  );
+  return structuredClone(project);
+}
+
+export async function loadProjectDocument(projectId) {
+  const database = await getMongoDb();
+  if (!database) {
+    return null;
+  }
+  return database.collection('projects').findOne(
+    { projectId },
+    { projection: { _id: 0 } }
+  );
 }

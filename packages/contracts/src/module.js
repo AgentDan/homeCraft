@@ -19,7 +19,7 @@ export const ModuleDimensionsSchema = z.object({
 export const FinishOptionSchema = z.object({
   id: z.string(),
   name: z.string(),
-  priceDeltaRub: z.number()
+  priceDeltaEur: z.number()
 });
 
 export const ModuleSchema = z.object({
@@ -27,7 +27,7 @@ export const ModuleSchema = z.object({
   name: z.string(),
   category: z.string(),
   dimensions: ModuleDimensionsSchema,
-  priceRub: z.number().nonnegative(),
+  priceEur: z.number().nonnegative(),
   mounting: MountingKindSchema,
   clearances: ClearancesSchema,
   finishes: z.array(FinishOptionSchema),

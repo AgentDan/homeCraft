@@ -1,1 +1,1 @@
-export const PROMPT_VERSION = 'step0';
+export const PROMPT_VERSION = 'phase1-rule-based';

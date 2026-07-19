@@ -2,14 +2,14 @@
 
 Phase 0 deliverable for [Roadmap.md](./Roadmap.md). **Status: completed.**
 
-## Done in step0
+## Completed in Step 0
 
-- [x] npm workspaces monorepo (JavaScript ESM, без TypeScript)
+- [x] npm workspaces monorepo (JavaScript ESM, without TypeScript)
 - [x] `@homecraft/contracts` — Zod schemas
-- [x] `@homecraft/ai` — IntentRegistry (RU, no silent fallback)
+- [x] `@homecraft/ai` — IntentRegistry (English-only, no silent fallback)
 - [x] `@homecraft/catalog-schema` — catalog validator stub
 - [x] Server skeleton + working `POST /api/commands`
-- [x] Единый dialog-only контракт запроса (`command` + `inputChannel`, без ручного редактора)
+- [x] Unified dialog-only request contract (`command` + `inputChannel`, without a manual editor)
 - [x] Production deploy (`build:deploy`, `npm start`, SPA + API)
 - [x] Client shell (CommandInput + ResultViewer) + Tailwind CSS v4
 - [x] Mobile stub
@@ -34,6 +34,6 @@ NODE_ENV=production npm start
 # http://localhost:3001 — SPA + /api/health
 ```
 
-## Next: Phase 1
+## After Step 0
 
-See Roadmap § «Фаза 1. MVP диалога + Kitchen demo».
+Phase 1 is now complete. See Roadmap § "Phase 1. Dialog MVP + Kitchen demo" for the implemented catalog, RAG, plan, compatibility, BOM, and 3D scope.

@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ClientRequestSchema,
+  IntentResultSchema,
   createClarifyResponse,
   createConfirmResponse,
   createOptionsResponse,
@@ -14,10 +15,10 @@ describe('@homecraft/contracts smoke', () => {
       requestId: 'req-1',
       sessionId: 'sess-1',
       projectId: 'proj-1',
-      command: 'привет',
+      command: 'hello',
       clientState: {}
     });
-    assert.equal(parsed.command, 'привет');
+    assert.equal(parsed.command, 'hello');
     assert.equal(parsed.inputChannel, 'text');
   });
 
@@ -40,7 +41,7 @@ describe('@homecraft/contracts smoke', () => {
         requestId: 'req-1',
         sessionId: 'sess-1',
         projectId: 'proj-1',
-        command: 'передвинь шкаф',
+        command: 'move the cabinet',
         inputMode: 'editor',
         editorOperations: [],
         clientState: {}
@@ -59,19 +60,31 @@ describe('@homecraft/contracts smoke', () => {
     assert.equal(response.interaction.expects, 'none');
   });
 
+  it('accepts only English intent language', () => {
+    const intent = {
+      kind: 'help',
+      confidence: 1,
+      language: 'en',
+      rawText: 'help',
+      slots: {}
+    };
+    assert.equal(IntentResultSchema.parse(intent).language, 'en');
+    assert.throws(() => IntentResultSchema.parse({ ...intent, language: 'fr' }));
+  });
+
   it('creates rich interactive responses', () => {
     const ids = {
       requestId: 'req-2',
       sessionId: 'sess-2',
       projectId: 'proj-2'
     };
-    const clarify = createClarifyResponse({ ...ids, prompt: 'Уточните размер.' });
+    const clarify = createClarifyResponse({ ...ids, prompt: 'Specify the size.' });
     const options = createOptionsResponse({
       ...ids,
-      prompt: 'Выберите фасад.',
-      options: [{ id: 'oak', label: 'Дуб' }]
+      prompt: 'Choose a finish.',
+      options: [{ id: 'oak', label: 'Oak' }]
     });
-    const confirm = createConfirmResponse({ ...ids, prompt: 'Подтвердить изменения?' });
+    const confirm = createConfirmResponse({ ...ids, prompt: 'Confirm the changes?' });
 
     assert.equal(clarify.interaction.expects, 'free_text');
     assert.ok(options.interaction.options);

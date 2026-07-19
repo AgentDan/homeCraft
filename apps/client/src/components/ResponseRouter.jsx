@@ -1,30 +1,14 @@
 import { useState } from 'react';
-import { ResultViewer } from './ResultViewer.jsx';
-import { ScenePreview } from './ScenePreview.jsx';
 
-function ChangeSummary({ summary }) {
-  if (!summary) return null;
-
-  const groups = [
-    ['Добавлено', summary.added],
-    ['Удалено', summary.removed],
-    ['Перемещено', summary.moved]
-  ].filter(([, items]) => items?.length);
-
+function CompactPrompt({ children }) {
   return (
-    <section className="rounded-lg border border-stone-200 bg-white p-4">
-      <h3 className="mb-2 font-medium text-stone-900">Изменения</h3>
-      <p className="text-stone-700">{summary.text}</p>
-      {groups.map(([label, items]) => (
-        <p key={label} className="mt-1 text-sm text-stone-600">
-          {label}: {items.join(', ')}
-        </p>
-      ))}
+    <section className="hc-glass hc-glass--compact px-3 py-2.5">
+      {children}
     </section>
   );
 }
 
-function ClarifyForm({ response, onCommand, disabled }) {
+function ClarifyForm({ response, onCommand, disabled, compact }) {
   const [value, setValue] = useState('');
 
   function handleSubmit(event) {
@@ -36,102 +20,105 @@ function ClarifyForm({ response, onCommand, disabled }) {
   }
 
   return (
-    <form className="rounded-lg border border-amber-300 bg-amber-50 p-4" onSubmit={handleSubmit}>
-      <label htmlFor="clarify-command" className="mb-2 block font-medium text-stone-900">
+    <form
+      className={`hc-glass border-[rgba(255,193,7,0.28)] ${compact ? 'hc-glass--compact px-3 py-2.5' : 'p-4'}`}
+      onSubmit={handleSubmit}
+    >
+      <label
+        htmlFor="clarify-command"
+        className={`mb-1.5 block text-[var(--hc-text)] ${compact ? 'text-xs leading-snug' : 'mb-2 text-sm font-medium'}`}
+      >
         {response.interaction?.prompt ?? response.message}
       </label>
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         <input
           id="clarify-command"
           value={value}
           onChange={(event) => setValue(event.target.value)}
           disabled={disabled}
-          className="min-w-0 flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2"
+          className="min-w-0 flex-1 rounded-[10px] border border-[var(--hc-border)] bg-black/45 px-2.5 py-1.5 text-sm text-[var(--hc-text)] outline-none"
         />
         <button
           type="submit"
           disabled={disabled}
-          className="rounded-lg bg-emerald-800 px-4 py-2 font-medium text-white disabled:opacity-60"
+          className="hc-btn-accent rounded-[10px] px-3 py-1.5 text-xs font-semibold"
         >
-          Ответить
+          Reply
         </button>
       </div>
     </form>
   );
 }
 
-function TextResponse({ response }) {
-  return (
-    <section className="rounded-lg border border-stone-200 bg-white p-4">
-      <p className="text-stone-800">{response.message}</p>
-      {response.interaction?.prompt && response.interaction.prompt !== response.message && (
-        <p className="mt-2 text-sm text-stone-600">{response.interaction.prompt}</p>
-      )}
-    </section>
-  );
-}
-
-export function ResponseRouter({ response, onCommand, disabled }) {
+/**
+ * @param {{
+ *   response: { responseType?: string, message?: string, interaction?: any, changeSummary?: any } | null,
+ *   onCommand: (command: string) => void,
+ *   disabled?: boolean,
+ *   compact?: boolean
+ * }} props
+ */
+export function ResponseRouter({ response, onCommand, disabled, compact = false }) {
   if (!response) return null;
 
-  switch (response.responseType) {
-    case 'scene':
-      return (
-        <section className="space-y-4">
-          <TextResponse response={response} />
-          <ScenePreview sceneResult={response.sceneResult} view={response.view} />
-          <ChangeSummary summary={response.changeSummary} />
-        </section>
-      );
-    case 'clarify':
-      return <ClarifyForm response={response} onCommand={onCommand} disabled={disabled} />;
-    case 'options':
-      return (
-        <section className="rounded-lg border border-stone-200 bg-white p-4">
-          <p className="mb-3 text-stone-800">
-            {response.interaction?.prompt ?? response.message}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {(response.interaction?.options ?? []).map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                disabled={disabled}
-                onClick={() => onCommand(option.label)}
-                className="rounded-lg bg-emerald-800 px-4 py-2 font-medium text-white disabled:opacity-60"
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </section>
-      );
-    case 'confirm':
-      return (
-        <section className="rounded-lg border border-stone-200 bg-white p-4">
-          <p className="mb-3 text-stone-800">
-            {response.interaction?.prompt ?? response.message}
-          </p>
-          <div className="flex gap-2">
-            {['Да', 'Нет'].map((label) => (
-              <button
-                key={label}
-                type="button"
-                disabled={disabled}
-                onClick={() => onCommand(label)}
-                className="rounded-lg bg-emerald-800 px-4 py-2 font-medium text-white disabled:opacity-60"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </section>
-      );
-    case 'conflict':
-    case 'help':
-    case 'unknown_intent':
-      return <TextResponse response={response} />;
-    default:
-      return <ResultViewer response={response} error={null} health={null} />;
+  // In compact HUD, scene/status text lives in Health — only keep interactive prompts.
+  if (compact) {
+    switch (response.responseType) {
+      case 'clarify':
+        return (
+          <ClarifyForm
+            response={response}
+            onCommand={onCommand}
+            disabled={disabled}
+            compact
+          />
+        );
+      case 'options':
+        return (
+          <CompactPrompt>
+            <p className="mb-2 text-xs leading-snug text-[var(--hc-muted)]">
+              {response.interaction?.prompt ?? response.message}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {(response.interaction?.options ?? []).map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => onCommand(option.label)}
+                  className="hc-btn-accent rounded-[10px] px-3 py-1.5 text-xs"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </CompactPrompt>
+        );
+      case 'confirm':
+        return (
+          <CompactPrompt>
+            <p className="mb-2 text-xs leading-snug text-[var(--hc-muted)]">
+              {response.interaction?.prompt ?? response.message}
+            </p>
+            <div className="flex gap-1.5">
+              {['Yes', 'No'].map((label) => (
+                <button
+                  key={label}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => onCommand(label)}
+                  className="hc-btn-accent rounded-[10px] px-3 py-1.5 text-xs"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </CompactPrompt>
+        );
+      default:
+        return null;
+    }
   }
+
+  return null;
 }

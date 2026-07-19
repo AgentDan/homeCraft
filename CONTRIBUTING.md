@@ -5,7 +5,7 @@
 1. **Dialog is the only input path:** every command becomes one `ConfigurationPlan` in `orchestrator.route()` and then uses the shared downstream pipeline.
 2. **`assertCompatible()`** is the **only** stage that may reject a plan (`valid: false`).
 3. **`calculateBOM()`** is a pure calculator — never blocks on budget.
-4. **Intent detection** is RU-first; no silent fallback — use `UnknownIntent`.
+4. **Intent detection** is English-only; no silent fallback — use `UnknownIntent`.
 5. **`catalog-rag-retriever`** must be wired into `configuration-plan-generator` (no dead AI paths).
 6. **Catalog snapshots** — BOM reads frozen `catalogSnapshotId`, not live catalog.
 7. **Spatial index** for compatibility (no O(n²) in production hot path).

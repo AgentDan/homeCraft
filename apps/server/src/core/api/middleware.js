@@ -29,7 +29,7 @@ export function corsPreflightHandler(req, res, next) {
   next();
 }
 
-/** Абсолютный путь к `apps/client/dist` или `CLIENT_DIST_PATH`. */
+/** Absolute path to `apps/client/dist` or `CLIENT_DIST_PATH`. */
 export function resolveClientDistPath() {
   const raw = process.env.CLIENT_DIST_PATH?.trim();
   if (raw) {
@@ -45,7 +45,7 @@ export function warnProductionClientDistMissing() {
   const indexHtml = path.join(dist, 'index.html');
   if (!fs.existsSync(indexHtml)) {
     console.warn(
-      `[production] Клиент не собран или путь неверён: не найден ${indexHtml}. Выполните «npm run build» в монорепо или задайте CLIENT_DIST_PATH.`
+      `[production] Client is not built or the path is invalid: ${indexHtml} was not found. Run "npm run build" in the monorepo or set CLIENT_DIST_PATH.`
     );
   }
 }

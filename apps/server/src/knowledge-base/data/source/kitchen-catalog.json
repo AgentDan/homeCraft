@@ -1,0 +1,260 @@
+{
+  "manufacturerId": "homecraft-demo",
+  "catalogVersion": "kitchen-demo-v1",
+  "currency": "EUR",
+  "importedAt": "2026-07-17T00:00:00.000Z",
+  "modules": [
+    {
+      "sku": "BASE-400",
+      "name": "Base Cabinet 400",
+      "category": "base_cabinet",
+      "dimensions": { "widthMm": 400, "heightMm": 720, "depthMm": 560 },
+      "priceEur": 12900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 20 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 1800 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "BASE-600",
+      "name": "Base Cabinet 600",
+      "category": "base_cabinet",
+      "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 560 },
+      "priceEur": 14900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 20 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2200 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "BASE-800",
+      "name": "Base Cabinet 800",
+      "category": "base_cabinet",
+      "dimensions": { "widthMm": 800, "heightMm": 720, "depthMm": 560 },
+      "priceEur": 16900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 20 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2600 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "DRAWER-400",
+      "name": "Drawer Base Cabinet 400",
+      "category": "drawer_cabinet",
+      "dimensions": { "widthMm": 400, "heightMm": 720, "depthMm": 560 },
+      "priceEur": 18900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 20 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2000 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "DRAWER-600",
+      "name": "Drawer Base Cabinet 600",
+      "category": "drawer_cabinet",
+      "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 560 },
+      "priceEur": 21900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 20 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2400 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "SINK-600",
+      "name": "Sink Base Cabinet 600",
+      "category": "sink_cabinet",
+      "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 560 },
+      "priceEur": 16900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 10, "rightMm": 10, "backMm": 80 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2200 }
+      ],
+      "utilities": ["water", "drain"]
+    },
+    {
+      "sku": "SINK-800",
+      "name": "Sink Base Cabinet 800",
+      "category": "sink_cabinet",
+      "dimensions": { "widthMm": 800, "heightMm": 720, "depthMm": 560 },
+      "priceEur": 18900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 10, "rightMm": 10, "backMm": 80 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2600 }
+      ],
+      "utilities": ["water", "drain"]
+    },
+    {
+      "sku": "HOB-600",
+      "name": "Hob Base Cabinet 600",
+      "category": "hob_cabinet",
+      "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 560 },
+      "priceEur": 17900,
+      "mounting": "floor",
+      "clearances": { "topMm": 30, "bottomMm": 0, "leftMm": 50, "rightMm": 50, "backMm": 50 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2200 }
+      ],
+      "utilities": ["electric"]
+    },
+    {
+      "sku": "OVEN-600",
+      "name": "Oven Base Cabinet 600",
+      "category": "oven_cabinet",
+      "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 560 },
+      "priceEur": 18500,
+      "mounting": "floor",
+      "clearances": { "topMm": 20, "bottomMm": 0, "leftMm": 20, "rightMm": 20, "backMm": 60 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 1600 }
+      ],
+      "utilities": ["electric"]
+    },
+    {
+      "sku": "CORNER-900",
+      "name": "Corner Base Cabinet 900",
+      "category": "corner_cabinet",
+      "dimensions": { "widthMm": 900, "heightMm": 720, "depthMm": 900 },
+      "priceEur": 25900,
+      "mounting": "corner",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 10, "rightMm": 10, "backMm": 20 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 3200 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "WALL-400",
+      "name": "Wall Cabinet 400",
+      "category": "wall_cabinet",
+      "dimensions": { "widthMm": 400, "heightMm": 720, "depthMm": 320 },
+      "priceEur": 9900,
+      "mounting": "wall",
+      "clearances": { "topMm": 50, "bottomMm": 450, "leftMm": 5, "rightMm": 5, "backMm": 0 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 1400 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "WALL-600",
+      "name": "Wall Cabinet 600",
+      "category": "wall_cabinet",
+      "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 320 },
+      "priceEur": 11900,
+      "mounting": "wall",
+      "clearances": { "topMm": 50, "bottomMm": 450, "leftMm": 5, "rightMm": 5, "backMm": 0 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 1800 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "WALL-800",
+      "name": "Wall Cabinet 800",
+      "category": "wall_cabinet",
+      "dimensions": { "widthMm": 800, "heightMm": 720, "depthMm": 320 },
+      "priceEur": 13900,
+      "mounting": "wall",
+      "clearances": { "topMm": 50, "bottomMm": 450, "leftMm": 5, "rightMm": 5, "backMm": 0 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2200 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "HOOD-600",
+      "name": "Extractor Hood Wall Cabinet 600",
+      "category": "hood_cabinet",
+      "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 320 },
+      "priceEur": 12900,
+      "mounting": "wall",
+      "clearances": { "topMm": 50, "bottomMm": 650, "leftMm": 50, "rightMm": 50, "backMm": 0 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 1600 }
+      ],
+      "utilities": ["electric"]
+    },
+    {
+      "sku": "TALL-600",
+      "name": "Tall Pantry Cabinet 600",
+      "category": "tall_cabinet",
+      "dimensions": { "widthMm": 600, "heightMm": 2100, "depthMm": 560 },
+      "priceEur": 29900,
+      "mounting": "tall",
+      "clearances": { "topMm": 50, "bottomMm": 0, "leftMm": 10, "rightMm": 10, "backMm": 20 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 4200 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "TALL-OVEN-600",
+      "name": "Tall Oven Cabinet 600",
+      "category": "tall_oven_cabinet",
+      "dimensions": { "widthMm": 600, "heightMm": 2100, "depthMm": 560 },
+      "priceEur": 32900,
+      "mounting": "tall",
+      "clearances": { "topMm": 50, "bottomMm": 0, "leftMm": 20, "rightMm": 20, "backMm": 60 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 3600 }
+      ],
+      "utilities": ["electric"]
+    },
+    {
+      "sku": "FRIDGE-600",
+      "name": "Refrigerator Tall Cabinet 600",
+      "category": "fridge_cabinet",
+      "dimensions": { "widthMm": 600, "heightMm": 2100, "depthMm": 620 },
+      "priceEur": 34900,
+      "mounting": "tall",
+      "clearances": { "topMm": 100, "bottomMm": 0, "leftMm": 30, "rightMm": 30, "backMm": 80 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 3800 }
+      ],
+      "utilities": ["electric"]
+    },
+    {
+      "sku": "DISHWASHER-600",
+      "name": "Dishwasher Front Panel 600",
+      "category": "dishwasher_front",
+      "dimensions": { "widthMm": 600, "heightMm": 720, "depthMm": 20 },
+      "priceEur": 8900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 5, "rightMm": 5, "backMm": 560 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2400 }
+      ],
+      "utilities": ["water", "drain", "electric"]
+    }
+  ]
+}

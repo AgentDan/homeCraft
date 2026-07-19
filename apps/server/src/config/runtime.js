@@ -17,6 +17,7 @@ export const runtimeConfig = {
   host: process.env.HOST ?? '0.0.0.0',
   nodeEnv,
   mongodbUri: process.env.MONGODB_URI ?? 'mongodb://localhost:27017/homecraft',
-  embeddingsProvider: process.env.EMBEDDINGS_PROVIDER ?? 'stub',
+  mongodbTimeoutMs: Number(process.env.MONGODB_TIMEOUT_MS ?? 500),
+  embeddingsProvider: process.env.EMBEDDINGS_PROVIDER ?? 'local-hash',
   kbTopK: Number(process.env.KB_TOP_K ?? 5)
 };

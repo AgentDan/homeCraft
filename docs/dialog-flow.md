@@ -1,20 +1,20 @@
-# Диалог с системой
+# Dialog with the system
 
-Сейчас диалог устроен как цепочка:
+The dialog currently follows this sequence:
 
 ```text
-Пользователь → текстовая команда → POST /api/commands
-→ определение intent → ConfigurationPlan
-→ совместимость → сцена → BOM
+User → text command → POST /api/commands
+→ intent detection → ConfigurationPlan
+→ compatibility → scene → BOM
 → ClientResponse (Say + Show + Ask)
-→ ResponseRouter на клиенте
+→ ResponseRouter on the client
 ```
 
-## 1. Клиент отправляет один ход
+## 1. The client sends one turn
 
-Для каждой команды клиент создаёт новый `requestId`, но сохраняет общие `sessionId` и `projectId`.
+The client creates a new `requestId` for each command while retaining the shared `sessionId` and `projectId`.
 
-`apps/client/src/App.jsx`, строки 37–45:
+`apps/client/src/App.jsx`, lines 37–45:
 
 ```js
 const result = await postCommand({
@@ -27,21 +27,21 @@ const result = await postCommand({
 });
 ```
 
-- система поддерживает только диалоговый ввод, поэтому отдельный `inputMode` не нужен;
-- `inputChannel` — `text` или `voice`;
-- голос пока фактически не реализован: нет STT и кнопки микрофона, UI отправляет текст;
-- после STT распознанный текст должен попадать в то же поле `command`.
+- the system supports dialog input only, so a separate `inputMode` is unnecessary;
+- `inputChannel` is `text` or `voice`;
+- voice input is not implemented yet: there is no STT or microphone button, and the UI sends text;
+- after STT is added, recognized text must use the same `command` field.
 
-## 2. Сервер создаёт контекст хода
+## 2. The server creates the turn context
 
 `orchestrator.route()`:
 
-1. записывает запрос в сессию;
-2. создаёт `RoomContext`;
-3. добавляет текущую реплику пользователя;
-4. запускает AI pipeline.
+1. records the request in the session;
+2. creates a `RoomContext`;
+3. appends the current user utterance;
+4. starts the AI pipeline.
 
-`apps/server/src/core/orchestrator.js`, строки 97–116:
+`apps/server/src/core/orchestrator.js`, lines 97–116:
 
 ```js
 export async function route(request) {
@@ -54,15 +54,15 @@ export async function route(request) {
     request.inputChannel
   );
 
-  const text = request.command ?? '';
-  context = appendDialogTurn(context, 'user', text);
+  context = appendDialogTurn(context, 'user', request.command);
+  await persistRoomContext(context);
 
-  const { intent, plan } = await runAiPipeline(request, context);
+  const { intent, plan, outcome } = await runAiPipeline(request, context);
 ```
 
-## 3. AI pipeline распознаёт намерение
+## 3. The AI pipeline detects intent
 
-Последовательность:
+Sequence:
 
 ```text
 intent-detector
@@ -71,20 +71,20 @@ intent-detector
 → configuration-plan-generator
 ```
 
-После этого получается единый `ConfigurationPlan`.
+Catalog RAG reads only the active snapshot, while platform-rules retrieval adds platform rules. The rule-based generator returns a cumulative `ConfigurationPlan` and an outcome (`applied`, `clarify`, or `read_only`).
 
-## 4. Обрабатываются специальные команды
+## 4. Special commands are handled
 
-Отдельно работают:
+The following are handled separately:
 
 - `help`;
-- неизвестная команда → `unknown_intent`;
+- unknown command → `unknown_intent`;
 - `undo`;
 - `redo`.
 
-Для `undo`/`redo` сервер выбирает сохранённую версию плана и заново проводит её через downstream pipeline.
+For `undo`/`redo`, the server selects a saved plan version and runs it through the downstream pipeline again.
 
-`apps/server/src/core/orchestrator.js`, строки 39–57:
+`apps/server/src/core/orchestrator.js`, lines 39–57:
 
 ```js
 const compatibility = await assertCompatible(plan, context);
@@ -97,22 +97,22 @@ const versionEntry =
     : null;
 ```
 
-Версии плана сохраняются на диске в `apps/server/data/sessions/`.
+Plan versions are saved to disk in `apps/server/data/sessions/`. Dialog context is also saved in MongoDB when available, with a local fallback.
 
-## 5. Ответ состоит из трёх каналов
+## 5. The response has three channels
 
-`ClientResponse` содержит:
+`ClientResponse` contains:
 
 ### Say
 
-- `message` — текст на экран;
-- `speech` — короткая реплика для будущего TTS.
+- `message` — text displayed on screen;
+- `speech` — a short utterance for future TTS.
 
 ### Show
 
 - `sceneResult`;
-- `view.kind`: `2d_plan` или `3d_scene`;
-- `view.render`: `full` или `delta`;
+- `view.kind`: `2d_plan` or `3d_scene`;
+- `view.render`: `full` or `delta`;
 - `changeSummary`.
 
 ### Ask
@@ -121,7 +121,7 @@ const versionEntry =
 - `prompt`;
 - `options`.
 
-Возможные типы ответа:
+Possible response types:
 
 ```text
 scene
@@ -133,53 +133,40 @@ options
 confirm
 ```
 
-## 6. Клиент маршрутизирует ответ
+## 6. The client routes the response
 
-`ResponseRouter` выбирает UI по `responseType`:
+`ResponseRouter` selects the UI based on `responseType`:
 
-- `scene` → текст, `ScenePreview`, список изменений;
-- `clarify` → вопрос и поле ответа;
-- `options` → кнопки вариантов;
-- `confirm` → кнопки «Да» и «Нет»;
-- `conflict`, `help`, `unknown_intent` → текстовая подсказка.
+- `scene` → text, `ScenePreview`, and a change list;
+- `clarify` → a question and answer field;
+- `options` → option buttons;
+- `confirm` → "Yes" and "No" buttons;
+- `conflict`, `help`, `unknown_intent` → a text prompt.
 
-Выбор кнопки снова отправляется как обычная текстовая команда.
+A button selection is sent again as a regular text command.
 
-## Важные ограничения текущего step0
+## Phase 1 limitations
 
-### История реплик фактически не сохраняется
+### Rule-based plan generation
 
-`buildRoomContext()` на каждом запросе создаёт `dialogTurns: []`, после чего добавляется только текущая команда.
+Intents and slots are converted into operations by deterministic rules. Open-ended interpretation of complex phrases and LLM function calling are planned for Phase 5.
 
-`apps/server/src/core/room-context-builder.js`, строки 23–32:
+### Simplified placement
 
-```js
-export async function buildRoomContext(userId, projectId, sessionId, inputChannel = 'text') {
-  const context = {
-    // ...
-    dialogTurns: [],
-    updatedAt: new Date().toISOString()
-  };
-```
+New modules are placed sequentially along one wall. Corner and multi-row layouts will require extending the domain pipeline.
 
-Поэтому система пока не понимает выражения вроде «сделай его шире» на основе предыдущей реплики.
+### Basic compatibility
 
-### Планы из текста пока пустые
+Room boundaries, overlap, and mounting height are checked. Utilities, full clearances, and alternative selection will be expanded in Phase 2.
 
-На step0 генератор плана из диалоговой команды возвращает `operations: []`.
+### Simplified 3D scene
 
-### Сцена пока является заглушкой
+Preview3D uses geometric boxes based on catalog dimensions. Manufacturer GLTF models are not connected yet.
 
-Реальной 2D/3D-визуализации нет.
+### TTS is not connected
 
-### Интерактивные ответы подключены только на уровне каркаса
+The `speech` field is already returned, but the client does not speak it yet.
 
-`clarify`, `options` и `confirm` существуют в контракте и UI, но AI pipeline ещё почти не создаёт такие ответы.
+## Summary
 
-### TTS не подключён
-
-Поле `speech` уже приходит, но клиент его пока не озвучивает.
-
-## Итог
-
-Транспорт, intents, богатый контракт ответа, UI-маршрутизация и `undo`/`redo` уже работают. Полноценная многоходовая память, STT/TTS и генерация реальных операций остаются следующими этапами.
+Catalog-grounded intents, real operations, multi-turn persistence, compatibility, BOM, 3D preview, and `undo`/`redo` work. STT/TTS, the LLM, and production GLTF models remain future stages.

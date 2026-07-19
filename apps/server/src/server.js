@@ -10,12 +10,12 @@ export async function startServer() {
 
   try {
     const { root } = await ensureStorage();
-    console.log(`[storage] готово: ${root}`);
+    console.log(`[storage] ready: ${root}`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`[storage] не удалось инициализировать хранилище: ${msg}`);
+    console.error(`[storage] failed to initialize storage: ${msg}`);
     console.error(
-      '[storage] Проверьте права на каталог apps/server/data или задайте SERVER_STORAGE_DIR.'
+      '[storage] Check permissions for apps/server/data or set SERVER_STORAGE_DIR.'
     );
   }
 
@@ -24,7 +24,7 @@ export async function startServer() {
 
   await new Promise((resolve, reject) => {
     const httpServer = app.listen(port, host, () => {
-      console.log(`[${runtimeLabel()}] Сервер: http://${host}:${port}`);
+      console.log(`[${runtimeLabel()}] Server: http://${host}:${port}`);
       resolve(httpServer);
     });
     httpServer.on('error', reject);
