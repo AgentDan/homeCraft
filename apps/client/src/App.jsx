@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { getHealth, postCommand } from './api/client.js';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { CommandInput } from './components/CommandInput.jsx';
+import { ConflictPanel } from './components/ConflictPanel.jsx';
 import { ResponseRouter } from './components/ResponseRouter.jsx';
 
 const ScenePreview = lazy(() =>
@@ -209,6 +210,13 @@ export function App() {
           disabled={loading}
           compact
         />
+        {response?.responseType === 'conflict' && (
+          <ConflictPanel
+            compatibility={/** @type {any} */ (response.compatibility)}
+            disabled={loading}
+            onSuggestion={(sku) => sendCommand(`add ${sku}`)}
+          />
+        )}
         <ChatPanel
           turns={turns}
           loading={loading}

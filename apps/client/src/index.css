@@ -120,6 +120,27 @@ body {
   cursor: not-allowed;
 }
 
+.hc-pill {
+  font-family: var(--hc-mono);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--hc-border);
+  color: var(--hc-text);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.hc-pill:hover:not(:disabled) {
+  background: var(--hc-accent);
+  border-color: var(--hc-accent);
+  color: #04140a;
+}
+
+.hc-pill:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .hc-mono {
   font-family: var(--hc-mono);
 }

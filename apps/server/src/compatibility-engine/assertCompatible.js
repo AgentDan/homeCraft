@@ -1,98 +1,75 @@
 import { CompatibilityReportSchema } from '@homecraft/contracts';
 import { materializePlan } from '../domain-modules/kitchen/materialize-plan.js';
+import { getCatalogSnapshot } from '../knowledge-base/catalog-store.js';
 import { SpatialIndex } from './spatial-index.js';
+import { suggestAnalogs } from './analog-suggester.js';
+import { check as checkDimensions } from './rules/dimensions.js';
+import { check as checkMounting } from './rules/mounting.js';
+import { check as checkOverlap } from './rules/overlap.js';
+import { check as checkUtilities } from './rules/utilities.js';
+import { check as checkClearances } from './rules/clearances.js';
 
-function footprint(module) {
-  const rotated = Math.abs(module.rotationY % 180) === 90;
-  return {
-    widthMm: rotated ? module.dimensions.depthMm : module.dimensions.widthMm,
-    depthMm: rotated ? module.dimensions.widthMm : module.dimensions.depthMm
-  };
-}
-
-function overlaps(left, right) {
-  const leftSize = footprint(left);
-  const rightSize = footprint(right);
-  return left.position.x < right.position.x + rightSize.widthMm
-    && left.position.x + leftSize.widthMm > right.position.x
-    && left.position.y < right.position.y + right.dimensions.heightMm
-    && left.position.y + left.dimensions.heightMm > right.position.y
-    && left.position.z < right.position.z + rightSize.depthMm
-    && left.position.z + leftSize.depthMm > right.position.z;
-}
+/** Ordered compatibility rules. Each maps a placed layout to a list of conflicts. */
+const RULES = [
+  checkDimensions,
+  checkMounting,
+  checkOverlap,
+  checkUtilities,
+  checkClearances
+];
 
 /** Compatibility firewall — the only stage allowed to reject a plan. */
 export async function assertCompatible(plan, context) {
-  const conflicts = [];
   let modules;
   try {
     modules = await materializePlan(plan);
   } catch (error) {
-    conflicts.push({
-      kind: 'unsupported_appliance',
-      message: error instanceof Error ? error.message : String(error),
-      instanceIds: [],
-      suggestedSkus: []
+    return CompatibilityReportSchema.parse({
+      valid: false,
+      conflicts: [
+        {
+          kind: 'unsupported_appliance',
+          message: error instanceof Error ? error.message : String(error),
+          instanceIds: [],
+          suggestedSkus: []
+        }
+      ],
+      checkedAt: new Date().toISOString()
     });
-    modules = [];
-  }
-
-  for (const module of modules) {
-    const size = footprint(module);
-    const room = context.roomShape.dimensions;
-    if (
-      module.position.x < 0
-      || module.position.y < 0
-      || module.position.z < 0
-      || module.position.x + size.widthMm > room.widthMm
-      || module.position.y + module.dimensions.heightMm > room.heightMm
-      || module.position.z + size.depthMm > room.depthMm
-    ) {
-      conflicts.push({
-        kind: 'dimension_exceeded',
-        message: `${module.name} extends beyond the room boundaries.`,
-        instanceIds: [module.instanceId],
-        suggestedSkus: []
-      });
-    }
-
-    const requiresWallHeight = module.mounting === 'wall';
-    if (
-      (requiresWallHeight && module.position.y === 0)
-      || (!requiresWallHeight && module.position.y !== 0)
-    ) {
-      conflicts.push({
-        kind: 'mounting_mismatch',
-        message: `${module.name} is installed at an unsuitable height.`,
-        instanceIds: [module.instanceId],
-        suggestedSkus: []
-      });
-    }
   }
 
   const index = new SpatialIndex().buildFromModules(modules);
-  const modulesById = new Map(modules.map((module) => [module.instanceId, module]));
-  const checkedPairs = new Set();
-  for (const module of modules) {
-    for (const neighborId of index.getNeighbors(module.instanceId)) {
-      const pair = [module.instanceId, neighborId].sort().join(':');
-      if (checkedPairs.has(pair)) continue;
-      checkedPairs.add(pair);
-      const neighbor = modulesById.get(neighborId);
-      if (neighbor && overlaps(module, neighbor)) {
-        conflicts.push({
-          kind: 'overlap',
-          message: `${module.name} overlaps ${neighbor.name}.`,
-          instanceIds: [module.instanceId, neighbor.instanceId],
-          suggestedSkus: []
-        });
-      }
-    }
+  const ruleContext = { modules, context, index };
+
+  const conflicts = [];
+  for (const rule of RULES) {
+    conflicts.push(...rule(ruleContext));
   }
+
+  await enrichWithSuggestions(conflicts, modules, plan.catalogSnapshotId);
 
   return CompatibilityReportSchema.parse({
     valid: conflicts.length === 0,
     conflicts,
     checkedAt: new Date().toISOString()
   });
+}
+
+/**
+ * Populates `suggestedSkus` on each conflict from the frozen catalog snapshot.
+ * @param {import('./rules/types.js').Conflict[]} conflicts
+ * @param {import('./rules/types.js').PlacedModule[]} modules
+ * @param {string} catalogSnapshotId
+ */
+async function enrichWithSuggestions(conflicts, modules, catalogSnapshotId) {
+  if (conflicts.length === 0) return;
+
+  const catalog = await getCatalogSnapshot(catalogSnapshotId);
+  const byId = new Map(modules.map((module) => [module.instanceId, module]));
+
+  for (const conflict of conflicts) {
+    const targetId = conflict.instanceIds[0];
+    const module = targetId ? byId.get(targetId) : null;
+    conflict.suggestedSkus = suggestAnalogs(module, catalog, conflict.kind);
+  }
 }

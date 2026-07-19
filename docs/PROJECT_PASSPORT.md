@@ -31,7 +31,7 @@ AI понимает клиента и переводит его слова в с
 | Customer Context / Memory | `core/room-context-builder.js` | детерминированный | ✅ MongoDB + local fallback |
 | Knowledge / RAG Engine | `ai-services/catalog-rag-retriever.js`, `knowledge-base/*` | AI (retrieval) | ✅ file vector index |
 | Configuration Engine | `ai-services/configuration-plan-generator.js` | rule-based | ✅ |
-| Rules Engine | `compatibility-engine/assertCompatible.js` + `rules/*` | детерминированный, **единственный rejector** | ✅ 3 базовых правила |
+| Rules Engine | `compatibility-engine/assertCompatible.js` + `rules/*` + `analog-suggester.js` | детерминированный, **единственный rejector** | 🚧 5 правил (dimensions/mounting/overlap/utilities/clearances) + analog suggester |
 | Scene Graph / 3D Engine | `domain-modules/kitchen/pipeline.js` + client `ScenePreview.jsx` (R3F) | детерминированный | ✅ базовая версия |
 | Calculation Engine | `pricing-engine/calculateBOM.js` | детерминированный, чистый калькулятор | ✅ от frozen snapshot |
 | Production / ERP Integration | `production-export/generatePackage.js` | детерминированный | 🔲 Phase 4 |
@@ -82,7 +82,13 @@ AI понимает клиента и переводит его слова в с
 - LLM в проде (сейчас `llm-client` — стаб, Phase 5).
 - Домены wardrobe и other-furniture — есть каркас (`domain-modules/*`), но без полной логики.
 
-**Следующий шаг по Roadmap:** Phase 2 — расширение Compatibility Engine (mounting, utilities, clearances, analog suggester, conflict UI).
+**В работе (Phase 2, ветка `phase-2`):**
+- `rules/*` вынесены в модули с единой сигнатурой `check({ modules, context, index })`; `assertCompatible` — оркестратор правил.
+- Новые правила: `utilities` (`utility_conflict`, пропускается если комната не моделирует точки) и `clearances` (`clearance_violation`, enforce только значимые зазоры ≥20 мм — flush-шкафы валидны).
+- `analog-suggester` заполняет `suggestedSkus` (та же категория) для каждого конфликта.
+- Клиентский `ConflictPanel` показывает конфликты и кликабельные аналоги.
+
+**Следующий шаг по Roadmap:** Phase 3 — Pricing & BOM (снапшоты каталога, кэш, таблица BOM, индикатор бюджета на клиенте).
 
 ---
 
@@ -105,6 +111,7 @@ DoD каждой фазы: acceptance criteria выполнены + `lint`/`test
 
 | Дата | Что изменили | Почему | Что устарело в паспорте |
 |---|---|---|---|
+| 2026-07-19 | Phase 2 (ветка `phase-2`): рефактор Compatibility Engine в `rules/*`, добавлены правила `utilities`/`clearances`, `analog-suggester` (`suggestedSkus`), клиентский `ConflictPanel` | Расширить проверку реализуемости и дать пользователю понятные конфликты + предложения аналогов | Раздел 3 (Rules Engine 🚧), раздел 6 (Phase 2 в работе) |
 | 2026-07-19 | Финальная подготовка перед Phase 2: миграция валюты RUB→EUR по всем контрактам/каталогу/серверу, новый glass-HUD клиента (чат + командная строка + 3D-комната), чистка мёртвого кода в `intent-detector`, `jsconfig` `paths` для `@homecraft/*` | Стабилизировать базу Phase 1 и снять техдолг до старта Compatibility Engine | Валютные поля везде `*Eur`; `detectIntent` — тонкая обёртка над `matchIntent` |
 | 2026-07-19 | Ветка `phase-1/1.1-demo-catalog` помечена как Phase 1 complete | MVP-диалог + демо-каталог кухни готовы | Раздел 6 актуализирован под это состояние |
 

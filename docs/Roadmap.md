@@ -3,8 +3,8 @@
 > **HomeCraft** — an AI platform for conversationally assembling furniture projects from a real manufacturer catalog.
 > The architectural foundation is [AIproject](https://github.com/AgentDan/AIproject); the furniture domain adds a Compatibility Engine, Pricing, BOM, and production export.
 
-**Status:** ✅ **Phase 1 complete** (dialog MVP, kitchen demo, 3D, BOM, compatibility).
-**Next step:** **Phase 2** — expand the Compatibility Engine.
+**Status:** 🚧 **Phase 2 in progress** — Compatibility Engine (rules, utilities, clearances, analog suggester, conflict UI).
+**Next step:** **Phase 3** — Pricing & BOM.
 **Target MVP:** 4–5 months with a team of 2–3 people.
 **Principle:** contract-first (Zod), skeleton → logic file by file, with no dead pipeline stages.
 
@@ -264,9 +264,23 @@ npm run catalog:index    # rebuild catalog and platform-rules index
 
 ---
 
-### Phase 2. Compatibility Engine (2–3 weeks)
+### 🚧 Phase 2. Compatibility Engine (2–3 weeks)
 
-Spatial index, rules (mounting, utilities, clearances), analog suggester, conflict UI.
+**Goal:** modular rule engine over the spatial index, richer conflict kinds, analog suggestions, and a conflict UI.
+
+| # | Task | Status |
+|---|------|--------|
+| 2.1 | Extract inline checks into `rules/*` with a shared `check({ modules, context, index })` signature | ✅ |
+| 2.2 | `rules/dimensions`, `rules/mounting`, `rules/overlap` (spatial index) | ✅ |
+| 2.3 | `rules/utilities` → `utility_conflict` (proximity to room utility points; skipped when unmodeled) | ✅ |
+| 2.4 | `rules/clearances` → `clearance_violation` (enforces only significant ≥20 mm side gaps) | ✅ |
+| 2.5 | `analog-suggester` → populate `suggestedSkus` per conflict | ✅ |
+| 2.6 | Client conflict UI (`ConflictPanel`) with clickable analog chips | ✅ |
+| 2.7 | Tests for utilities, clearances, suggester | ✅ |
+| 2.8 | Analog suggester ranking tuned by real usage / hit-rate | 🔲 |
+| 2.9 | Conflict resolution flow (apply suggested analog as a real swap operation) | 🔲 |
+
+**Acceptance:** flush base cabinets stay valid; an appliance too close to a neighbour → `clearance_violation`; a fixture far from its required connection → `utility_conflict` (when the room models that utility); each conflict carries same-category `suggestedSkus`.
 
 ### Phase 3. Pricing & BOM (2 weeks)
 
