@@ -20,6 +20,6 @@
     "noUncheckedSideEffectImports": false,
     "skipLibCheck": true
   },
-  "include": ["apps/**/*.js", "apps/**/*.jsx", "apps/**/*.mjs", "packages/**/*.js"],
+  "include": ["apps/**/*.js", "apps/**/*.jsx", "apps/**/*.mjs", "apps/**/*.d.ts", "packages/**/*.js"],
   "exclude": ["**/node_modules/**", "apps/client/dist/**", "apps/server/data/**"]
 }
