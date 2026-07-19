@@ -235,6 +235,5 @@ export async function route(request) {
     changeSummary,
     view: { kind: '3d_scene', render: 'full' }
   });
-  console.log('response', response);
   return finalizeResponse(context, response);
 }
