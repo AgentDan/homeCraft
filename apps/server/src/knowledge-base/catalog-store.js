@@ -28,8 +28,3 @@ export async function getCatalogSnapshot(snapshotId = DEFAULT_CATALOG_SNAPSHOT_I
   }
   return catalog;
 }
-
-export async function getCatalogModule(snapshotId, sku) {
-  const catalog = await getCatalogSnapshot(snapshotId);
-  return catalog.modules.find((module) => module.sku === sku) ?? null;
-}

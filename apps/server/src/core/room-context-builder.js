@@ -70,10 +70,6 @@ export function appendDialogTurn(context, role, text) {
   return RoomContextSchema.parse(next);
 }
 
-export function resolveSnapshotId(request, context) {
-  return request.catalogSnapshotId ?? context.catalogSnapshotId ?? DEFAULT_SNAPSHOT;
-}
-
 export async function persistRoomContext(context) {
   const validated = RoomContextSchema.parse({
     ...context,

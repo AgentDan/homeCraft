@@ -138,11 +138,10 @@ function RoomLighting({ width, depth, height }) {
 /**
  * @param {{
  *   sceneResult: { projectId: string, modules?: any[] } | null,
- *   roomShape?: { dimensions: { widthMm: number, depthMm: number, heightMm: number } } | null,
- *   view?: { kind: '2d_plan' | '3d_scene', render: 'full' | 'delta' }
+ *   roomShape?: { dimensions: { widthMm: number, depthMm: number, heightMm: number } } | null
  * }} props
  */
-export default function ScenePreview({ sceneResult, roomShape, view: _view }) {
+export function ScenePreview({ sceneResult, roomShape }) {
   /** @type {SceneModule[]} */
   const modules = /** @type {SceneModule[]} */ (sceneResult?.modules ?? []);
   const dims = roomShape?.dimensions ?? DEFAULT_ROOM;

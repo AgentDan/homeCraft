@@ -39,7 +39,7 @@
 | Dialog orchestrator → unified pipeline | ✅ |
 | `local-storage.js` (AIproject pattern) | ✅ |
 | MongoDB lazy connect | ✅ |
-| Client: CommandInput + ResultViewer + Tailwind | ✅ |
+| Client: glass HUD (CommandInput, ChatPanel, ScenePreview) + Tailwind | ✅ |
 | Mobile stub | ✅ |
 | Production deploy: `build:deploy` + `npm start` | ✅ |
 | SPA + API on one port (production) | ✅ |
@@ -52,7 +52,7 @@
 - rule-based `configuration-plan-generator`;
 - three basic compatibility checks plus a spatial index;
 - real BOM from a frozen snapshot;
-- deterministic kitchen scene and R3F Preview3D;
+- deterministic kitchen scene and R3F `ScenePreview`;
 - local and MongoDB context persistence, multi-turn dialog;
 - Help service and English intent corpus.
 
@@ -120,7 +120,10 @@ homecraft/
 │   │   │   ├── api/client.js
 │   │   │   └── components/
 │   │   │       ├── CommandInput.jsx   # dialog input
-│   │   │       └── ResultViewer.jsx
+│   │   │       ├── ChatPanel.jsx
+│   │   │       ├── ResponseRouter.jsx
+│   │   │       ├── ConflictPanel.jsx
+│   │   │       └── ScenePreview.jsx   # R3F 3D preview
 │   │   └── vite.config.js
 │   ├── mobile/                        # stub
 │   └── server/
@@ -141,8 +144,7 @@ homecraft/
 │       │   ├── ai-services/
 │       │   ├── compatibility-engine/
 │       │   ├── pricing-engine/
-│       │   ├── domain-modules/
-│       │   ├── production-export/
+│       │   ├── domain-modules/kitchen/
 │       │   ├── knowledge-base/
 │       │   ├── storage/
 │       │   │   ├── local-storage.js
@@ -163,7 +165,7 @@ homecraft/
 └── package.json
 ```
 
-**Planned (Phases 1–6):** `Preview3D.jsx`, R3F, full RAG indexer, MongoDB persistence.
+**Planned (Phases 3–6):** production export, extra domains (wardrobe, other-furniture), Redis cache, mobile app.
 
 ---
 
@@ -174,7 +176,7 @@ homecraft/
 | Runtime | Node.js 20 | ✅ |
 | API | Express 5 + Zod | ✅ |
 | Client | React 19 + Vite + Tailwind v4 | ✅ shell |
-| Client 3D | React Three Fiber + Zustand | ✅ Preview3D |
+| Client 3D | React Three Fiber | ✅ ScenePreview |
 | Mobile | Expo | stub, Phase 6 |
 | Database | MongoDB (local or remote, `MONGODB_URI`) | ✅ + local fallback |
 | Cache | Redis | Phase 3 |
@@ -253,7 +255,7 @@ npm run catalog:index    # rebuild catalog and platform-rules index
 | 1.8 | assertCompatible — 3 basic rules | ✅ |
 | 1.9 | calculateBOM — total from snapshot | ✅ |
 | 1.10 | output-builder — complete ClientResponse | ✅ |
-| 1.11 | Client: Preview3D (R3F) | ✅ |
+| 1.11 | Client: ScenePreview (R3F) | ✅ |
 | 1.12 | Client: multi-turn dialog | ✅ |
 | 1.13 | Help service | ✅ |
 | 1.14 | platform-rules RAG | ✅ |
@@ -292,7 +294,7 @@ PDF specification, export to `data/exports/`, and download API.
 
 ### Phase 5. Production LLM (3–4 weeks)
 
-llm-client, function calling, multi-turn, and evaluation across 200 English phrases.
+LLM provider integration, function calling, multi-turn, and evaluation across 200 English phrases.
 
 ### Phase 6. Scaling and platforms
 

@@ -1,8 +1,6 @@
 import {
   ClientResponseSchema,
   createClarifyResponse as createContractClarifyResponse,
-  createConfirmResponse as createContractConfirmResponse,
-  createOptionsResponse as createContractOptionsResponse,
   createStubClientResponse
 } from '@homecraft/contracts';
 
@@ -101,27 +99,6 @@ export function buildHelpResponse(request, helpMessage) {
 
 export function buildClarifyResponse(request, prompt, planVersion = 0) {
   return createContractClarifyResponse({
-    requestId: request.requestId,
-    sessionId: request.sessionId,
-    projectId: request.projectId,
-    prompt,
-    planVersion
-  });
-}
-
-export function buildOptionsResponse(request, prompt, options, planVersion = 0) {
-  return createContractOptionsResponse({
-    requestId: request.requestId,
-    sessionId: request.sessionId,
-    projectId: request.projectId,
-    prompt,
-    options: structuredClone(options),
-    planVersion
-  });
-}
-
-export function buildConfirmResponse(request, prompt, planVersion = 0) {
-  return createContractConfirmResponse({
     requestId: request.requestId,
     sessionId: request.sessionId,
     projectId: request.projectId,

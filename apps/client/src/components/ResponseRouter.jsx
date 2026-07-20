@@ -8,7 +8,7 @@ function CompactPrompt({ children }) {
   );
 }
 
-function ClarifyForm({ response, onCommand, disabled, compact }) {
+function ClarifyForm({ response, onCommand, disabled }) {
   const [value, setValue] = useState('');
 
   function handleSubmit(event) {
@@ -21,12 +21,12 @@ function ClarifyForm({ response, onCommand, disabled, compact }) {
 
   return (
     <form
-      className={`hc-glass border-[rgba(255,193,7,0.28)] ${compact ? 'hc-glass--compact px-3 py-2.5' : 'p-4'}`}
+      className="hc-glass hc-glass--compact border-[rgba(255,193,7,0.28)] px-3 py-2.5"
       onSubmit={handleSubmit}
     >
       <label
         htmlFor="clarify-command"
-        className={`mb-1.5 block text-[var(--hc-text)] ${compact ? 'text-xs leading-snug' : 'mb-2 text-sm font-medium'}`}
+        className="mb-1.5 block text-xs leading-snug text-[var(--hc-text)]"
       >
         {response.interaction?.prompt ?? response.message}
       </label>
@@ -54,71 +54,64 @@ function ClarifyForm({ response, onCommand, disabled, compact }) {
  * @param {{
  *   response: { responseType?: string, message?: string, interaction?: any, changeSummary?: any } | null,
  *   onCommand: (command: string) => void,
- *   disabled?: boolean,
- *   compact?: boolean
+ *   disabled?: boolean
  * }} props
  */
-export function ResponseRouter({ response, onCommand, disabled, compact = false }) {
+export function ResponseRouter({ response, onCommand, disabled }) {
   if (!response) return null;
 
-  // In compact HUD, scene/status text lives in Health — only keep interactive prompts.
-  if (compact) {
-    switch (response.responseType) {
-      case 'clarify':
-        return (
-          <ClarifyForm
-            response={response}
-            onCommand={onCommand}
-            disabled={disabled}
-            compact
-          />
-        );
-      case 'options':
-        return (
-          <CompactPrompt>
-            <p className="mb-2 text-xs leading-snug text-[var(--hc-muted)]">
-              {response.interaction?.prompt ?? response.message}
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {(response.interaction?.options ?? []).map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onCommand(option.label)}
-                  className="hc-btn-accent rounded-[10px] px-3 py-1.5 text-xs"
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </CompactPrompt>
-        );
-      case 'confirm':
-        return (
-          <CompactPrompt>
-            <p className="mb-2 text-xs leading-snug text-[var(--hc-muted)]">
-              {response.interaction?.prompt ?? response.message}
-            </p>
-            <div className="flex gap-1.5">
-              {['Yes', 'No'].map((label) => (
-                <button
-                  key={label}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onCommand(label)}
-                  className="hc-btn-accent rounded-[10px] px-3 py-1.5 text-xs"
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </CompactPrompt>
-        );
-      default:
-        return null;
-    }
+  switch (response.responseType) {
+    case 'clarify':
+      return (
+        <ClarifyForm
+          response={response}
+          onCommand={onCommand}
+          disabled={disabled}
+        />
+      );
+    case 'options':
+      return (
+        <CompactPrompt>
+          <p className="mb-2 text-xs leading-snug text-[var(--hc-muted)]">
+            {response.interaction?.prompt ?? response.message}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {(response.interaction?.options ?? []).map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                disabled={disabled}
+                onClick={() => onCommand(option.label)}
+                className="hc-btn-accent rounded-[10px] px-3 py-1.5 text-xs"
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </CompactPrompt>
+      );
+    case 'confirm':
+      return (
+        <CompactPrompt>
+          <p className="mb-2 text-xs leading-snug text-[var(--hc-muted)]">
+            {response.interaction?.prompt ?? response.message}
+          </p>
+          <div className="flex gap-1.5">
+            {['Yes', 'No'].map((label) => (
+              <button
+                key={label}
+                type="button"
+                disabled={disabled}
+                onClick={() => onCommand(label)}
+                className="hc-btn-accent rounded-[10px] px-3 py-1.5 text-xs"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </CompactPrompt>
+      );
+    default:
+      return null;
   }
-
-  return null;
 }

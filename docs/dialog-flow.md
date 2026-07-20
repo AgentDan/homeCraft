@@ -161,7 +161,7 @@ Room boundaries, overlap, and mounting height are checked. Utilities, full clear
 
 ### Simplified 3D scene
 
-Preview3D uses geometric boxes based on catalog dimensions. Manufacturer GLTF models are not connected yet.
+`ScenePreview` uses geometric boxes based on catalog dimensions. Manufacturer GLTF models are not connected yet.
 
 ### TTS is not connected
 

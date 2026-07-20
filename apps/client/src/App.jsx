@@ -5,7 +5,11 @@ import { CommandInput } from './components/CommandInput.jsx';
 import { ConflictPanel } from './components/ConflictPanel.jsx';
 import { ResponseRouter } from './components/ResponseRouter.jsx';
 
-const ScenePreview = lazy(() => import('./components/ScenePreview.jsx'));
+const ScenePreview = lazy(() =>
+  import('./components/ScenePreview.jsx').then((module) => ({
+    default: module.ScenePreview
+  }))
+);
 
 /** @param {string} prefix */
 function newId(prefix) {
@@ -109,12 +113,6 @@ export function App() {
       DEFAULT_ROOM_SHAPE
     )
   );
-  const [view, setView] = useState(
-    /** @type {{ kind: '2d_plan' | '3d_scene', render: 'full' | 'delta' }} */ ({
-      kind: '3d_scene',
-      render: 'full'
-    })
-  );
 
   useEffect(() => {
     getHealth()
@@ -149,9 +147,6 @@ export function App() {
         if (result.roomShape) {
           setRoomShape(result.roomShape);
         }
-        if (result.view) {
-          setView(result.view);
-        }
         setTurns((current) => [
           ...current,
           {
@@ -179,7 +174,6 @@ export function App() {
         <ScenePreview
           sceneResult={sceneResult ?? { projectId, modules: [] }}
           roomShape={roomShape}
-          view={view}
         />
       </Suspense>
 
@@ -204,7 +198,6 @@ export function App() {
           response={response}
           onCommand={sendCommand}
           disabled={loading}
-          compact
         />
         {response?.responseType === 'conflict' && (
           <ConflictPanel

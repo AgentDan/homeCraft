@@ -34,7 +34,7 @@ AI понимает клиента и переводит его слова в с
 | Rules Engine | `compatibility-engine/assertCompatible.js` + `rules/*` + `analog-suggester.js` | детерминированный, **единственный rejector** | 🚧 5 правил (dimensions/mounting/overlap/utilities/clearances) + analog suggester |
 | Scene Graph / 3D Engine | `domain-modules/kitchen/pipeline.js` + client `ScenePreview.jsx` (R3F) | детерминированный | ✅ базовая версия |
 | Calculation Engine | `pricing-engine/calculateBOM.js` | детерминированный, чистый калькулятор | ✅ от frozen snapshot |
-| Production / ERP Integration | `production-export/generatePackage.js` | детерминированный | 🔲 Phase 4 |
+| Production / ERP Integration | Phase 4 (not started) | детерминированный | 🔲 Phase 4 |
 
 **Соответствие с исходным документом:** блоки почти полностью совпадают 1:1. Отличие — в документе RAG и 3D Engine описаны как отдельные крупные подсистемы, в коде они пока встроены как модули внутри общего пайплайна, без выделенных сервисов.
 
@@ -78,9 +78,9 @@ AI понимает клиента и переводит его слова в с
 
 **Не реализовано / отсутствует в текущем пайплайне:**
 - Полноценный Scene Graph как единый источник данных (сейчас 3D — модуль внутри kitchen-домена, не отдельная подсистема).
-- Production / ERP Integration (`production-export` — заглушка, Phase 4).
-- LLM в проде (сейчас `llm-client` — стаб, Phase 5).
-- Домены wardrobe и other-furniture — есть каркас (`domain-modules/*`), но без полной логики.
+- Production / ERP Integration (Phase 4 — not started).
+- LLM в проде (Phase 5 — rule-based intent/plan generation сейчас).
+- Дополнительные домены (wardrobe, other-furniture) — Phase 3+.
 
 **В работе (Phase 2, ветка `phase-2`):**
 - `rules/*` вынесены в модули с единой сигнатурой `check({ modules, context, index })`; `assertCompatible` — оркестратор правил.

@@ -109,7 +109,7 @@ apps/
   mobile/          stub (Phase 6)
 packages/
   contracts/       Zod schemas (ClientRequest, ConfigurationPlan, BOM, …)
-  ai/              English-only IntentRegistry, llm-client stub
+  ai/              English-only IntentRegistry (`matchIntent`)
   catalog-schema/  Zod schema for manufacturer catalogs
 docs/
   Roadmap.md       development phases

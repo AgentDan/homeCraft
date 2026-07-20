@@ -3,18 +3,17 @@ import { useEffect, useRef } from 'react';
 /**
  * @param {{
  *   turns: Array<{ id: string, role: 'user' | 'assistant', text: string }>,
- *   error?: string | null,
  *   loading?: boolean,
  *   online?: boolean,
  *   tools?: import('react').ReactNode
  * }} props
  */
-export function ChatPanel({ turns, error = null, loading = false, online = true, tools = null }) {
+export function ChatPanel({ turns, loading = false, online = true, tools = null }) {
   const bottomRef = useRef(/** @type {HTMLDivElement | null} */ (null));
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [turns, error, loading]);
+  }, [turns, loading]);
 
   return (
     <section className="hc-glass-strong flex max-h-[36vh] min-h-[11rem] flex-col overflow-hidden">
@@ -25,7 +24,7 @@ export function ChatPanel({ turns, error = null, loading = false, online = true,
           </h3>
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              error ? 'bg-[var(--hc-danger)]' : online ? 'bg-[var(--hc-accent)]' : 'bg-[var(--hc-muted)]'
+              online ? 'bg-[var(--hc-accent)]' : 'bg-[var(--hc-muted)]'
             }`}
             aria-hidden="true"
           />
@@ -34,7 +33,7 @@ export function ChatPanel({ turns, error = null, loading = false, online = true,
       </div>
 
       <div className="hc-scroll flex-1 space-y-2 overflow-auto px-3 py-2.5" aria-live="polite">
-        {turns.length === 0 && !error && !loading && (
+        {turns.length === 0 && !loading && (
           <p className="text-xs leading-relaxed text-[var(--hc-muted)]">
             Describe what you want — for example, “add a 600 mm cabinet”.
           </p>
@@ -56,12 +55,6 @@ export function ChatPanel({ turns, error = null, loading = false, online = true,
         {loading && (
           <div className="mr-4 rounded-[12px] border border-[var(--hc-border)] bg-black/35 px-3 py-2 text-xs text-[var(--hc-muted)]">
             Thinking…
-          </div>
-        )}
-
-        {error && (
-          <div className="rounded-[12px] border border-[var(--hc-danger)]/40 bg-[var(--hc-danger)]/10 px-3 py-2 text-xs text-[var(--hc-danger)]">
-            {error}
           </div>
         )}
 

@@ -122,5 +122,3 @@ export function matchIntent(text) {
 
   return { kind: 'unknown', language, rawText, reason: 'no_pattern_match' };
 }
-
-export { RULES as intentRules };
