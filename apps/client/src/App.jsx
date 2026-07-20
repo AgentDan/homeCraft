@@ -5,11 +5,7 @@ import { CommandInput } from './components/CommandInput.jsx';
 import { ConflictPanel } from './components/ConflictPanel.jsx';
 import { ResponseRouter } from './components/ResponseRouter.jsx';
 
-const ScenePreview = lazy(() =>
-  import('./components/ScenePreview.jsx').then((module) => ({
-    default: module.ScenePreview
-  }))
-);
+const ScenePreview = lazy(() => import('./components/ScenePreview.jsx'));
 
 /** @param {string} prefix */
 function newId(prefix) {

@@ -142,7 +142,7 @@ function RoomLighting({ width, depth, height }) {
  *   view?: { kind: '2d_plan' | '3d_scene', render: 'full' | 'delta' }
  * }} props
  */
-export function ScenePreview({ sceneResult, roomShape, view: _view }) {
+export default function ScenePreview({ sceneResult, roomShape, view: _view }) {
   /** @type {SceneModule[]} */
   const modules = /** @type {SceneModule[]} */ (sceneResult?.modules ?? []);
   const dims = roomShape?.dimensions ?? DEFAULT_ROOM;
