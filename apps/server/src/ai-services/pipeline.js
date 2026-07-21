@@ -34,5 +34,5 @@ export async function runAiPipeline(request, context) {
     prompt
   });
 
-  return { intent, plan, outcome, candidates };
+  return { intent, plan, outcome };
 }

@@ -1,8 +1,6 @@
 /* eslint-disable react/no-unknown-property -- React Three Fiber JSX props */
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { DoubleSide } from 'three';
-
 const FINISH_COLORS = {
   white: '#f5f5f4',
   oak: '#c08a4f'
@@ -53,6 +51,8 @@ function ModuleBox({ module }) {
  * @param {{ width: number, depth: number, height: number }} props
  */
 function Room({ width, depth, height }) {
+  const wallT = 0.08;
+
   return (
     <group>
       <mesh
@@ -61,35 +61,35 @@ function Room({ width, depth, height }) {
         receiveShadow
       >
         <planeGeometry args={[width, depth]} />
-        <meshStandardMaterial color="#181b20" roughness={0.95} />
+        <meshStandardMaterial color="#2a3038" roughness={0.9} />
       </mesh>
 
-      {/* Back wall (z = 0 plane) */}
-      <mesh position={[width / 2, height / 2, 0]} receiveShadow>
-        <planeGeometry args={[width, height]} />
-        <meshStandardMaterial color="#22262d" roughness={1} side={DoubleSide} />
-      </mesh>
-
-      {/* Left wall (x = 0 plane) */}
+      {/* Back wall — thickness grows outward (−z) so the inner face stays at z = 0 */}
       <mesh
-        rotation={[0, Math.PI / 2, 0]}
-        position={[0, height / 2, depth / 2]}
+        position={[(width - wallT) / 2, height / 2, -wallT / 2]}
+        castShadow
         receiveShadow
       >
-        <planeGeometry args={[depth, height]} />
-        <meshStandardMaterial color="#1e2228" roughness={1} side={DoubleSide} />
+        <boxGeometry args={[width + wallT, height, wallT]} />
+        <meshStandardMaterial color="#22262d" roughness={1} />
       </mesh>
 
-      <gridHelper
-        args={[Math.max(width, depth), Math.round(Math.max(width, depth) * 2), '#3a424c', '#242a32']}
-        position={[width / 2, 0.01, depth / 2]}
-      />
+      {/* Left wall — thickness grows outward (−x) so the inner face stays at x = 0 */}
+      <mesh
+        position={[-wallT / 2, height / 2, depth / 2]}
+        castShadow
+        receiveShadow
+      >
+        <boxGeometry args={[wallT, height, depth]} />
+        <meshStandardMaterial color="#1e2228" roughness={1} />
+      </mesh>
     </group>
   );
 }
 
 /**
- * Warm ceiling fixtures + fill light that read like interior room lighting.
+ * Natural room lighting without visible fixtures: warm ceiling fill points
+ * plus cooler daylight from the open (+x) side, like a window.
  *
  * @param {{ width: number, depth: number, height: number }} props
  */
@@ -105,31 +105,33 @@ function RoomLighting({ width, depth, height }) {
 
   return (
     <group>
-      {/* Soft global fill: warm from above, cool bounce from the floor */}
-      <hemisphereLight args={['#fff2dc', '#20242b', 0.55]} />
-      <ambientLight intensity={0.18} />
+      <hemisphereLight args={['#e8f0ff', '#2a2620', 0.65]} />
+      <ambientLight intensity={0.35} />
+
+      {/* Daylight from the open right side — no shadows (avoids blacking out the room) */}
+      <directionalLight
+        color="#f2f6ff"
+        intensity={1.8}
+        position={[width + 2.5, height * 0.9, depth * 0.5]}
+      />
+      <directionalLight
+        color="#eef3ff"
+        intensity={0.55}
+        position={[width * 0.5, height * 0.75, depth + 2.2]}
+      />
 
       {fixtures.map(([x, z], index) => (
-        <group key={index} position={[x, y, z]}>
-          <pointLight
-            color="#ffe3b8"
-            intensity={6}
-            distance={reach}
-            decay={2}
-            castShadow={index === 0}
-            shadow-mapSize-width={1024}
-            shadow-mapSize-height={1024}
-          />
-          {/* Visible ceiling plafond */}
-          <mesh position={[0, 0.05, 0]}>
-            <cylinderGeometry args={[0.16, 0.16, 0.04, 20]} />
-            <meshStandardMaterial
-              color="#fff4e2"
-              emissive="#ffdca6"
-              emissiveIntensity={1.4}
-            />
-          </mesh>
-        </group>
+        <pointLight
+          key={index}
+          position={[x, y, z]}
+          color="#ffe3b8"
+          intensity={6}
+          distance={reach}
+          decay={2}
+          castShadow={index === 0}
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
+        />
       ))}
     </group>
   );

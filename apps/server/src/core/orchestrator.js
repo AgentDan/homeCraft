@@ -27,17 +27,9 @@ async function runDownstream({
   message,
   explanation,
   persistVersion = true,
-  existingVersion = /** @type {number | undefined} */ (undefined),
-  changeSummary = /** @type {{
-    text: string,
-    added: string[],
-    removed: string[],
-    moved: string[]
-  } | undefined} */ (undefined),
-  view = /** @type {{
-    kind: '2d_plan' | '3d_scene',
-    render: 'full' | 'delta'
-  } | undefined} */ (undefined)
+  existingVersion,
+  changeSummary,
+  view
 }) {
   const compatibility = await assertCompatible(plan, context);
   const scene = await runKitchenPipeline(plan, context);
@@ -235,5 +227,6 @@ export async function route(request) {
     changeSummary,
     view: { kind: '3d_scene', render: 'full' }
   });
+
   return finalizeResponse(context, response);
 }
