@@ -131,6 +131,7 @@ export async function route(request) {
     request.sessionId,
     request.inputChannel
   );
+
   if (request.catalogSnapshotId) {
     context = { ...context, catalogSnapshotId: request.catalogSnapshotId };
   }
