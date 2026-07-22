@@ -9,6 +9,7 @@
  * @param {number} [cellSizeMm=1000]
  */
 export function buildSpatialIndex(modules, cellSizeMm = 1000) {
+  
   const cells = new Map();
   const moduleCells = new Map();
 

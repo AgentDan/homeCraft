@@ -24,7 +24,6 @@ export async function runAiPipeline(request, context) {
     intent,
     chunks: [...candidates, ...platformRules]
   });
-
   const { plan, outcome } = await generatePlan({
     intent,
     context,
