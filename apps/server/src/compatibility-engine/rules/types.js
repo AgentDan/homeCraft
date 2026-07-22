@@ -48,7 +48,7 @@
  * @typedef {object} RuleContext
  * @property {PlacedModule[]} modules
  * @property {{ roomShape: RoomShapeLike }} context
- * @property {import('../spatial-index.js').SpatialIndex} index
+ * @property {ReturnType<import('../spatial-index.js').buildSpatialIndex>} index
  */
 
 export {};

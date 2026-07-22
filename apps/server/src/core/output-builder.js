@@ -29,6 +29,7 @@ function buildChangeSummary(plan, message) {
  * Builds validated ClientResponse for API and clients.
  */
 export function buildOutput(input) {
+  console.log('input', input);
   const message = input.message ?? 'Command processed.';
   const base = createStubClientResponse(
     {

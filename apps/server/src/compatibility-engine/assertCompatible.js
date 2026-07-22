@@ -1,7 +1,7 @@
 import { CompatibilityReportSchema } from '@homecraft/contracts';
 import { materializePlan } from '../domain-modules/kitchen/materialize-plan.js';
 import { getCatalogSnapshot } from '../knowledge-base/catalog-store.js';
-import { SpatialIndex } from './spatial-index.js';
+import { buildSpatialIndex } from './spatial-index.js';
 import { suggestAnalogs } from './analog-suggester.js';
 import { check as checkDimensions } from './rules/dimensions.js';
 import { check as checkMounting } from './rules/mounting.js';
@@ -38,7 +38,7 @@ export async function assertCompatible(plan, context) {
     });
   }
 
-  const index = new SpatialIndex().buildFromModules(modules);
+  const index = buildSpatialIndex(modules);
   const ruleContext = { modules, context, index };
 
   const conflicts = [];
