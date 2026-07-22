@@ -306,13 +306,24 @@ npm run catalog:index    # rebuild catalog and platform-rules index
 
 PDF specification, export to `data/exports/`, and download API.
 
-### Phase 5. Production LLM (3–4 weeks)
+### Phase 5. Production LLM + Voice I/O (3–4 weeks)
 
 LLM provider integration, function calling, multi-turn, and evaluation across 200 English phrases.
 
+**Voice (planned — see [voice-stt-plan.md](voice-stt-plan.md)):**
+
+| # | Task | Status |
+|---|------|--------|
+| V1 | Web Speech API hook (`useSpeechCommand`) | 🔲 |
+| V2 | Mic button → transcript → `sendCommand(..., 'voice')` (remove `prompt` demo) | 🔲 |
+| V3 | Listening / error UI states | 🔲 |
+| V4 | Optional interim transcript in command bar | 🔲 |
+| V5 | Graceful fallback when STT unsupported | 🔲 |
+| V6–V7 | Optional TTS from `response.speech` | 🔲 |
+
 ### Phase 6. Scaling and platforms
 
-Wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
+Wardrobe domain, Expo mobile, multi-tenant, real catalog ETL. Native mic/STT on Expo follows web voice (see voice plan V8).
 
 ---
 
@@ -377,6 +388,7 @@ Wardrobe domain, Expo mobile, multi-tenant, real catalog ETL.
 | 4 | Plan format | JSON + Zod | ✅ Phase 0 |
 | 5 | LLM provider | Feature flag, stub | Phase 5 |
 | 6 | Auth | JWT → OAuth2 | Phase 6d |
+| 9 | Web STT engine | Web Speech API first; cloud STT only if needed | Phase 5 (V1–V5) |
 | 7 | Demo catalog | Synthetic JSON, 18 kitchen modules | ✅ Phase 1 |
 | 8 | Input model | Dialog only; manual editor excluded | ✅ |
 
@@ -401,5 +413,7 @@ Phase    0      1        2        3        4        5        6
 
 - [step0.md](step0.md) — Phase 0 results
 - [dialog-flow.md](dialog-flow.md) — dialog flow and API
+- [voice-stt-plan.md](voice-stt-plan.md) — microphone / STT / TTS plan (Phase 5)
+- [phase-3-functions.md](phase-3-functions.md) — Phase 3 symbol map
 - [AIproject](https://github.com/AgentDan/AIproject)
 - [README.md](../README.md)

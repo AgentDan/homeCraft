@@ -163,10 +163,11 @@ Room boundaries, overlap, and mounting height are checked. Utilities, full clear
 
 `ScenePreview` uses geometric boxes based on catalog dimensions. Manufacturer GLTF models are not connected yet.
 
-### TTS is not connected
+### TTS / STT
 
-The `speech` field is already returned, but the client does not speak it yet.
+- `speech` is already returned; the client does not speak it yet.
+- Microphone/STT is **planned for Phase 5** — see [voice-stt-plan.md](voice-stt-plan.md). Demo UI still uses `window.prompt`.
 
 ## Summary
 
-Catalog-grounded intents, real operations, multi-turn persistence, compatibility, BOM, 3D preview, and `undo`/`redo` work. STT/TTS, the LLM, and production GLTF models remain future stages.
+Catalog-grounded intents, real operations, multi-turn persistence, compatibility, BOM, 3D preview, and `undo`/`redo` work. STT/TTS (Phase 5), the LLM (Phase 5), and production GLTF models remain future stages.
