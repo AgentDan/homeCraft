@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --config nodemon.json src/index.js",
     "start": "node src/index.js",
-    "test": "node --test src/smoke.test.js src/compatibility.test.js",
+    "test": "node --test src/smoke.test.js src/compatibility.test.js src/ai-services/replace-module.test.js",
     "catalog:index": "node src/knowledge-base/indexer-cli.js"
   },
   "dependencies": {

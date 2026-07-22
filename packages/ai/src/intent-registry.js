@@ -1,5 +1,12 @@
 const RULES = [
   {
+    kind: 'replace_module',
+    patterns: [
+      /\b(?:replace|swap)\b/i,
+      /\b(?:BASE|WALL|SINK|HOB|OVEN|CORNER|TALL|FRIDGE|DISHWASHER)-\d+\b/i
+    ]
+  },
+  {
     kind: 'add_module',
     patterns: [
       /\b(?:add|place|install|build|create|kitchen)\b/i,

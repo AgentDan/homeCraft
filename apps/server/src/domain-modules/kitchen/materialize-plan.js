@@ -43,6 +43,23 @@ export async function materializePlan(plan) {
         );
       }
       module.finishId = operation.finishId;
+    } else if (operation.type === 'replace_module') {
+      const catalogModule = catalogBySku.get(operation.sku);
+      if (!catalogModule) {
+        throw new Error(`Unknown catalog SKU "${operation.sku}".`);
+      }
+      const keepFinish = catalogModule.finishes.some(
+        (finish) => finish.id === module.finishId
+      );
+      modules.set(operation.instanceId, {
+        instanceId: operation.instanceId,
+        ...structuredClone(catalogModule),
+        position: structuredClone(module.position),
+        rotationY: module.rotationY,
+        finishId: keepFinish
+          ? module.finishId
+          : catalogModule.finishes[0]?.id
+      });
     }
   }
 

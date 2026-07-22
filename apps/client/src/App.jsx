@@ -203,7 +203,13 @@ export function App() {
           <ConflictPanel
             compatibility={/** @type {any} */ (response.compatibility)}
             disabled={loading}
-            onSuggestion={(sku) => sendCommand(`add ${sku}`)}
+            onSuggestion={({ sku, instanceId }) =>
+              sendCommand(
+                instanceId
+                  ? `replace ${instanceId} with ${sku}`
+                  : `replace with ${sku}`
+              )
+            }
           />
         )}
         <ChatPanel

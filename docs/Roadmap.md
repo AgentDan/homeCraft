@@ -280,7 +280,7 @@ npm run catalog:index    # rebuild catalog and platform-rules index
 | 2.6 | Client conflict UI (`ConflictPanel`) with clickable analog chips | ✅ |
 | 2.7 | Tests for utilities, clearances, suggester | ✅ |
 | 2.8 | Analog suggester ranking tuned by real usage / hit-rate | 🔲 |
-| 2.9 | Conflict resolution flow (apply suggested analog as a real swap operation) | 🔲 |
+| 2.9 | Conflict resolution flow (apply suggested analog as a real swap operation) | ✅ |
 
 **Acceptance:** flush base cabinets stay valid; an appliance too close to a neighbour → `clearance_violation`; a fixture far from its required connection → `utility_conflict` (when the room models that utility); each conflict carries same-category `suggestedSkus`.
 

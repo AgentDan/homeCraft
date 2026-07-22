@@ -20,6 +20,13 @@ describe('@homecraft/ai smoke', () => {
     assert.equal(matchIntent('repeat').kind, 'redo');
   });
 
+  it('detects replace_module for conflict resolution commands', () => {
+    const result = matchIntent('replace module-2 with BASE-400');
+    assert.equal(result.kind, 'replace_module');
+    assert.equal(result.slots.instanceId, 'module-2');
+    assert.equal(result.slots.sku, 'BASE-400');
+  });
+
   it('reaches at least 85% accuracy on the Phase 1 English corpus', () => {
     const corpus = [
       ['add a cabinet', 'add_module'],
@@ -29,6 +36,8 @@ describe('@homecraft/ai smoke', () => {
       ['kitchen 3 by 4', 'add_module'],
       ['kitchen 3×4', 'add_module'],
       ['add a wall cabinet', 'add_module'],
+      ['replace module-1 with BASE-400', 'replace_module'],
+      ['swap module-2 with WALL-600', 'replace_module'],
       ['remove the last cabinet', 'remove_module'],
       ['delete a module', 'remove_module'],
       ['remove the cupboard', 'remove_module'],

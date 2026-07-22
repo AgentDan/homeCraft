@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const IntentKindSchema = z.enum([
   'add_module',
   'remove_module',
+  'replace_module',
   'change_finish',
   'set_budget',
   'show_price',

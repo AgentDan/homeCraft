@@ -9,7 +9,7 @@
  *       suggestedSkus?: string[]
  *     }>
  *   } | null | undefined,
- *   onSuggestion?: (sku: string) => void,
+ *   onSuggestion?: (suggestion: { sku: string, instanceId?: string }) => void,
  *   disabled?: boolean
  * }} props
  */
@@ -36,6 +36,7 @@ export function ConflictPanel({ compatibility, onSuggestion, disabled = false })
       <ul className="space-y-2">
         {conflicts.map((conflict, index) => {
           const suggestions = conflict.suggestedSkus ?? [];
+          const instanceId = conflict.instanceIds?.[0];
           return (
           <li key={`${conflict.kind}-${index}`} className="text-xs leading-snug text-[var(--hc-muted)]">
             <p className="text-[var(--hc-text)]">{conflict.message}</p>
@@ -49,9 +50,13 @@ export function ConflictPanel({ compatibility, onSuggestion, disabled = false })
                     key={sku}
                     type="button"
                     disabled={disabled || !onSuggestion}
-                    onClick={() => onSuggestion?.(sku)}
+                    onClick={() => onSuggestion?.({ sku, instanceId })}
                     className="hc-pill px-2 py-0.5 text-[11px]"
-                    title={`Add ${sku} instead`}
+                    title={
+                      instanceId
+                        ? `Replace ${instanceId} with ${sku}`
+                        : `Replace with ${sku}`
+                    }
                   >
                     {sku}
                   </button>

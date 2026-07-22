@@ -198,6 +198,7 @@ export async function route(request) {
         ? `Starter kitchen added: ${outcome.addedCount} modules.`
         : `Module ${outcome.sku} added.`,
     remove_module: `Module ${outcome.instanceId} removed.`,
+    replace_module: `Module ${outcome.instanceId} replaced with ${outcome.sku}.`,
     change_finish: `Finish ${outcome.finishId} selected for ${outcome.instanceId}.`,
     set_budget: `Budget set to €${intent.slots?.budgetEur}.`,
     show_price: 'Project cost calculated.'
@@ -208,10 +209,16 @@ export async function route(request) {
   const changeSummary = {
     text: messages[intent.kind] ?? 'Command completed.',
     added: newOperations
-      .filter((operation) => operation.type === 'add_module')
+      .filter(
+        (operation) =>
+          operation.type === 'add_module' || operation.type === 'replace_module'
+      )
       .map((operation) => operation.sku),
     removed: newOperations
-      .filter((operation) => operation.type === 'remove_module')
+      .filter(
+        (operation) =>
+          operation.type === 'remove_module' || operation.type === 'replace_module'
+      )
       .map((operation) => operation.instanceId),
     moved: newOperations
       .filter((operation) => operation.type === 'move_module')

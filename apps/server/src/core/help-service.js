@@ -1,4 +1,5 @@
 const EXAMPLES = [
+  '"replace module-1 with BASE-400"',
   '"add base cabinet 600"',
   '"add sink cabinet 800"',
   '"change the last cabinet to oak"',

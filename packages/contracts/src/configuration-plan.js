@@ -21,6 +21,11 @@ export const PlanOperationSchema = z.discriminatedUnion('type', [
     type: z.literal('change_finish'),
     instanceId: z.string().min(1),
     finishId: z.string().min(1)
+  }),
+  z.object({
+    type: z.literal('replace_module'),
+    instanceId: z.string().min(1),
+    sku: z.string().min(1)
   })
 ]);
 

@@ -37,6 +37,14 @@ function activeInstances(operations) {
       });
     } else if (operation.type === 'remove_module') {
       modules.delete(operation.instanceId);
+    } else if (operation.type === 'replace_module') {
+      const existing = modules.get(operation.instanceId);
+      if (existing) {
+        modules.set(operation.instanceId, {
+          ...existing,
+          sku: operation.sku
+        });
+      }
     }
   }
   return [...modules.values()];
@@ -137,6 +145,37 @@ export async function generatePlan(input) {
     return {
       plan: createPlan(input, operations),
       outcome: { kind: 'applied', instanceId: target }
+    };
+  }
+
+  if (input.intent.kind === 'replace_module') {
+    const active = activeInstances(operations);
+    const target = slots.instanceId ?? active.at(-1)?.instanceId;
+    const sku = slots.sku
+      ?? chooseCandidate(input.candidates, slots)?.sku
+      ?? null;
+    if (!target || !sku) {
+      return {
+        plan: createPlan(input, operations),
+        outcome: {
+          kind: 'clarify',
+          prompt: 'Specify a module and SKU to swap, for example "replace module-1 with BASE-400".'
+        }
+      };
+    }
+    if (!active.some((module) => module.instanceId === target)) {
+      return {
+        plan: createPlan(input, operations),
+        outcome: {
+          kind: 'clarify',
+          prompt: `Module ${target} is not in the project.`
+        }
+      };
+    }
+    operations.push({ type: 'replace_module', instanceId: target, sku });
+    return {
+      plan: createPlan(input, operations),
+      outcome: { kind: 'applied', instanceId: target, sku }
     };
   }
 

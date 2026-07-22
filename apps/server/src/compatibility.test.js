@@ -106,4 +106,28 @@ describe('@homecraft/server compatibility rules', () => {
     assert.ok(overlap);
     assert.ok(overlap.suggestedSkus.includes('BASE-400'));
   });
+
+  it('clears overlap after replacing the conflicting module with a suggested analog', async () => {
+    const conflicting = planWith([
+      add('BASE-800', { x: 0, y: 0, z: 0 }),
+      add('BASE-400', { x: 700, y: 0, z: 0 })
+    ]);
+    const before = await assertCompatible(conflicting, roomContext());
+    assert.equal(before.valid, false);
+    assert.ok(before.conflicts.some((conflict) => conflict.kind === 'overlap'));
+
+    const resolved = planWith([
+      add('BASE-800', { x: 0, y: 0, z: 0 }),
+      add('BASE-400', { x: 700, y: 0, z: 0 }),
+      { type: 'replace_module', instanceId: 'module-1', sku: 'BASE-600' }
+    ]);
+    const after = await assertCompatible(resolved, roomContext());
+    assert.equal(after.valid, true);
+
+    const { materializePlan } = await import('./domain-modules/kitchen/materialize-plan.js');
+    const modules = await materializePlan(resolved);
+    const swapped = modules.find((module) => module.instanceId === 'module-1');
+    assert.equal(swapped?.sku, 'BASE-600');
+    assert.deepEqual(swapped?.position, { x: 0, y: 0, z: 0 });
+  });
 });
