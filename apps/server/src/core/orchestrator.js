@@ -13,7 +13,7 @@ import {
 } from './room-context-builder.js';
 import { getHelpMessage } from './help-service.js';
 import { runPipeline as runKitchenPipeline } from '../domain-modules/kitchen/pipeline.js';
-import { calculateBOM } from '../pricing-engine/calculateBOM.js';
+import { getCachedBOM } from '../pricing-engine/bom-cache.js';
 import {
   appendPlanVersion,
   navigatePlanHistory,
@@ -33,7 +33,7 @@ async function runDownstream({
 }) {
   const compatibility = await assertCompatible(plan, context);
   const scene = await runKitchenPipeline(plan, context);
-  const bom = await calculateBOM(plan, plan.catalogSnapshotId);
+  const bom = await getCachedBOM(plan, plan.catalogSnapshotId);
   const effectiveMessage = compatibility.valid
     ? message
     : `Changes rejected: ${compatibility.conflicts
@@ -56,6 +56,7 @@ async function runDownstream({
     bom,
     compatibility,
     roomShape: context.roomShape,
+    budgetEur: context.budgetEur ?? null,
     message: effectiveMessage,
     explanation: budgetExplanation
       ? [explanation, budgetExplanation].filter(Boolean).join(' ')

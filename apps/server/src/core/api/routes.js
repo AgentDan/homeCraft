@@ -4,6 +4,9 @@ import express from 'express';
 import { route } from '../orchestrator.js';
 import { getStorageStatus } from '../../storage/local-storage.js';
 import { connectMongo } from '../../storage/mongo.js';
+import { connectRedis, redisConfigured } from '../../storage/redis.js';
+import { getBomCacheStats } from '../../pricing-engine/bom-cache.js';
+import { listCatalogSnapshots } from '../../knowledge-base/catalog-store.js';
 import { isProduction, runtimeLabel } from '../../config/runtime.js';
 import { sendJson } from '../../lib/send-json.js';
 import {
@@ -41,6 +44,7 @@ export function mountRoutes(app) {
         'GET /api',
         'GET /api/health',
         'GET /api/storage/status',
+        'GET /api/catalog/snapshots',
         'POST /api/commands'
       ]
     });
@@ -51,13 +55,16 @@ export function mountRoutes(app) {
     wrapAsync(async (_req, res) => {
       const storage = await getStorageStatus();
       const mongo = await connectMongo();
+      const redis = await connectRedis();
       sendJson(res, 200, {
         status: 'ok',
         service: 'homecraft-server',
-        step: '0',
+        step: '3',
         env: runtimeLabel(),
         storage,
-        mongo: mongo ? 'connected' : 'disconnected'
+        mongo: mongo ? 'connected' : 'disconnected',
+        redis: redis ? 'connected' : redisConfigured() ? 'disconnected' : 'not_configured',
+        bomCache: getBomCacheStats()
       });
     })
   );
@@ -66,6 +73,15 @@ export function mountRoutes(app) {
     '/api/storage/status',
     wrapAsync(async (_req, res) => {
       sendJson(res, 200, await getStorageStatus());
+    })
+  );
+
+  app.get(
+    '/api/catalog/snapshots',
+    wrapAsync(async (_req, res) => {
+      sendJson(res, 200, {
+        snapshots: await listCatalogSnapshots()
+      });
     })
   );
 

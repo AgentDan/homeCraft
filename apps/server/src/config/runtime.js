@@ -17,6 +17,9 @@ export const runtimeConfig = {
   nodeEnv,
   mongodbUri: process.env.MONGODB_URI ?? 'mongodb://localhost:27017/homecraft',
   mongodbTimeoutMs: Number(process.env.MONGODB_TIMEOUT_MS ?? 500),
+  redisUrl: process.env.REDIS_URL?.trim() || '',
+  redisTimeoutMs: Number(process.env.REDIS_TIMEOUT_MS ?? 500),
+  bomCacheTtlSec: Number(process.env.BOM_CACHE_TTL_SEC ?? 3600),
   embeddingsProvider: process.env.EMBEDDINGS_PROVIDER ?? 'local-hash',
   kbTopK: Number(process.env.KB_TOP_K ?? 5)
 };

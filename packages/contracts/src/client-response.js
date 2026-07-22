@@ -76,6 +76,7 @@ export const ClientResponseSchema = z.object({
   sceneResult: SceneResultSchema.nullable().optional(),
   roomShape: RoomShapeSchema.nullable().optional(),
   bom: BOMSchema.nullable().optional(),
+  budgetEur: z.number().nonnegative().nullable().optional(),
   compatibility: CompatibilityReportSchema.nullable().optional(),
   downloadUrl: z.string().url().nullable().optional(),
   errors: z.array(z.string()).default([]),

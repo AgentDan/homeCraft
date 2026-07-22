@@ -3,8 +3,8 @@
 > **HomeCraft** — an AI platform for conversationally assembling furniture projects from a real manufacturer catalog.
 > The architectural foundation is [AIproject](https://github.com/AgentDan/AIproject); the furniture domain adds a Compatibility Engine, Pricing, BOM, and production export.
 
-**Status:** 🚧 **Phase 2 in progress** — Compatibility Engine (rules, utilities, clearances, analog suggester, conflict UI).
-**Next step:** **Phase 3** — Pricing & BOM.
+**Status:** 🚧 **Phase 3 in progress** — Pricing & BOM (snapshots, cache, BOM table, budget UI).
+**Next step:** **Phase 4** — Production Export.
 **Target MVP:** 4–5 months with a team of 2–3 people.
 **Principle:** contract-first (Zod), skeleton → logic file by file, with no dead pipeline stages.
 
@@ -123,6 +123,8 @@ homecraft/
 │   │   │       ├── ChatPanel.jsx
 │   │   │       ├── ResponseRouter.jsx
 │   │   │       ├── ConflictPanel.jsx
+│   │   │       ├── BomPanel.jsx
+│   │   │       ├── BudgetIndicator.jsx
 │   │   │       └── ScenePreview.jsx   # R3F 3D preview
 │   │   └── vite.config.js
 │   ├── mobile/                        # stub
@@ -179,7 +181,7 @@ homecraft/
 | Client 3D | React Three Fiber | ✅ ScenePreview |
 | Mobile | Expo | stub, Phase 6 |
 | Database | MongoDB (local or remote, `MONGODB_URI`) | ✅ + local fallback |
-| Cache | Redis | Phase 3 |
+| Cache | Redis | ✅ optional (`REDIS_URL`) + memory BOM cache |
 | Files | `apps/server/data/` | ✅ |
 | RAG index | file vector store | ✅ |
 | CI | lint + test + build | ✅ |
@@ -266,7 +268,7 @@ npm run catalog:index    # rebuild catalog and platform-rules index
 
 ---
 
-### 🚧 Phase 2. Compatibility Engine (2–3 weeks)
+### ✅ Phase 2. Compatibility Engine (2–3 weeks)
 
 **Goal:** modular rule engine over the spatial index, richer conflict kinds, analog suggestions, and a conflict UI.
 
@@ -279,14 +281,26 @@ npm run catalog:index    # rebuild catalog and platform-rules index
 | 2.5 | `analog-suggester` → populate `suggestedSkus` per conflict | ✅ |
 | 2.6 | Client conflict UI (`ConflictPanel`) with clickable analog chips | ✅ |
 | 2.7 | Tests for utilities, clearances, suggester | ✅ |
-| 2.8 | Analog suggester ranking tuned by real usage / hit-rate | 🔲 |
+| 2.8 | Analog suggester ranking tuned by real usage / hit-rate | 🔲 deferred |
 | 2.9 | Conflict resolution flow (apply suggested analog as a real swap operation) | ✅ |
 
 **Acceptance:** flush base cabinets stay valid; an appliance too close to a neighbour → `clearance_violation`; a fixture far from its required connection → `utility_conflict` (when the room models that utility); each conflict carries same-category `suggestedSkus`.
 
-### Phase 3. Pricing & BOM (2 weeks)
+### 🚧 Phase 3. Pricing & BOM (2 weeks)
 
-Catalog snapshots, Redis cache, BOM table, and a budget indicator in the client.
+**Goal:** stable catalog snapshots, BOM cache with hit-rate, and a client HUD for estimate + budget.
+
+| # | Task | Status |
+|---|------|--------|
+| 3.1 | Catalog snapshot listing API (`GET /api/catalog/snapshots`) | ✅ |
+| 3.2 | Redis-optional BOM cache around `calculateBOM` (memory fallback) | ✅ |
+| 3.3 | BOM cache hit-rate metrics on `/api/health` | ✅ |
+| 3.4 | `budgetEur` on `ClientResponse` | ✅ |
+| 3.5 | Client `BomPanel` (line items + totals) | ✅ |
+| 3.6 | Client `BudgetIndicator` (progress / over budget) | ✅ |
+| 3.7 | Tests for cache hit/miss + snapshot list | ✅ |
+
+**Acceptance:** BOM table visible after priced commands; budget bar reacts to `set_budget`; repeated identical plans hit the cache; Redis optional with local fallback.
 
 ### Phase 4. Production Export (2–3 weeks)
 
@@ -379,7 +393,7 @@ Phase    0      1        2        3        4        5        6
 
 **Pilot MVP:** end of Phase 4.
 
-**Next step:** [Phase 2](#phase-2-compatibility-engine-23-weeks).
+**Next step:** [Phase 4](#phase-4-production-export-23-weeks).
 
 ---
 

@@ -33,7 +33,7 @@ AI понимает клиента и переводит его слова в с
 | Configuration Engine | `ai-services/configuration-plan-generator.js` | rule-based | ✅ |
 | Rules Engine | `compatibility-engine/assertCompatible.js` + `rules/*` + `analog-suggester.js` | детерминированный, **единственный rejector** | 🚧 5 правил (dimensions/mounting/overlap/utilities/clearances) + analog suggester |
 | Scene Graph / 3D Engine | `domain-modules/kitchen/pipeline.js` + client `ScenePreview.jsx` (R3F) | детерминированный | ✅ базовая версия |
-| Calculation Engine | `pricing-engine/calculateBOM.js` | детерминированный, чистый калькулятор | ✅ от frozen snapshot |
+| Calculation Engine | `pricing-engine/calculateBOM.js` + `bom-cache.js` | детерминированный, чистый калькулятор + кэш | ✅ snapshot BOM + cache |
 | Production / ERP Integration | Phase 4 (not started) | детерминированный | 🔲 Phase 4 |
 
 **Соответствие с исходным документом:** блоки почти полностью совпадают 1:1. Отличие — в документе RAG и 3D Engine описаны как отдельные крупные подсистемы, в коде они пока встроены как модули внутри общего пайплайна, без выделенных сервисов.
@@ -80,15 +80,17 @@ AI понимает клиента и переводит его слова в с
 - Полноценный Scene Graph как единый источник данных (сейчас 3D — модуль внутри kitchen-домена, не отдельная подсистема).
 - Production / ERP Integration (Phase 4 — not started).
 - LLM в проде (Phase 5 — rule-based intent/plan generation сейчас).
-- Дополнительные домены (wardrobe, other-furniture) — Phase 3+.
+- Дополнительные домены (wardrobe, other-furniture) — Phase 6+.
 
-**В работе (Phase 2, ветка `phase-2`):**
-- `rules/*` вынесены в модули с единой сигнатурой `check({ modules, context, index })`; `assertCompatible` — оркестратор правил.
-- Новые правила: `utilities` (`utility_conflict`, пропускается если комната не моделирует точки) и `clearances` (`clearance_violation`, enforce только значимые зазоры ≥20 мм — flush-шкафы валидны).
-- `analog-suggester` заполняет `suggestedSkus` (та же категория) для каждого конфликта.
-- Клиентский `ConflictPanel` показывает конфликты и кликабельные аналоги.
+**Сделано в Phase 2 (закрыта, 2.8 отложен):**
+- `rules/*` + `assertCompatible`; utilities/clearances; analog suggester; ConflictPanel; `replace_module` swap flow (2.9).
 
-**Следующий шаг по Roadmap:** Phase 3 — Pricing & BOM (снапшоты каталога, кэш, таблица BOM, индикатор бюджета на клиенте).
+**В работе (Phase 3, ветка `phase-3`):**
+- `GET /api/catalog/snapshots` — список frozen snapshots.
+- `getCachedBOM` — memory + optional Redis (`REDIS_URL`), hit-rate в `/api/health`.
+- `budgetEur` в `ClientResponse`; клиентские `BomPanel` и `BudgetIndicator`.
+
+**Следующий шаг по Roadmap:** Phase 4 — Production Export (PDF, `data/exports/`, download API).
 
 ---
 
@@ -111,6 +113,7 @@ DoD каждой фазы: acceptance criteria выполнены + `lint`/`test
 
 | Дата | Что изменили | Почему | Что устарело в паспорте |
 |---|---|---|---|
+| 2026-07-22 | Phase 3 (ветка `phase-3`): BOM cache (memory+Redis), `GET /api/catalog/snapshots`, клиентские BomPanel/BudgetIndicator, `budgetEur` в ClientResponse | Дать видимую смету/бюджет и ускорить повторный BOM | Раздел 6 (Phase 3 в работе); Redis в стеке |
 | 2026-07-19 | Phase 2 (ветка `phase-2`): рефактор Compatibility Engine в `rules/*`, добавлены правила `utilities`/`clearances`, `analog-suggester` (`suggestedSkus`), клиентский `ConflictPanel` | Расширить проверку реализуемости и дать пользователю понятные конфликты + предложения аналогов | Раздел 3 (Rules Engine 🚧), раздел 6 (Phase 2 в работе) |
 | 2026-07-19 | Финальная подготовка перед Phase 2: миграция валюты RUB→EUR по всем контрактам/каталогу/серверу, новый glass-HUD клиента (чат + командная строка + 3D-комната), чистка мёртвого кода в `intent-detector`, `jsconfig` `paths` для `@homecraft/*` | Стабилизировать базу Phase 1 и снять техдолг до старта Compatibility Engine | Валютные поля везде `*Eur`; `detectIntent` — тонкая обёртка над `matchIntent` |
 | 2026-07-19 | Ветка `phase-1/1.1-demo-catalog` помечена как Phase 1 complete | MVP-диалог + демо-каталог кухни готовы | Раздел 6 актуализирован под это состояние |

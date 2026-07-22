@@ -48,6 +48,7 @@ export function buildOutput(input) {
       sceneResult: input.scene,
       roomShape: input.roomShape ?? null,
       bom: input.bom,
+      budgetEur: input.budgetEur ?? null,
       compatibility: input.compatibility,
       responseType: input.compatibility.valid ? 'scene' : 'conflict'
     }

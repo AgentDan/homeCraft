@@ -28,3 +28,24 @@ export async function getCatalogSnapshot(snapshotId = DEFAULT_CATALOG_SNAPSHOT_I
   }
   return catalog;
 }
+
+/**
+ * Lists frozen catalog snapshots available for pricing / BOM.
+ * @returns {Promise<Array<{
+ *   id: string,
+ *   moduleCount: number,
+ *   currency: string,
+ *   default: boolean
+ * }>>}
+ */
+export async function listCatalogSnapshots() {
+  const catalog = await loadDemoCatalog();
+  return [
+    {
+      id: catalog.catalogVersion,
+      moduleCount: catalog.modules.length,
+      currency: catalog.currency ?? 'EUR',
+      default: catalog.catalogVersion === DEFAULT_CATALOG_SNAPSHOT_ID
+    }
+  ];
+}

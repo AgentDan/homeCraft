@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --config nodemon.json src/index.js",
     "start": "node src/index.js",
-    "test": "node --test src/smoke.test.js src/compatibility.test.js src/ai-services/replace-module.test.js",
+    "test": "node --test src/smoke.test.js src/compatibility.test.js src/ai-services/replace-module.test.js src/pricing-engine/bom-cache.test.js",
     "catalog:index": "node src/knowledge-base/indexer-cli.js"
   },
   "dependencies": {
@@ -16,6 +16,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "mongodb": "^6.17.0",
+    "redis": "^6.1.0",
     "zod": "^3.25.56"
   },
   "devDependencies": {

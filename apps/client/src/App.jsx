@@ -1,5 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { getHealth, postCommand } from './api/client.js';
+import { BomPanel } from './components/BomPanel.jsx';
+import { BudgetIndicator } from './components/BudgetIndicator.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { CommandInput } from './components/CommandInput.jsx';
 import { ConflictPanel } from './components/ConflictPanel.jsx';
@@ -113,6 +115,18 @@ export function App() {
       DEFAULT_ROOM_SHAPE
     )
   );
+  const [bom, setBom] = useState(
+    /** @type {{
+     *   lines?: Array<Record<string, unknown>>,
+     *   subtotalEur?: number,
+     *   vatEur?: number,
+     *   totalEur?: number,
+     *   catalogSnapshotId?: string
+     * } | null} */ (null)
+  );
+  const [budgetEur, setBudgetEur] = useState(
+    /** @type {number | null} */ (null)
+  );
 
   useEffect(() => {
     getHealth()
@@ -146,6 +160,12 @@ export function App() {
         }
         if (result.roomShape) {
           setRoomShape(result.roomShape);
+        }
+        if (result.bom) {
+          setBom(result.bom);
+        }
+        if (result.budgetEur !== undefined) {
+          setBudgetEur(result.budgetEur);
         }
         setTurns((current) => [
           ...current,
@@ -188,6 +208,8 @@ export function App() {
           <span className="text-sm font-semibold tracking-wide text-white/90">HomeCraft</span>
         </div>
         <RoomBadge roomShape={roomShape} />
+        <BudgetIndicator budgetEur={budgetEur} totalEur={bom?.totalEur ?? null} />
+        <BomPanel bom={bom} />
       </div>
 
       {/* Right HUD: Command above Chat */}
