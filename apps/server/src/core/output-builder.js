@@ -3,6 +3,7 @@ import {
   createClarifyResponse as createContractClarifyResponse,
   createStubClientResponse
 } from '@homecraft/contracts';
+import { normalizeLanguage, t } from '../i18n/messages.js';
 
 function summarizeForSpeech(message) {
   const normalized = message.trim().replace(/\s+/g, ' ');
@@ -29,7 +30,8 @@ function buildChangeSummary(plan, message) {
  * Builds validated ClientResponse for API and clients.
  */
 export function buildOutput(input) {
-  const message = input.message ?? 'Command processed.';
+  const language = normalizeLanguage(input.request?.language ?? input.language);
+  const message = input.message ?? t(language, 'commandProcessed');
   const base = createStubClientResponse(
     {
       requestId: input.request.requestId,
@@ -63,7 +65,8 @@ export function buildOutput(input) {
 }
 
 export function buildUnknownIntentResponse(request, _context) {
-  const prompt = 'The command was not understood. Please rephrase it.';
+  const language = normalizeLanguage(request.language);
+  const prompt = t(language, 'unknownIntent');
   return ClientResponseSchema.parse({
     requestId: request.requestId,
     sessionId: request.sessionId,
@@ -72,7 +75,7 @@ export function buildUnknownIntentResponse(request, _context) {
     responseType: 'unknown_intent',
     message: prompt,
     speech: prompt,
-    explanation: 'Intent detection returned unknown.',
+    explanation: t(language, 'unknownExplanation'),
     interaction: { expects: 'free_text', prompt },
     planVersion: 0,
     errors: [],
@@ -81,7 +84,8 @@ export function buildUnknownIntentResponse(request, _context) {
 }
 
 export function buildHelpResponse(request, helpMessage) {
-  const message = helpMessage ?? 'Describe the kitchen by text or voice.';
+  const language = normalizeLanguage(request.language);
+  const message = helpMessage ?? t(language, 'helpFallback');
   return ClientResponseSchema.parse({
     requestId: request.requestId,
     sessionId: request.sessionId,
@@ -90,7 +94,7 @@ export function buildHelpResponse(request, helpMessage) {
     responseType: 'help',
     message,
     speech: message,
-    explanation: 'Available commands were provided by the Help service.',
+    explanation: t(language, 'helpExplanation'),
     interaction: { expects: 'none' },
     planVersion: 0,
     errors: [],

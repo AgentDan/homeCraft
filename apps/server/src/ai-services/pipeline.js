@@ -13,7 +13,7 @@ import { runtimeConfig } from '../config/runtime.js';
  */
 export async function runAiPipeline(request, context) {
   const dialogText = request.command;
-  const intent = await detectIntent(dialogText);
+  const intent = await detectIntent(dialogText, request.language);
 
   const [candidates, platformRules] = await Promise.all([
     retrieve(dialogText, context.catalogSnapshotId, runtimeConfig.kbTopK),

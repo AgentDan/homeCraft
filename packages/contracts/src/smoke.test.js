@@ -60,7 +60,7 @@ describe('@homecraft/contracts smoke', () => {
     assert.equal(response.interaction.expects, 'none');
   });
 
-  it('accepts only English intent language', () => {
+  it('accepts English and Russian intent language', () => {
     const intent = {
       kind: 'help',
       confidence: 1,
@@ -69,6 +69,10 @@ describe('@homecraft/contracts smoke', () => {
       slots: {}
     };
     assert.equal(IntentResultSchema.parse(intent).language, 'en');
+    assert.equal(
+      IntentResultSchema.parse({ ...intent, language: 'ru', rawText: 'помощь' }).language,
+      'ru'
+    );
     assert.throws(() => IntentResultSchema.parse({ ...intent, language: 'fr' }));
   });
 

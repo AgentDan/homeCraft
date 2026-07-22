@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useLocale } from '../i18n/LocaleContext.jsx';
 
 /**
  * @param {{
@@ -9,6 +10,7 @@ import { useEffect, useRef } from 'react';
  * }} props
  */
 export function ChatPanel({ turns, loading = false, online = true, tools = null }) {
+  const { t } = useLocale();
   const bottomRef = useRef(/** @type {HTMLDivElement | null} */ (null));
 
   useEffect(() => {
@@ -20,7 +22,7 @@ export function ChatPanel({ turns, loading = false, online = true, tools = null 
       <div className="flex items-center justify-between gap-2 border-b border-[var(--hc-border)] px-3 py-2">
         <div className="flex items-center gap-2">
           <h3 className="text-[11px] font-medium tracking-wide text-[var(--hc-muted)] uppercase">
-            Chat
+            {t('chat')}
           </h3>
           <span
             className={`h-1.5 w-1.5 rounded-full ${
@@ -35,7 +37,7 @@ export function ChatPanel({ turns, loading = false, online = true, tools = null 
       <div className="hc-scroll flex-1 space-y-2 overflow-auto px-3 py-2.5" aria-live="polite">
         {turns.length === 0 && !loading && (
           <p className="text-xs leading-relaxed text-[var(--hc-muted)]">
-            Describe what you want — for example, “add a 600 mm cabinet”.
+            {t('chatEmpty')}
           </p>
         )}
 
@@ -54,7 +56,7 @@ export function ChatPanel({ turns, loading = false, online = true, tools = null 
 
         {loading && (
           <div className="mr-4 rounded-[12px] border border-[var(--hc-border)] bg-black/35 px-3 py-2 text-xs text-[var(--hc-muted)]">
-            Thinking…
+            {t('thinking')}
           </div>
         )}
 

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+export const LanguageSchema = z.enum(['en', 'ru']);
+
 export const IntentKindSchema = z.enum([
   'add_module',
   'remove_module',
@@ -31,14 +33,14 @@ export const IntentSlotsSchema = z
 export const IntentSchema = z.object({
   kind: IntentKindSchema.exclude(['unknown']),
   confidence: z.number().min(0).max(1),
-  language: z.literal('en'),
+  language: LanguageSchema,
   rawText: z.string(),
   slots: IntentSlotsSchema
 });
 
 export const UnknownIntentSchema = z.object({
   kind: z.literal('unknown'),
-  language: z.literal('en').optional(),
+  language: LanguageSchema.optional(),
   rawText: z.string(),
   reason: z.string().default('no_pattern_match')
 });

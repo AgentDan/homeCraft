@@ -19,6 +19,7 @@ import {
   navigatePlanHistory,
   recordCommandRequest
 } from '../storage/local-storage.js';
+import { normalizeLanguage, t } from '../i18n/messages.js';
 
 async function runDownstream({
   request,
@@ -31,14 +32,15 @@ async function runDownstream({
   changeSummary,
   view
 }) {
+  const language = normalizeLanguage(request.language);
   const compatibility = await assertCompatible(plan, context);
   const scene = await runKitchenPipeline(plan, context);
   const bom = await getCachedBOM(plan, plan.catalogSnapshotId);
   const effectiveMessage = compatibility.valid
     ? message
-    : `Changes rejected: ${compatibility.conflicts
-      .map((conflict) => conflict.message)
-      .join(' ')}`;
+    : t(language, 'changesRejected', {
+      details: compatibility.conflicts.map((conflict) => conflict.message).join(' ')
+    });
   const versionEntry =
     persistVersion && existingVersion === undefined && compatibility.valid
       ? await appendPlanVersion(request.sessionId, request.projectId, plan)
@@ -46,7 +48,9 @@ async function runDownstream({
 
   const budgetExplanation =
     context.budgetEur !== undefined && bom.totalEur > context.budgetEur
-      ? `The cost exceeds the budget by €${bom.totalEur - context.budgetEur}.`
+      ? t(language, 'budgetExceeded', {
+        over: bom.totalEur - context.budgetEur
+      })
       : undefined;
 
   return buildOutput({
@@ -89,6 +93,7 @@ async function finalizeResponse(context, response) {
 }
 
 async function handleHistoryIntent(request, context, intentKind) {
+  const language = normalizeLanguage(request.language);
   const entry = await navigatePlanHistory(
     request.sessionId,
     request.projectId,
@@ -96,18 +101,15 @@ async function handleHistoryIntent(request, context, intentKind) {
   );
 
   if (!entry) {
-    // TODO(phase 1): tailor this clarification using persisted dialog context.
     const prompt =
       intentKind === 'undo'
-        ? 'There is nothing to undo. Describe what you want to change.'
-        : 'There is nothing to redo. Undo a change first.';
+        ? t(language, 'nothingToUndo')
+        : t(language, 'nothingToRedo');
     return buildClarifyResponse(request, prompt);
   }
 
   const message =
-    intentKind === 'undo'
-      ? 'The last change was undone.'
-      : 'The undone change was restored.';
+    intentKind === 'undo' ? t(language, 'undone') : t(language, 'redone');
   return runDownstream({
     request,
     context,
@@ -157,13 +159,15 @@ export async function route(request) {
     };
   }
 
+  const language = normalizeLanguage(request.language ?? intent.language);
+
   if (intent.kind === 'undo' || intent.kind === 'redo') {
     const response = await handleHistoryIntent(request, context, intent.kind);
     return finalizeResponse(context, response);
   }
 
   if (intent.kind === 'help') {
-    const help = buildHelpResponse(request, getHelpMessage());
+    const help = buildHelpResponse(request, getHelpMessage(language));
     return finalizeResponse(context, help);
   }
 
@@ -185,7 +189,7 @@ export async function route(request) {
     if (intent.slots?.budgetEur === undefined) {
       const clarify = buildClarifyResponse(
         request,
-        'Enter a numeric budget, for example "budget up to 150000".',
+        t(language, 'budgetClarify'),
         context.planVersion
       );
       return finalizeResponse(context, clarify);
@@ -196,19 +200,29 @@ export async function route(request) {
   const messages = {
     add_module:
       (outcome.addedCount ?? 0) > 1
-        ? `Starter kitchen added: ${outcome.addedCount} modules.`
-        : `Module ${outcome.sku} added.`,
-    remove_module: `Module ${outcome.instanceId} removed.`,
-    replace_module: `Module ${outcome.instanceId} replaced with ${outcome.sku}.`,
-    change_finish: `Finish ${outcome.finishId} selected for ${outcome.instanceId}.`,
-    set_budget: `Budget set to €${intent.slots?.budgetEur}.`,
-    show_price: 'Project cost calculated.'
+        ? t(language, 'starterKitchenAdded', { count: outcome.addedCount ?? 0 })
+        : t(language, 'moduleAdded', { sku: outcome.sku ?? '' }),
+    remove_module: t(language, 'moduleRemoved', {
+      instanceId: outcome.instanceId ?? ''
+    }),
+    replace_module: t(language, 'moduleReplaced', {
+      instanceId: outcome.instanceId ?? '',
+      sku: outcome.sku ?? ''
+    }),
+    change_finish: t(language, 'finishSelected', {
+      finishId: outcome.finishId ?? '',
+      instanceId: outcome.instanceId ?? ''
+    }),
+    set_budget: t(language, 'budgetSet', {
+      budgetEur: intent.slots?.budgetEur ?? 0
+    }),
+    show_price: t(language, 'priceCalculated')
   };
 
   const readOnly = intent.kind === 'show_price' || intent.kind === 'set_budget';
   const newOperations = plan.operations.slice(context.planOperations.length);
   const changeSummary = {
-    text: messages[intent.kind] ?? 'Command completed.',
+    text: messages[intent.kind] ?? t(language, 'commandCompleted'),
     added: newOperations
       .filter(
         (operation) =>
@@ -229,7 +243,7 @@ export async function route(request) {
     request,
     context,
     plan,
-    message: messages[intent.kind] ?? 'Command completed.',
+    message: messages[intent.kind] ?? t(language, 'commandCompleted'),
     explanation: `Intent: ${intent.kind}`,
     persistVersion: !readOnly,
     existingVersion: readOnly ? context.planVersion : undefined,

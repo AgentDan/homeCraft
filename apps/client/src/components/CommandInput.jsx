@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocale } from '../i18n/LocaleContext.jsx';
 
 /**
  * @param {{
@@ -7,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
  * }} props
  */
 export function CommandInput({ onSubmit, disabled }) {
+  const { t } = useLocale();
   const [value, setValue] = useState('');
   const inputRef = useRef(/** @type {HTMLInputElement | null} */ (null));
 
@@ -51,9 +53,9 @@ export function CommandInput({ onSubmit, disabled }) {
         htmlFor="command"
         className="mb-1.5 block text-[11px] font-medium tracking-wide text-[var(--hc-muted)] uppercase"
       >
-        Command
+        {t('command')}
         <span className="ml-2 font-normal normal-case tracking-normal text-[var(--hc-muted)]/70">
-          Space
+          {t('spaceHint')}
         </span>
       </label>
       <div className="flex items-center gap-1.5 rounded-[12px] border border-[var(--hc-border)] bg-black/50 p-1 focus-within:border-[var(--hc-accent)]/50">
@@ -63,7 +65,7 @@ export function CommandInput({ onSubmit, disabled }) {
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="add a 600 mm cabinet"
+          placeholder={t('commandPlaceholder')}
           disabled={disabled}
           className="min-w-0 flex-1 bg-transparent px-2.5 py-2 text-sm text-[var(--hc-text)] outline-none placeholder:text-[var(--hc-muted)]/70 disabled:opacity-60"
         />
@@ -72,7 +74,7 @@ export function CommandInput({ onSubmit, disabled }) {
           disabled={disabled}
           className="hc-btn-accent shrink-0 rounded-[10px] px-3.5 py-2 text-xs font-semibold"
         >
-          Send
+          {t('send')}
         </button>
       </div>
     </form>

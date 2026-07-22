@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocale } from '../i18n/LocaleContext.jsx';
 
 function CompactPrompt({ children }) {
   return (
@@ -9,6 +10,7 @@ function CompactPrompt({ children }) {
 }
 
 function ClarifyForm({ response, onCommand, disabled }) {
+  const { t } = useLocale();
   const [value, setValue] = useState('');
 
   function handleSubmit(event) {
@@ -43,7 +45,7 @@ function ClarifyForm({ response, onCommand, disabled }) {
           disabled={disabled}
           className="hc-btn-accent rounded-[10px] px-3 py-1.5 text-xs font-semibold"
         >
-          Reply
+          {t('reply')}
         </button>
       </div>
     </form>
@@ -58,6 +60,7 @@ function ClarifyForm({ response, onCommand, disabled }) {
  * }} props
  */
 export function ResponseRouter({ response, onCommand, disabled }) {
+  const { t } = useLocale();
   if (!response) return null;
 
   switch (response.responseType) {
@@ -97,7 +100,7 @@ export function ResponseRouter({ response, onCommand, disabled }) {
             {response.interaction?.prompt ?? response.message}
           </p>
           <div className="flex gap-1.5">
-            {['Yes', 'No'].map((label) => (
+            {[t('yes'), t('no')].map((label) => (
               <button
                 key={label}
                 type="button"

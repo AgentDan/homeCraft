@@ -1,8 +1,11 @@
+import { useLocale } from '../i18n/LocaleContext.jsx';
+
 /**
  * @param {number} value
+ * @param {string} locale
  */
-function formatEur(value) {
-  return new Intl.NumberFormat('en-US', {
+function formatEur(value, locale) {
+  return new Intl.NumberFormat(locale === 'ru' ? 'ru-RU' : 'en-US', {
     style: 'currency',
     currency: 'EUR',
     maximumFractionDigits: 0
@@ -16,15 +19,15 @@ function formatEur(value) {
  * }} props
  */
 export function BudgetIndicator({ budgetEur, totalEur }) {
+  const { locale, t } = useLocale();
+
   if (budgetEur == null) {
     return (
       <section className="hc-glass hc-glass--compact px-3 py-2.5">
         <h3 className="mb-1 text-[11px] font-medium tracking-wide text-[var(--hc-muted)] uppercase">
-          Budget
+          {t('budget')}
         </h3>
-        <p className="text-xs text-[var(--hc-muted)]">
-          Not set — try &quot;budget up to 150000&quot;.
-        </p>
+        <p className="text-xs text-[var(--hc-muted)]">{t('budgetNotSet')}</p>
       </section>
     );
   }
@@ -39,15 +42,18 @@ export function BudgetIndicator({ budgetEur, totalEur }) {
     <section className="hc-glass hc-glass--compact px-3 py-2.5">
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
         <h3 className="text-[11px] font-medium tracking-wide text-[var(--hc-muted)] uppercase">
-          Budget
+          {t('budget')}
         </h3>
         <span
           className={`text-xs font-semibold tabular-nums ${
             over ? 'text-[var(--hc-danger)]' : 'text-[var(--hc-text)]'
           }`}
         >
-          {formatEur(spent)}
-          <span className="font-normal text-[var(--hc-muted)]"> / {formatEur(budgetEur)}</span>
+          {formatEur(spent, locale)}
+          <span className="font-normal text-[var(--hc-muted)]">
+            {' '}
+            / {formatEur(budgetEur, locale)}
+          </span>
         </span>
       </div>
 
@@ -57,7 +63,7 @@ export function BudgetIndicator({ budgetEur, totalEur }) {
         aria-valuenow={Math.round(fillPct)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Budget used"
+        aria-label={t('budgetUsed')}
       >
         <div
           className="h-full rounded-full transition-[width] duration-300"
@@ -74,8 +80,8 @@ export function BudgetIndicator({ budgetEur, totalEur }) {
         }`}
       >
         {over
-          ? `Over by ${formatEur(spent - budgetEur)}`
-          : `${formatEur(remaining)} remaining`}
+          ? t('overBy', { amount: formatEur(spent - budgetEur, locale) })
+          : t('remaining', { amount: formatEur(remaining, locale) })}
       </p>
     </section>
   );

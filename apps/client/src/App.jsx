@@ -5,7 +5,10 @@ import { BudgetIndicator } from './components/BudgetIndicator.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { CommandInput } from './components/CommandInput.jsx';
 import { ConflictPanel } from './components/ConflictPanel.jsx';
+import { LanguageSwitcher } from './components/LanguageSwitcher.jsx';
 import { ResponseRouter } from './components/ResponseRouter.jsx';
+import { useSpeech } from './hooks/useSpeech.js';
+import { useLocale } from './i18n/LocaleContext.jsx';
 
 const ScenePreview = lazy(() =>
   import('./components/ScenePreview.jsx').then((module) => ({
@@ -67,14 +70,21 @@ const DEFAULT_ROOM_SHAPE = {
   dimensions: { widthMm: 3000, depthMm: 4000, heightMm: 2700 }
 };
 
-function Toolstrip({ onVoice, disabled }) {
+/**
+ * @param {{
+ *   onVoice: () => void,
+ *   disabled?: boolean,
+ *   voiceTitle: string
+ * }} props
+ */
+function Toolstrip({ onVoice, disabled, voiceTitle }) {
   return (
     <div className="flex items-center gap-1" aria-label="Quick tools">
       <button
         type="button"
         className="hc-icon-btn hc-icon-btn--ghost"
         disabled={disabled}
-        title="Voice command"
+        title={voiceTitle}
         onClick={onVoice}
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -97,6 +107,7 @@ function Toolstrip({ onVoice, disabled }) {
 }
 
 export function App() {
+  const { locale, t, speechLang } = useLocale();
   const [sessionId] = useState(() => newId('sess'));
   const [projectId] = useState(() => newId('proj'));
   const [response, setResponse] = useState(
@@ -127,6 +138,7 @@ export function App() {
   const [budgetEur, setBudgetEur] = useState(
     /** @type {number | null} */ (null)
   );
+  const speak = useSpeech();
 
   useEffect(() => {
     getHealth()
@@ -151,10 +163,12 @@ export function App() {
           sessionId,
           projectId,
           inputChannel,
+          language: locale,
           command,
           clientState: {}
         });
         setResponse(result);
+        if (result.speech) speak(result.speech, speechLang);
         if (result.sceneResult) {
           setSceneResult(result.sceneResult);
         }
@@ -172,7 +186,7 @@ export function App() {
           {
             id: newId('turn'),
             role: 'assistant',
-            text: result.message ?? 'Done.'
+            text: result.message ?? t('done')
           }
         ]);
       } catch (err) {
@@ -185,7 +199,7 @@ export function App() {
         setLoading(false);
       }
     },
-    [projectId, sessionId]
+    [projectId, sessionId, speak, locale, speechLang, t]
   );
 
   return (
@@ -203,16 +217,18 @@ export function App() {
       />
 
       <div className="pointer-events-auto absolute top-4 left-5 z-20 flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[var(--hc-accent)] shadow-[0_0_10px_var(--hc-accent)]" />
-          <span className="text-sm font-semibold tracking-wide text-white/90">HomeCraft</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[var(--hc-accent)] shadow-[0_0_10px_var(--hc-accent)]" />
+            <span className="text-sm font-semibold tracking-wide text-white/90">HomeCraft</span>
+          </div>
+          <LanguageSwitcher />
         </div>
         <RoomBadge roomShape={roomShape} />
         <BudgetIndicator budgetEur={budgetEur} totalEur={bom?.totalEur ?? null} />
-        <BomPanel bom={bom} />
+        <BomPanel bom={/** @type {any} */ (bom)} />
       </div>
 
-      {/* Right HUD: Command above Chat */}
       <div className="pointer-events-auto absolute right-4 bottom-5 z-20 flex w-[min(100%-2rem,22rem)] flex-col gap-2">
         <CommandInput onSubmit={sendCommand} disabled={loading} />
         <ResponseRouter
@@ -228,8 +244,12 @@ export function App() {
             onSuggestion={({ sku, instanceId }) =>
               sendCommand(
                 instanceId
-                  ? `replace ${instanceId} with ${sku}`
-                  : `replace with ${sku}`
+                  ? locale === 'ru'
+                    ? `замени ${instanceId} на ${sku}`
+                    : `replace ${instanceId} with ${sku}`
+                  : locale === 'ru'
+                    ? `замени на ${sku}`
+                    : `replace with ${sku}`
               )
             }
           />
@@ -241,8 +261,9 @@ export function App() {
           tools={
             <Toolstrip
               disabled={loading}
+              voiceTitle={t('voiceTitle')}
               onVoice={() => {
-                const sample = window.prompt('Voice transcript (demo):', 'add module');
+                const sample = window.prompt(t('voicePrompt'), t('voiceSample'));
                 if (sample?.trim()) sendCommand(sample.trim(), 'voice');
               }}
             />

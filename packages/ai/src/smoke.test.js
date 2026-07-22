@@ -15,16 +15,26 @@ describe('@homecraft/ai smoke', () => {
     assert.equal(result.language, 'en');
   });
 
+  it('detects Russian help and add_module intents', () => {
+    assert.equal(matchIntent('помощь', { language: 'ru' }).kind, 'help');
+    const add = matchIntent('добавь шкаф 600', { language: 'ru' });
+    assert.equal(add.kind, 'add_module');
+    assert.equal(add.language, 'ru');
+    assert.equal(/** @type {{ slots?: { widthMm?: number } }} */ (add).slots?.widthMm, 600);
+  });
+
   it('detects undo and redo without ambiguous fallback', () => {
     assert.equal(matchIntent('revert the last change').kind, 'undo');
     assert.equal(matchIntent('repeat').kind, 'redo');
   });
 
   it('detects replace_module for conflict resolution commands', () => {
-    const result = matchIntent('replace module-2 with BASE-400');
+    const result = /** @type {{ kind: string, slots?: { instanceId?: string, sku?: string } }} */ (
+      matchIntent('replace module-2 with BASE-400')
+    );
     assert.equal(result.kind, 'replace_module');
-    assert.equal(result.slots.instanceId, 'module-2');
-    assert.equal(result.slots.sku, 'BASE-400');
+    assert.equal(result.slots?.instanceId, 'module-2');
+    assert.equal(result.slots?.sku, 'BASE-400');
   });
 
   it('reaches at least 85% accuracy on the Phase 1 English corpus', () => {

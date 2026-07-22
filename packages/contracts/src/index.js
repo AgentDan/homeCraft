@@ -48,6 +48,7 @@ export {
 export { BOMSchema, BOMLineSchema, createEmptyBOM } from './bom.js';
 
 export {
+  LanguageSchema,
   IntentSchema,
   IntentKindSchema,
   IntentSlotsSchema,
