@@ -1,10 +1,21 @@
-/** @typedef {'en' | 'ru'} Locale */
+/** @typedef {'en' | 'ru' | 'sr'} Locale */
 
-export const LOCALES = /** @type {const} */ (['en', 'ru']);
+export const LOCALES = /** @type {const} */ (['en', 'ru', 'sr']);
+
+/** @type {ReadonlySet<string>} */
+const SUPPORTED = new Set(LOCALES);
 
 export const SPEECH_LANG = {
   en: 'en-US',
-  ru: 'ru-RU'
+  ru: 'ru-RU',
+  sr: 'sr-RS'
+};
+
+/** @type {Record<Locale, string>} */
+export const NUMBER_LOCALE = {
+  en: 'en-US',
+  ru: 'ru-RU',
+  sr: 'sr-RS'
 };
 
 const STRINGS = {
@@ -65,6 +76,35 @@ const STRINGS = {
     voicePrompt: 'Голосовая расшифровка (демо):',
     voiceSample: 'добавь модуль',
     language: 'Язык'
+  },
+  sr: {
+    command: 'Komanda',
+    spaceHint: 'Razmak',
+    commandPlaceholder: 'dodaj ormar 600 mm',
+    send: 'Pošalji',
+    chat: 'Ćaskanje',
+    chatEmpty: 'Opisite šta želite — na primer „dodaj ormar 600 mm”.',
+    thinking: 'Razmišljam…',
+    done: 'Gotovo.',
+    billOfMaterials: 'Specifikacija',
+    noPricedModules: 'Još nema modula sa cenom.',
+    item: 'Stavka',
+    qty: 'Kol.',
+    total: 'Ukupno',
+    subtotal: 'Međuzbir',
+    vatIncl: 'PDV (uklj.)',
+    budget: 'Budžet',
+    budgetNotSet: 'Nije postavljen — probate „budžet do 150000”.',
+    overBy: 'Prekoračenje za {amount}',
+    remaining: 'Preostalo {amount}',
+    budgetUsed: 'Iskorišćen budžet',
+    reply: 'Odgovori',
+    yes: 'Da',
+    no: 'Ne',
+    voiceTitle: 'Glasovna komanda',
+    voicePrompt: 'Glasovni transkript (demo):',
+    voiceSample: 'dodaj modul',
+    language: 'Jezik'
   }
 };
 
@@ -73,7 +113,9 @@ const STRINGS = {
  * @returns {Locale}
  */
 export function normalizeLocale(value) {
-  return value === 'ru' ? 'ru' : 'en';
+  return typeof value === 'string' && SUPPORTED.has(value)
+    ? /** @type {Locale} */ (value)
+    : 'en';
 }
 
 /**
@@ -88,6 +130,21 @@ export function translate(locale, key, vars = {}) {
     text = text.replaceAll(`{${name}}`, String(value));
   }
   return text;
+}
+
+/**
+ * @param {Locale} locale
+ * @param {string | undefined} instanceId
+ * @param {string} sku
+ */
+export function replaceSuggestionCommand(locale, instanceId, sku) {
+  if (locale === 'ru') {
+    return instanceId ? `замени ${instanceId} на ${sku}` : `замени на ${sku}`;
+  }
+  if (locale === 'sr') {
+    return instanceId ? `zameni ${instanceId} sa ${sku}` : `zameni sa ${sku}`;
+  }
+  return instanceId ? `replace ${instanceId} with ${sku}` : `replace with ${sku}`;
 }
 
 const STORAGE_KEY = 'hc-locale';

@@ -1,11 +1,16 @@
-/** @typedef {'en' | 'ru'} Language */
+/** @typedef {'en' | 'ru' | 'sr'} Language */
+
+/** @type {ReadonlySet<string>} */
+const SUPPORTED = new Set(['en', 'ru', 'sr']);
 
 /**
  * @param {unknown} language
  * @returns {Language}
  */
 export function normalizeLanguage(language) {
-  return language === 'ru' ? 'ru' : 'en';
+  return typeof language === 'string' && SUPPORTED.has(language)
+    ? /** @type {Language} */ (language)
+    : 'en';
 }
 
 const MESSAGES = {
@@ -72,6 +77,38 @@ const MESSAGES = {
     clarifyMissingModule: 'Модуля {target} нет в проекте.',
     clarifyFinish:
       'Укажите отделку и модуль, например «сделай фасад дуб».'
+  },
+  sr: {
+    commandProcessed: 'Komanda je obrađena.',
+    commandCompleted: 'Komanda je izvršena.',
+    unknownIntent: 'Komanda nije prepoznata. Preformulirajte zahtev.',
+    unknownExplanation: 'Prepoznavanje namere vratilo je unknown.',
+    helpFallback: 'Opisite kuhinju tekstom ili glasom.',
+    helpIntro: 'Mogu da pomognem da sastavite kuhinju iz demo kataloga.',
+    helpExamplesPrefix: 'Primeri komandi',
+    helpExplanation: 'Lista dostupnih komandi je dobijena od Help servisa.',
+    nothingToUndo: 'Nema šta da se poništi. Opisite šta želite da promenite.',
+    nothingToRedo: 'Nema šta da se ponovi. Prvo poništite izmenu.',
+    undone: 'Poslednja izmena je poništena.',
+    redone: 'Poništena izmena je vraćena.',
+    budgetClarify: 'Unesite brojčani budžet, na primer „budžet do 150000”.',
+    starterKitchenAdded: 'Početna kuhinja dodata: {count} modula.',
+    moduleAdded: 'Modul {sku} je dodat.',
+    moduleRemoved: 'Modul {instanceId} je uklonjen.',
+    moduleReplaced: 'Modul {instanceId} je zamenjen sa {sku}.',
+    finishSelected: 'Završna obrada {finishId} izabrana za {instanceId}.',
+    budgetSet: 'Budžet je postavljen na €{budgetEur}.',
+    priceCalculated: 'Cena projekta je izračunata.',
+    changesRejected: 'Izmene odbijene: {details}',
+    budgetExceeded: 'Cena premašuje budžet za €{over}.',
+    clarifyAddModule:
+      'Koji modul da dodam? Unesite tip i širinu, na primer „ormar 600”.',
+    clarifyNothingToRemove: 'U projektu nema modula koji se može ukloniti.',
+    clarifyReplace:
+      'Navedite modul i SKU za zamenu, na primer „zameni module-1 sa BASE-400”.',
+    clarifyMissingModule: 'Modul {target} nije u projektu.',
+    clarifyFinish:
+      'Navedite završnu obradu i modul, na primer „uradi fasadu hrast”.'
   }
 };
 
@@ -111,6 +148,17 @@ const HELP_EXAMPLES = {
     '«бюджет до 150000»',
     '«кухня 3x4»',
     '«отмена» или «повтор»'
+  ],
+  sr: [
+    '„zameni module-1 sa BASE-400”',
+    '„dodaj ormar 600”',
+    '„dodaj sudoper 800”',
+    '„uradi fasadu hrast”',
+    '„ukloni poslednji modul”',
+    '„pokaži cenu”',
+    '„budžet do 150000”',
+    '„kuhinja 3x4”',
+    '„poništi” ili „ponovi”'
   ]
 };
 

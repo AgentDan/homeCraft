@@ -9,6 +9,7 @@ import { LanguageSwitcher } from './components/LanguageSwitcher.jsx';
 import { ResponseRouter } from './components/ResponseRouter.jsx';
 import { useSpeech } from './hooks/useSpeech.js';
 import { useLocale } from './i18n/LocaleContext.jsx';
+import { replaceSuggestionCommand } from './i18n/strings.js';
 
 const ScenePreview = lazy(() =>
   import('./components/ScenePreview.jsx').then((module) => ({
@@ -242,15 +243,7 @@ export function App() {
             compatibility={/** @type {any} */ (response.compatibility)}
             disabled={loading}
             onSuggestion={({ sku, instanceId }) =>
-              sendCommand(
-                instanceId
-                  ? locale === 'ru'
-                    ? `замени ${instanceId} на ${sku}`
-                    : `replace ${instanceId} with ${sku}`
-                  : locale === 'ru'
-                    ? `замени на ${sku}`
-                    : `replace with ${sku}`
-              )
+              sendCommand(replaceSuggestionCommand(locale, instanceId, sku))
             }
           />
         )}

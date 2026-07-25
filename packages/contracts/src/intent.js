@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const LanguageSchema = z.enum(['en', 'ru']);
+export const LanguageSchema = z.enum(['en', 'ru', 'sr']);
 
 export const IntentKindSchema = z.enum([
   'add_module',

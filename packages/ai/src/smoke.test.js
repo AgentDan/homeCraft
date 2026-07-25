@@ -23,6 +23,14 @@ describe('@homecraft/ai smoke', () => {
     assert.equal(/** @type {{ slots?: { widthMm?: number } }} */ (add).slots?.widthMm, 600);
   });
 
+  it('detects Serbian help and add_module intents', () => {
+    assert.equal(matchIntent('pomoć', { language: 'sr' }).kind, 'help');
+    const add = matchIntent('dodaj ormar 600', { language: 'sr' });
+    assert.equal(add.kind, 'add_module');
+    assert.equal(add.language, 'sr');
+    assert.equal(/** @type {{ slots?: { widthMm?: number } }} */ (add).slots?.widthMm, 600);
+  });
+
   it('detects undo and redo without ambiguous fallback', () => {
     assert.equal(matchIntent('revert the last change').kind, 'undo');
     assert.equal(matchIntent('repeat').kind, 'redo');

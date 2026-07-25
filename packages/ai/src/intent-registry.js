@@ -15,6 +15,13 @@ const RULES = [
           /(?:замен|помен|свап)/i,
           /(?:BASE|WALL|SINK|HOB|OVEN|CORNER|TALL|FRIDGE|DISHWASHER)-\d+/i
         ]
+      },
+      {
+        language: 'sr',
+        patterns: [
+          /(?:zamen|zamijen|замен)/i,
+          /(?:BASE|WALL|SINK|HOB|OVEN|CORNER|TALL|FRIDGE|DISHWASHER)-\d+/i
+        ]
       }
     ]
   },
@@ -34,6 +41,13 @@ const RULES = [
           /(?:добав|постав|установи|собери|создай|кухн)/i,
           /(?:шкаф|модул|тумб|мойк|пенал|кухн)/i
         ]
+      },
+      {
+        language: 'sr',
+        patterns: [
+          /(?:dodaj|stavi|ugradi|napravi|kreiraj|kuhinj|додај|стави|угради|кухињ)/i,
+          /(?:ormar|modul|ormarić|sudoper|kuhinj|ормар|модул|судопер|кухињ)/i
+        ]
       }
     ]
   },
@@ -47,6 +61,10 @@ const RULES = [
       {
         language: 'ru',
         patterns: [/(?:удал|убер|сними)/i]
+      },
+      {
+        language: 'sr',
+        patterns: [/(?:ukloni|obriši|obrisi|skini|уклони|обриши|скини)/i]
       }
     ]
   },
@@ -60,6 +78,12 @@ const RULES = [
       {
         language: 'ru',
         patterns: [/(?:фасад|отделк|материал|цвет|дуб|бел)/i]
+      },
+      {
+        language: 'sr',
+        patterns: [
+          /(?:fasad|završn|zavrsn|materijal|boj[ae]|hrast|bel[ae]|bijel|фасад|храст|бел)/i
+        ]
       }
     ]
   },
@@ -73,6 +97,10 @@ const RULES = [
       {
         language: 'ru',
         patterns: [/(?:бюджет|до\s+\d)/i]
+      },
+      {
+        language: 'sr',
+        patterns: [/(?:budžet|budzet|буџет|do\s+\d)/i]
       }
     ]
   },
@@ -86,6 +114,12 @@ const RULES = [
       {
         language: 'ru',
         patterns: [/(?:цен|стоимость|сколько\s+стоит|итог|смет)/i]
+      },
+      {
+        language: 'sr',
+        patterns: [
+          /(?:cen[ae]|cijen|koliko\s+košt|koliko\s+kost|ukupn|procen|цен[ае]|колико\s+кошт)/i
+        ]
       }
     ]
   },
@@ -99,6 +133,10 @@ const RULES = [
       {
         language: 'ru',
         patterns: [/(?:отмен|назад|верни)/i]
+      },
+      {
+        language: 'sr',
+        patterns: [/(?:poništi|ponisti|nazad|vrati|поништи|назад|врати)/i]
       }
     ]
   },
@@ -112,6 +150,10 @@ const RULES = [
       {
         language: 'ru',
         patterns: [/^(?:повтор|вернуть\s+отменённ)/i]
+      },
+      {
+        language: 'sr',
+        patterns: [/^(?:ponovi|понови)/i]
       }
     ]
   },
@@ -125,6 +167,10 @@ const RULES = [
       {
         language: 'ru',
         patterns: [/(?:помощ|справк|что\s+ты\s+умеешь)/i]
+      },
+      {
+        language: 'sr',
+        patterns: [/(?:pomoć|pomoc|šta\s+možeš|sta\s+mozes|помоћ|шта\s+можеш)/i]
       }
     ]
   }
@@ -133,15 +179,17 @@ const RULES = [
 /**
  * @param {string} rawText
  * @param {string} [preferred]
- * @returns {'en' | 'ru'}
+ * @returns {'en' | 'ru' | 'sr'}
  */
 function resolveLanguage(rawText, preferred) {
-  if (preferred === 'en' || preferred === 'ru') return preferred;
-  return /[а-яё]/i.test(rawText) ? 'ru' : 'en';
+  if (preferred === 'en' || preferred === 'ru' || preferred === 'sr') return preferred;
+  return /[а-яёђјљњћчш]/i.test(rawText) ? 'ru' : 'en';
 }
 
 function parseMetricPair(rawText) {
-  const match = rawText.match(/(\d+(?:[.,]\d+)?)\s*(?:x|×|by|на|х)\s*(\d+(?:[.,]\d+)?)/i);
+  const match = rawText.match(
+    /(\d+(?:[.,]\d+)?)\s*(?:x|×|by|на|х|puta|пута)\s*(\d+(?:[.,]\d+)?)/i
+  );
   if (!match) return {};
   const toMillimeters = (value) => {
     const numeric = Number(value.replace(',', '.'));
@@ -174,9 +222,11 @@ function parseMetricPair(rawText) {
 function extractSlots(rawText, kind) {
   /** @type {IntentSlots} */
   const slots = {};
-  const widthMatch = rawText.match(/(?:width\s*|ширин[аыу]?\s*)?(\d{3,4})\s*(?:mm|мм)?/i);
+  const widthMatch = rawText.match(
+    /(?:width\s*|ширин[аыу]?\s*|širin[aeu]?\s*|sirin[aeu]?\s*)?(\d{3,4})\s*(?:mm|мм)?/i
+  );
   const budgetMatch = rawText.match(
-    /(?:budget|up\s+to|бюджет|до)\s*(?:of\s*|до\s*)?[$£€]?([\d\s,]{3,})/i
+    /(?:budget|up\s+to|бюджет|буџет|budžet|budzet|до|do)\s*(?:of\s*|до\s*|do\s*)?[$£€]?([\d\s,]{3,})/i
   );
   const skuMatch = rawText.match(
     /\b(?:BASE|WALL|SINK|HOB|OVEN|CORNER|TALL|FRIDGE|DISHWASHER)-\d+\b/i
@@ -187,19 +237,30 @@ function extractSlots(rawText, kind) {
   if (budgetMatch) slots.budgetEur = Number(budgetMatch[1].replace(/[\s,]/g, ''));
   if (skuMatch) slots.sku = skuMatch[0].toUpperCase();
   if (instanceMatch) slots.instanceId = instanceMatch[0].toLowerCase();
-  if (/\boak\b|дуб/i.test(rawText)) slots.finishId = 'oak';
-  if (/\bwhite\b|бел/i.test(rawText)) slots.finishId = 'white';
-  if (/\bsink\b|мойк/i.test(rawText)) slots.category = 'sink_cabinet';
-  if (/\b(?:wall|wall-mounted|hanging)\b|навесн|верхн/i.test(rawText)) {
+  if (/\boak\b|дуб|hrast|храст/i.test(rawText)) slots.finishId = 'oak';
+  if (/\bwhite\b|бел|bel[ae]|bijel/i.test(rawText)) slots.finishId = 'white';
+  if (/\bsink\b|мойк|sudoper|судопер/i.test(rawText)) slots.category = 'sink_cabinet';
+  if (
+    /\b(?:wall|wall-mounted|hanging)\b|навесн|верхн|zidn[ia]|viseć|viseci|зидн|висећ/i.test(
+      rawText
+    )
+  ) {
     slots.category = 'wall_cabinet';
   }
-  if (/\bcorner\b|углов/i.test(rawText)) slots.category = 'corner_cabinet';
-  if (/\b(?:pantry|tall)\b|пенал|высок/i.test(rawText)) slots.category = 'tall_cabinet';
-  if (/\bdrawer\b|ящик/i.test(rawText)) slots.category = 'drawer_cabinet';
-  if (/\boven\b|духов/i.test(rawText)) slots.category = 'oven_cabinet';
-  if (/\b(?:hob|cooktop)\b|варочн/i.test(rawText)) slots.category = 'hob_cabinet';
+  if (/\bcorner\b|углов|ugaon|угаон/i.test(rawText)) slots.category = 'corner_cabinet';
+  if (/\b(?:pantry|tall)\b|пенал|высок|visok|висок/i.test(rawText)) {
+    slots.category = 'tall_cabinet';
+  }
+  if (/\bdrawer\b|ящик|fiok|фиок/i.test(rawText)) slots.category = 'drawer_cabinet';
+  if (/\boven\b|духов|rern|рерн/i.test(rawText)) slots.category = 'oven_cabinet';
+  if (/\b(?:hob|cooktop)\b|варочн|ploč|ploc|плоч/i.test(rawText)) {
+    slots.category = 'hob_cabinet';
+  }
 
-  if (kind === 'add_module' && (/\bkitchen\b/i.test(rawText) || /кухн/i.test(rawText))) {
+  if (
+    kind === 'add_module' &&
+    (/\bkitchen\b/i.test(rawText) || /кухн/i.test(rawText) || /kuhinj|кухињ/i.test(rawText))
+  ) {
     slots.layout = 'starter_kitchen';
     const room = parseMetricPair(rawText);
     if (room.roomWidthMm != null) slots.roomWidthMm = room.roomWidthMm;
@@ -210,7 +271,7 @@ function extractSlots(rawText, kind) {
 
 /**
  * @param {string} text
- * @param {{ language?: 'en' | 'ru' }} [options]
+ * @param {{ language?: 'en' | 'ru' | 'sr' }} [options]
  */
 export function matchIntent(text, options = {}) {
   const rawText = text.trim();

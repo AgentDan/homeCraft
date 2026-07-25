@@ -1,11 +1,12 @@
 import { useLocale } from '../i18n/LocaleContext.jsx';
+import { NUMBER_LOCALE } from '../i18n/strings.js';
 
 /**
  * @param {number} value
- * @param {string} locale
+ * @param {import('../i18n/strings.js').Locale} locale
  */
 function formatEur(value, locale) {
-  return new Intl.NumberFormat(locale === 'ru' ? 'ru-RU' : 'en-US', {
+  return new Intl.NumberFormat(NUMBER_LOCALE[locale] ?? 'en-US', {
     style: 'currency',
     currency: 'EUR',
     maximumFractionDigits: 0

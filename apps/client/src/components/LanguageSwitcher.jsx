@@ -1,7 +1,8 @@
+import { LOCALES } from '../i18n/strings.js';
 import { useLocale } from '../i18n/LocaleContext.jsx';
 
 /**
- * Compact EN | RU language switcher.
+ * Compact EN | RU | SR language switcher.
  */
 export function LanguageSwitcher() {
   const { locale, setLocale, t } = useLocale();
@@ -12,7 +13,7 @@ export function LanguageSwitcher() {
       role="group"
       aria-label={t('language')}
     >
-      {/** @type {const} */ (['en', 'ru']).map((code) => {
+      {LOCALES.map((code) => {
         const active = locale === code;
         return (
           <button
