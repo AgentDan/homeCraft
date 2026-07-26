@@ -5,23 +5,68 @@ import {
 } from '@homecraft/contracts';
 import { normalizeLanguage, t } from '../i18n/messages.js';
 
+const OPERATION_ADD_MODULE = 'add_module';
+const OPERATION_REMOVE_MODULE = 'remove_module';
+const OPERATION_MOVE_MODULE = 'move_module';
+const OPERATION_REPLACE_MODULE = 'replace_module';
+
 function summarizeForSpeech(message) {
   const normalized = message.trim().replace(/\s+/g, ' ');
   return normalized.length <= 160 ? normalized : `${normalized.slice(0, 157)}...`;
 }
 
-function buildChangeSummary(plan, message) {
-  const operations = plan?.operations ?? [];
+/**
+ * Builds a change summary from plan operations.
+ *
+ * Dialog path (sinceOperationCount set): only the delta ops, and replace_module
+ * contributes to both added (sku) and removed (instanceId).
+ * Fallback path (no sinceOperationCount): full plan, add/remove/move only —
+ * the historical buildOutput default when callers omit changeSummary.
+ *
+ * @param {{ operations?: Array<{ type: string, sku?: string, instanceId?: string }> } | null | undefined} plan
+ * @param {string} message
+ * @param {{ sinceOperationCount?: number }} [options]
+ */
+export function buildChangeSummary(plan, message, options = {}) {
+  const allOperations = plan?.operations ?? [];
+  const hasDeltaIndex = typeof options.sinceOperationCount === 'number';
+  const operations = hasDeltaIndex
+    ? allOperations.slice(options.sinceOperationCount)
+    : allOperations;
+
+  if (hasDeltaIndex) {
+    return {
+      text: message,
+      added: operations
+        .filter(
+          (operation) =>
+            operation.type === OPERATION_ADD_MODULE ||
+            operation.type === OPERATION_REPLACE_MODULE
+        )
+        .map((operation) => operation.sku),
+      removed: operations
+        .filter(
+          (operation) =>
+            operation.type === OPERATION_REMOVE_MODULE ||
+            operation.type === OPERATION_REPLACE_MODULE
+        )
+        .map((operation) => operation.instanceId),
+      moved: operations
+        .filter((operation) => operation.type === OPERATION_MOVE_MODULE)
+        .map((operation) => operation.instanceId)
+    };
+  }
+
   return {
     text: message,
     added: operations
-      .filter((operation) => operation.type === 'add_module')
+      .filter((operation) => operation.type === OPERATION_ADD_MODULE)
       .map((operation) => operation.sku),
     removed: operations
-      .filter((operation) => operation.type === 'remove_module')
+      .filter((operation) => operation.type === OPERATION_REMOVE_MODULE)
       .map((operation) => operation.instanceId),
     moved: operations
-      .filter((operation) => operation.type === 'move_module')
+      .filter((operation) => operation.type === OPERATION_MOVE_MODULE)
       .map((operation) => operation.instanceId)
   };
 }

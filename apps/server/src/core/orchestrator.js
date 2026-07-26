@@ -3,9 +3,10 @@ import {
   IntentKindSchema
 } from '@homecraft/contracts';
 import { runAiPipeline } from '../ai-services/pipeline.js';
-import { buildClarifyResponse } from './output-builder.js';
+import { buildClarifyResponse, buildChangeSummary } from './output-builder.js';
 import {
   appendDialogTurn,
+  applyRoomDimensionSlots,
   buildRoomContext,
   persistRoomContext
 } from './room-context-builder.js';
@@ -22,6 +23,7 @@ import {
 import { normalizeLanguage, t } from '../i18n/messages.js';
 import { runDownstream } from './run-downstream.js';
 import { intentHandlers } from './intent-handlers/index.js';
+import { buildIntentMessage } from './intent-messages.js';
 
 const INTENT = IntentKindSchema.enum;
 const OUTCOME = CommandOutcomeKindSchema.enum;
@@ -111,6 +113,103 @@ function resultingVersionFor(intentKind, response, createdVersion) {
 }
 
 /**
+ * Shared downstream path for intents without a terminal registry handler.
+ * @param {import('./intent-handlers/types.js').IntentHandlerInput} input
+ */
+async function runDefaultIntentPath(input) {
+  const { request, context, intent, plan, outcome, language } = input;
+  const message = buildIntentMessage(intent, outcome, language);
+  const isReadOnly =
+    intent.kind === INTENT.show_price || intent.kind === INTENT.set_budget;
+  const response = await runDownstream({
+    request,
+    context,
+    plan,
+    message,
+    explanation: `Intent: ${intent.kind}`,
+    persistVersion: !isReadOnly,
+    existingVersion: isReadOnly ? context.planVersion : undefined,
+    changeSummary: buildChangeSummary(plan, message, {
+      sinceOperationCount: context.planOperations.length
+    }),
+    view: { kind: '3d_scene', render: 'full' }
+  });
+  const isRejected = Boolean(
+    response.compatibility && !response.compatibility.valid
+  );
+  let outcomeKind = OUTCOME.applied;
+  if (isRejected) {
+    outcomeKind = OUTCOME.rejected;
+  } else if (isReadOnly) {
+    outcomeKind = OUTCOME.read_only;
+  }
+  return {
+    response,
+    outcomeKind,
+    createdVersion: !isReadOnly && !isRejected
+  };
+}
+
+/**
+ * Runs AI pipeline + intent dispatch; returns fields for the single finalizeResponse call.
+ * @param {import('./intent-handlers/types.js').ClientRequest} request
+ * @param {import('./intent-handlers/types.js').RoomContext} context
+ */
+async function resolveRoutedCommand(request, context) {
+  const { intent, plan, outcome } = await runAiPipeline(request, context);
+  let nextContext = applyRoomDimensionSlots(context, intent);
+  const language = normalizeLanguage(request.language ?? intent.language);
+  const handlerInput = {
+    request,
+    context: nextContext,
+    intent,
+    plan,
+    outcome,
+    language
+  };
+
+  // Clarify before registry: shared pipeline outcome, not an intent property.
+  if (outcome.kind === PLAN_OUTCOME_CLARIFY) {
+    return {
+      context: nextContext,
+      response: buildClarifyResponse(
+        request,
+        outcome.prompt,
+        nextContext.planVersion
+      ),
+      intentKind: intent.kind,
+      outcomeKind: OUTCOME.clarify,
+      createdVersion: false
+    };
+  }
+
+  const handler = intentHandlers[intent.kind];
+  if (handler) {
+    const result = await handler(handlerInput);
+    if (result.kind === HANDLER_RESPOND) {
+      return {
+        context: result.context ?? nextContext,
+        response: result.response,
+        intentKind: intent.kind,
+        outcomeKind: result.outcomeKind,
+        createdVersion: result.createdVersion ?? false
+      };
+    }
+    nextContext = result.context ?? nextContext;
+    handlerInput.context = nextContext;
+  }
+
+  const defaultResult = await runDefaultIntentPath(handlerInput);
+  return {
+    context: nextContext,
+    response: defaultResult.response,
+    intentKind: intent.kind,
+    outcomeKind: defaultResult.outcomeKind,
+    createdVersion: defaultResult.createdVersion
+  };
+}
+
+/**
  * Routes a dialog command through intent detection and the shared downstream pipeline.
  */
 export async function route(request) {
@@ -154,156 +253,22 @@ export async function route(request) {
       request.sessionId,
       request.inputChannel
     );
-
     if (request.catalogSnapshotId) {
       context = { ...context, catalogSnapshotId: request.catalogSnapshotId };
     }
-
-    context = {
-      ...context,
-      planVersion: currentVersion
-    };
-
+    context = { ...context, planVersion: currentVersion };
     context = appendDialogTurn(context, 'user', request.command);
-
     await persistRoomContext(context);
 
     try {
-      const { intent, plan, outcome } = await runAiPipeline(request, context);
-
-      if (intent.slots?.roomWidthMm && intent.slots?.roomDepthMm) {
-        context = {
-          ...context,
-          roomShape: {
-            ...context.roomShape,
-            dimensions: {
-              ...context.roomShape.dimensions,
-              widthMm: intent.slots.roomWidthMm,
-              depthMm: intent.slots.roomDepthMm
-            }
-          }
-        };
-      }
-
-      const language = normalizeLanguage(request.language ?? intent.language);
-
-      // Clarify is checked before the registry: it is shared across intents, not a
-      // property of any single handler. Moving it into the registry would apply
-      // set_budget / export_project where the pipeline asked for clarification.
-      if (outcome.kind === PLAN_OUTCOME_CLARIFY) {
-        return finalizeResponse({
-          request,
-          context,
-          response: buildClarifyResponse(
-            request,
-            outcome.prompt,
-            context.planVersion
-          ),
-          intentKind: intent.kind,
-          outcomeKind: OUTCOME.clarify
-        });
-      }
-
-      const handler = intentHandlers[intent.kind];
-      if (handler) {
-        const result = await handler({
-          request,
-          context,
-          intent,
-          plan,
-          outcome,
-          language
-        });
-        if (result.kind === HANDLER_RESPOND) {
-          return finalizeResponse({
-            request,
-            context: result.context ?? context,
-            response: result.response,
-            intentKind: intent.kind,
-            outcomeKind: result.outcomeKind,
-            createdVersion: result.createdVersion ?? false
-          });
-        }
-        context = result.context ?? context;
-      }
-
-      const messages = {
-        [INTENT.add_module]:
-          (outcome.addedCount ?? 0) > 1
-            ? t(language, 'starterKitchenAdded', {
-                count: outcome.addedCount ?? 0
-              })
-            : t(language, 'moduleAdded', { sku: outcome.sku ?? '' }),
-        [INTENT.remove_module]: t(language, 'moduleRemoved', {
-          instanceId: outcome.instanceId ?? ''
-        }),
-        [INTENT.replace_module]: t(language, 'moduleReplaced', {
-          instanceId: outcome.instanceId ?? '',
-          sku: outcome.sku ?? ''
-        }),
-        [INTENT.change_finish]: t(language, 'finishSelected', {
-          finishId: outcome.finishId ?? '',
-          instanceId: outcome.instanceId ?? ''
-        }),
-        [INTENT.set_budget]: t(language, 'budgetSet', {
-          budgetEur: intent.slots?.budgetEur ?? 0
-        }),
-        [INTENT.show_price]: t(language, 'priceCalculated')
-      };
-
-      const isReadOnly =
-        intent.kind === INTENT.show_price || intent.kind === INTENT.set_budget;
-      const newOperations = plan.operations.slice(context.planOperations.length);
-      const changeSummary = {
-        text: messages[intent.kind] ?? t(language, 'commandCompleted'),
-        added: newOperations
-          .filter(
-            (operation) =>
-              operation.type === 'add_module' ||
-              operation.type === 'replace_module'
-          )
-          .map((operation) => operation.sku),
-        removed: newOperations
-          .filter(
-            (operation) =>
-              operation.type === 'remove_module' ||
-              operation.type === 'replace_module'
-          )
-          .map((operation) => operation.instanceId),
-        moved: newOperations
-          .filter((operation) => operation.type === 'move_module')
-          .map((operation) => operation.instanceId)
-      };
-      const response = await runDownstream({
-        request,
-        context,
-        plan,
-        message: messages[intent.kind] ?? t(language, 'commandCompleted'),
-        explanation: `Intent: ${intent.kind}`,
-        persistVersion: !isReadOnly,
-        existingVersion: isReadOnly ? context.planVersion : undefined,
-        changeSummary,
-        view: { kind: '3d_scene', render: 'full' }
-      });
-
-      const isRejected = Boolean(
-        response.compatibility && !response.compatibility.valid
-      );
-      const createdVersion = !isReadOnly && !isRejected;
-      let outcomeKind = OUTCOME.applied;
-      if (isRejected) {
-        outcomeKind = OUTCOME.rejected;
-      } else if (isReadOnly) {
-        outcomeKind = OUTCOME.read_only;
-      }
-
+      const resolved = await resolveRoutedCommand(request, context);
       return finalizeResponse({
         request,
-        context,
-        response,
-        intentKind: intent.kind,
-        outcomeKind,
-        createdVersion
+        context: resolved.context,
+        response: resolved.response,
+        intentKind: resolved.intentKind,
+        outcomeKind: resolved.outcomeKind,
+        createdVersion: resolved.createdVersion
       });
     } catch (error) {
       if (isVersionConflictError(error)) {

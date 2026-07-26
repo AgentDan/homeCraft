@@ -70,6 +70,33 @@ export function appendDialogTurn(context, role, text) {
   return RoomContextSchema.parse(next);
 }
 
+/**
+ * Returns a new context with room width/depth from intent slots when both are present.
+ * Does not mutate the input context.
+ *
+ * @param {import('zod').infer<typeof RoomContextSchema>} context
+ * @param {{ slots?: { roomWidthMm?: number, roomDepthMm?: number } }} intent
+ */
+export function applyRoomDimensionSlots(context, intent) {
+  const roomWidthMm = intent.slots?.roomWidthMm;
+  const roomDepthMm = intent.slots?.roomDepthMm;
+  if (!roomWidthMm || !roomDepthMm) {
+    return context;
+  }
+
+  return {
+    ...context,
+    roomShape: {
+      ...context.roomShape,
+      dimensions: {
+        ...context.roomShape.dimensions,
+        widthMm: roomWidthMm,
+        depthMm: roomDepthMm
+      }
+    }
+  };
+}
+
 export async function persistRoomContext(context) {
   const validated = RoomContextSchema.parse({
     ...context,
