@@ -27,14 +27,16 @@ AI понимает клиента и переводит его слова в с
 | Блок (из Architecture Vision) | Модуль в коде (`phase-1`) | Кто владелец логики | Статус |
 |---|---|---|---|
 | Conversation Engine | `core/orchestrator.js` (`orchestrator.route()`) | детерминированный | ✅ dialog-only |
-| AI Understanding Engine | `ai-services/intent-detector.js` | AI | ✅ 7 англ. интентов |
+| AI Understanding Engine | `ai-services/intent-detector.js` | AI | ✅ rule-based EN/RU/SR |
 | Customer Context / Memory | `core/room-context-builder.js` | детерминированный | ✅ MongoDB + local fallback |
 | Knowledge / RAG Engine | `ai-services/catalog-rag-retriever.js`, `knowledge-base/*` | AI (retrieval) | ✅ file vector index |
 | Configuration Engine | `ai-services/configuration-plan-generator.js` | rule-based | ✅ |
 | Rules Engine | `compatibility-engine/assertCompatible.js` + `rules/*` + `analog-suggester.js` | детерминированный, **единственный rejector** | 🚧 5 правил (dimensions/mounting/overlap/utilities/clearances) + analog suggester |
 | Scene Graph / 3D Engine | `domain-modules/kitchen/pipeline.js` + client `ScenePreview.jsx` (R3F) | детерминированный | ✅ базовая версия |
 | Calculation Engine | `pricing-engine/calculateBOM.js` + `bom-cache.js` | детерминированный, чистый калькулятор + кэш | ✅ snapshot BOM + cache |
-| Production / ERP Integration | Phase 4 (not started) | детерминированный | 🔲 Phase 4 |
+| Production / ERP Integration | Step 4 (export) | детерминированный | 🔲 |
+| Command journal | `storage/local-storage.js` (append-only JSONL) | детерминированный | ✅ |
+| Explanation (templates) | `output-builder.js` + `summarizeBOM` + i18n | детерминированный | ✅ templates; LLM 🔲 Step 10 |
 
 **Соответствие с исходным документом:** блоки почти полностью совпадают 1:1. Отличие — в документе RAG и 3D Engine описаны как отдельные крупные подсистемы, в коде они пока встроены как модули внутри общего пайплайна, без выделенных сервисов.
 
@@ -55,7 +57,7 @@ AI понимает клиента и переводит его слова в с
 1. Диалог — единственный вход (ручной редактор конфигурации исключён на MVP).
 2. `assertCompatible()` — единственная точка отказа плана.
 3. `calculateBOM()` — pure function, не блокирует по бюджету.
-4. Intent detection — только английский, без тихого fallback (используется `UnknownIntent`).
+4. Intent detection — `en` / `ru` / `sr` (rule-based); без тихого fallback (используется `UnknownIntent`).
 5. `catalog-rag-retriever` обязательно подключён к `configuration-plan-generator`.
 6. BOM всегда читает `catalogSnapshotId`, а не live-каталог.
 7. Compatibility работает через spatial index (не O(n²) в горячем пути).
@@ -85,12 +87,9 @@ AI понимает клиента и переводит его слова в с
 **Сделано в Phase 2 (закрыта, 2.8 отложен):**
 - `rules/*` + `assertCompatible`; utilities/clearances; analog suggester; ConflictPanel; `replace_module` swap flow (2.9).
 
-**В работе (Phase 3, ветка `phase-3`):**
-- `GET /api/catalog/snapshots` — список frozen snapshots.
-- `getCachedBOM` — memory + optional Redis (`REDIS_URL`), hit-rate в `/api/health`.
-- `budgetEur` в `ClientResponse`; клиентские `BomPanel` и `BudgetIndicator`.
+**Phase 3 закрыта:** snapshots API, BOM cache (memory+Redis), BomPanel/BudgetIndicator, `budgetEur`.
 
-**Следующий шаг по Roadmap:** Phase 4 — Production Export (PDF, `data/exports/`, download API).
+**Следующий шаг по Roadmap:** Step 2 — Idempotency + optimistic locking.
 
 ---
 
@@ -100,7 +99,7 @@ AI понимает клиента и переводит его слова в с
 |---|---|---|
 | P95 пайплайна (без LLM) | ≤ 800 мс | Phase 1 (сейчас: 411 мс) |
 | Compatibility hit-rate | ≥ 70% | Phase 2 |
-| Точность intent (англ.) | ≥ 90% | Phase 5 |
+| Точность intent (EN corpus; RU/SR smoke) | ≥ 90% EN | Step 8 (LLM) / сейчас rule-based |
 | BOM cache hit-rate | ≥ 60% | Phase 3 |
 
 DoD каждой фазы: acceptance criteria выполнены + `lint`/`test`/`build` проходят + README/Roadmap актуальны + все 10 инвариантов сохранены.
@@ -113,6 +112,8 @@ DoD каждой фазы: acceptance criteria выполнены + `lint`/`test
 
 | Дата | Что изменили | Почему | Что устарело в паспорте |
 |---|---|---|---|
+| 2026-07-26 | Журнал команд (JSONL), `summarizeBOM`, i18n зафиксирован как 🟢 | Закрыть жёлтые блоки Event Log и explanation templates | Карта блоков; Roadmap Step 1 |
+| 2026-07-25 | Языки интентов и UI: `en` / `ru` / `sr` (`LanguageSchema`, матчеры в `intent-registry`, `LOCALES`, i18n) | Закрыть вопрос языка до консультанта; UI и детект на трёх локалях | Инвариант 4; статус AI Understanding; открытый вопрос про язык |
 | 2026-07-22 | Phase 3 (ветка `phase-3`): BOM cache (memory+Redis), `GET /api/catalog/snapshots`, клиентские BomPanel/BudgetIndicator, `budgetEur` в ClientResponse | Дать видимую смету/бюджет и ускорить повторный BOM | Раздел 6 (Phase 3 в работе); Redis в стеке |
 | 2026-07-19 | Phase 2 (ветка `phase-2`): рефактор Compatibility Engine в `rules/*`, добавлены правила `utilities`/`clearances`, `analog-suggester` (`suggestedSkus`), клиентский `ConflictPanel` | Расширить проверку реализуемости и дать пользователю понятные конфликты + предложения аналогов | Раздел 3 (Rules Engine 🚧), раздел 6 (Phase 2 в работе) |
 | 2026-07-19 | Финальная подготовка перед Phase 2: миграция валюты RUB→EUR по всем контрактам/каталогу/серверу, новый glass-HUD клиента (чат + командная строка + 3D-комната), чистка мёртвого кода в `intent-detector`, `jsconfig` `paths` для `@homecraft/*` | Стабилизировать базу Phase 1 и снять техдолг до старта Compatibility Engine | Валютные поля везде `*Eur`; `detectIntent` — тонкая обёртка над `matchIntent` |
@@ -124,11 +125,12 @@ DoD каждой фазы: acceptance criteria выполнены + `lint`/`test
 
 | # | Вопрос | Решение | Когда |
 |---|---|---|---|
-| 5 | LLM-провайдер | Feature flag, стаб | Phase 5 |
-| 6 | Авторизация | JWT → OAuth2 | Phase 6 |
-| 8 | Модель ввода | Только диалог, ручной редактор исключён | зафиксировано |
+| — | Языки (intent + UI) | `en` / `ru` / `sr`, rule-based | ✅ 2026-07-25 |
+| 5 | LLM-провайдер | Feature flag; intent JSON only | Step 8 |
+| 6 | Авторизация | JWT → OAuth2 | Deferred |
+| 8 | Модель ввода | Только диалог; голос — peer channel | ✅ / Steps 9–10 |
 
-Полный список — см. `docs/Roadmap.md`, раздел 10.
+Актуальный backlog — см. `docs/Roadmap.md`.
 
 ---
 

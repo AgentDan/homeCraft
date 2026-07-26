@@ -35,6 +35,8 @@ const MESSAGES = {
     finishSelected: 'Finish {finishId} selected for {instanceId}.',
     budgetSet: 'Budget set to €{budgetEur}.',
     priceCalculated: 'Project cost calculated.',
+    bomSummary:
+      'Estimate: {lineCount} line(s), subtotal €{subtotalEur}, total €{totalEur} (catalog {catalogSnapshotId}).',
     changesRejected: 'Changes rejected: {details}',
     budgetExceeded: 'The cost exceeds the budget by €{over}.',
     clarifyAddModule:
@@ -67,6 +69,8 @@ const MESSAGES = {
     finishSelected: 'Отделка {finishId} выбрана для {instanceId}.',
     budgetSet: 'Бюджет установлен: €{budgetEur}.',
     priceCalculated: 'Стоимость проекта рассчитана.',
+    bomSummary:
+      'Смета: {lineCount} поз., сумма €{subtotalEur}, итого €{totalEur} (каталог {catalogSnapshotId}).',
     changesRejected: 'Изменения отклонены: {details}',
     budgetExceeded: 'Стоимость превышает бюджет на €{over}.',
     clarifyAddModule:
@@ -99,6 +103,8 @@ const MESSAGES = {
     finishSelected: 'Završna obrada {finishId} izabrana za {instanceId}.',
     budgetSet: 'Budžet je postavljen na €{budgetEur}.',
     priceCalculated: 'Cena projekta je izračunata.',
+    bomSummary:
+      'Predračun: {lineCount} stavki, međuzbir €{subtotalEur}, ukupno €{totalEur} (katalog {catalogSnapshotId}).',
     changesRejected: 'Izmene odbijene: {details}',
     budgetExceeded: 'Cena premašuje budžet za €{over}.',
     clarifyAddModule:

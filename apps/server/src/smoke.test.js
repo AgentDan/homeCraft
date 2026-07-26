@@ -222,6 +222,20 @@ describe('@homecraft/server smoke', () => {
       assert.equal(redo.planVersion, 2);
       assert.ok(redo.view);
       assert.equal(redo.view.render, 'full');
+
+      const { loadCommandJournal } = await import('./storage/local-storage.js');
+      const journal = await loadCommandJournal(projectId);
+      assert.ok(journal.length >= 2);
+      const addEntry = journal.find((entry) => entry.requestId === 'req-voice');
+      const undoEntry = journal.find((entry) => entry.requestId === 'req-undo');
+      assert.ok(addEntry);
+      assert.equal(addEntry.intentKind, 'add_module');
+      assert.equal(addEntry.outcomeKind, 'applied');
+      assert.equal(addEntry.rawInput, 'add module');
+      assert.ok(addEntry.resultingVersion != null);
+      assert.ok(undoEntry);
+      assert.equal(undoEntry.intentKind, 'undo');
+      assert.equal(undoEntry.rawInput, 'undo');
     } finally {
       await new Promise((resolve) => server.close(resolve));
       await closeMongo();

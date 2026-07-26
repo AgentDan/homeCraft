@@ -4,7 +4,7 @@ Phases 0–3 ✅. Pilot MVP = Step 4. Order: `1→2→3→4`, `5→6→7`, `8` p
 
 ## Todo
 
-- [ ] **1. Command journal** — append-only JSONL in `data/action-history/`
+- [x] **1. Command journal** — append-only JSONL in `data/action-history/`
 - [ ] **2. Idempotency + optimistic locking** — `expectedVersion` → 409; dedupe `requestId`
 - [ ] **3. Replay test in CI** — `replayJournal` == snapshot
 - [ ] **4. Production Export** — PDF bound to version + catalog snapshot
@@ -14,6 +14,12 @@ Phases 0–3 ✅. Pilot MVP = Step 4. Order: `1→2→3→4`, `5→6→7`, `8` p
 - [ ] **8. LLM parser (flag)** — intent JSON + Zod; fallback to rules
 - [ ] **9. Voice input** — STT V1–V5 ([voice-stt-plan.md](voice-stt-plan.md))
 - [ ] **10. Explanation + TTS** — grounded numbers; V6–V7
+
+## Closed yellow (now green)
+
+- [x] i18n EN/RU/SR (intent + UI + server messages)
+- [x] Command journal (Event Log layer)
+- [x] `summarizeBOM` — deterministic BOM line in `explanation` (no LLM)
 
 ## Deferred
 

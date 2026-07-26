@@ -39,7 +39,9 @@ export const ConfigurationPlanSchema = z.object({
 
 export const PlanVersionEntrySchema = z.object({
   version: z.number().int().nonnegative(),
-  plan: ConfigurationPlanSchema
+  plan: ConfigurationPlanSchema,
+  requestId: z.string().min(1).optional(),
+  createdAt: z.string().datetime().optional()
 });
 
 export const PlanHistorySchema = z.object({

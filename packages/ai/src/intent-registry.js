@@ -183,7 +183,10 @@ const RULES = [
  */
 function resolveLanguage(rawText, preferred) {
   if (preferred === 'en' || preferred === 'ru' || preferred === 'sr') return preferred;
-  return /[а-яёђјљњћчш]/i.test(rawText) ? 'ru' : 'en';
+  // Serbian-specific Cyrillic letters → sr; other Cyrillic → ru; else en
+  if (/[ђјљњћ]/i.test(rawText)) return 'sr';
+  if (/[а-яё]/i.test(rawText)) return 'ru';
+  return 'en';
 }
 
 function parseMetricPair(rawText) {

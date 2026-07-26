@@ -27,11 +27,35 @@ function buildChangeSummary(plan, message) {
 }
 
 /**
+ * Deterministic BOM summary for explanations (no LLM).
+ * @param {{
+ *   lines?: unknown[];
+ *   subtotalEur?: number;
+ *   totalEur?: number;
+ *   catalogSnapshotId?: string;
+ * } | null | undefined} bom
+ * @param {unknown} language
+ */
+export function summarizeBOM(bom, language) {
+  if (!bom) {
+    return '';
+  }
+  return t(language, 'bomSummary', {
+    lineCount: bom.lines?.length ?? 0,
+    subtotalEur: bom.subtotalEur ?? 0,
+    totalEur: bom.totalEur ?? 0,
+    catalogSnapshotId: bom.catalogSnapshotId ?? ''
+  });
+}
+
+/**
  * Builds validated ClientResponse for API and clients.
  */
 export function buildOutput(input) {
   const language = normalizeLanguage(input.request?.language ?? input.language);
   const message = input.message ?? t(language, 'commandProcessed');
+  const bomSummary = summarizeBOM(input.bom, language);
+  const explanationParts = [input.explanation, bomSummary].filter(Boolean);
   const base = createStubClientResponse(
     {
       requestId: input.request.requestId,
@@ -41,7 +65,7 @@ export function buildOutput(input) {
     {
       message,
       speech: input.speech ?? summarizeForSpeech(message),
-      explanation: input.explanation,
+      explanation: explanationParts.length > 0 ? explanationParts.join(' ') : undefined,
       changeSummary: input.changeSummary ?? buildChangeSummary(input.plan, message),
       view: input.view ?? { kind: '2d_plan', render: 'full' },
       interaction: { expects: 'none' },

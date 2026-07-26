@@ -31,6 +31,12 @@ describe('@homecraft/ai smoke', () => {
     assert.equal(/** @type {{ slots?: { widthMm?: number } }} */ (add).slots?.widthMm, 600);
   });
 
+  it('infers sr from Serbian Cyrillic when language is omitted', () => {
+    const result = matchIntent('додај ормар 600');
+    assert.equal(result.kind, 'add_module');
+    assert.equal(result.language, 'sr');
+  });
+
   it('detects undo and redo without ambiguous fallback', () => {
     assert.equal(matchIntent('revert the last change').kind, 'undo');
     assert.equal(matchIntent('repeat').kind, 'redo');

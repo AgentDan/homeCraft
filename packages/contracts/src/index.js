@@ -55,3 +55,8 @@ export {
   UnknownIntentSchema,
   IntentResultSchema
 } from './intent.js';
+
+export {
+  CommandRecordSchema,
+  CommandOutcomeKindSchema
+} from './command.js';

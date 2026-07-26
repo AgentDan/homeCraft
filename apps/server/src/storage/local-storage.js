@@ -1,7 +1,7 @@
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PlanHistorySchema } from '@homecraft/contracts';
+import { CommandRecordSchema, PlanHistorySchema } from '@homecraft/contracts';
 
 const __dirnameStorage = path.dirname(fileURLToPath(import.meta.url));
 const serverPackageRoot = path.resolve(__dirnameStorage, '..', '..');
@@ -17,15 +17,17 @@ function resolveStorageRoot() {
   return path.resolve(serverPackageRoot, raw);
 }
 
-const storageRoot = resolveStorageRoot();
-
-const storagePaths = {
-  sessions: path.join(storageRoot, 'sessions'),
-  scenes: path.join(storageRoot, 'scenes'),
-  actionHistory: path.join(storageRoot, 'action-history'),
-  assets: path.join(storageRoot, 'assets'),
-  exports: path.join(storageRoot, 'exports')
-};
+function getStoragePaths() {
+  const storageRoot = resolveStorageRoot();
+  return {
+    root: storageRoot,
+    sessions: path.join(storageRoot, 'sessions'),
+    scenes: path.join(storageRoot, 'scenes'),
+    actionHistory: path.join(storageRoot, 'action-history'),
+    assets: path.join(storageRoot, 'assets'),
+    exports: path.join(storageRoot, 'exports')
+  };
+}
 
 function sanitizeId(value, fallback) {
   return String(value || fallback).replace(/[^a-zA-Z0-9._-]/g, '-');
@@ -33,7 +35,7 @@ function sanitizeId(value, fallback) {
 
 function sessionFilePath(sessionId) {
   return path.join(
-    storagePaths.sessions,
+    getStoragePaths().sessions,
     `${sanitizeId(sessionId, 'local-session')}.json`
   );
 }
@@ -75,19 +77,24 @@ async function countFiles(directoryPath) {
 }
 
 export async function ensureStorage() {
-  await Promise.all(Object.values(storagePaths).map(ensureDirectory));
-  return { root: storageRoot, paths: storagePaths };
+  const storagePaths = getStoragePaths();
+  await Promise.all(
+    Object.values(storagePaths)
+      .filter((value) => value !== storagePaths.root)
+      .map(ensureDirectory)
+  );
+  return { root: storagePaths.root, paths: storagePaths };
 }
 
 export async function getStorageStatus() {
-  await ensureStorage();
+  const { root, paths } = await ensureStorage();
   return {
-    root: storageRoot,
-    sessions: await countFiles(storagePaths.sessions),
-    scenes: await countFiles(storagePaths.scenes),
-    actionHistory: await countFiles(storagePaths.actionHistory),
-    assets: await countFiles(storagePaths.assets),
-    exports: await countFiles(storagePaths.exports)
+    root,
+    sessions: await countFiles(paths.sessions),
+    scenes: await countFiles(paths.scenes),
+    actionHistory: await countFiles(paths.actionHistory),
+    assets: await countFiles(paths.assets),
+    exports: await countFiles(paths.exports)
   };
 }
 
@@ -152,12 +159,14 @@ export async function loadPlanHistory(sessionId, projectId) {
   return PlanHistorySchema.parse(structuredClone(session.planHistory));
 }
 
-export async function appendPlanVersion(sessionId, projectId, plan) {
+export async function appendPlanVersion(sessionId, projectId, plan, requestId) {
   const history = await loadPlanHistory(sessionId, projectId);
   const retainedEntries = history.entries.slice(0, history.currentIndex + 1);
+  const createdAt = new Date().toISOString();
   const entry = {
     version: history.nextVersion,
-    plan: structuredClone(plan)
+    plan: structuredClone(plan),
+    ...(requestId ? { requestId, createdAt } : { createdAt })
   };
   const nextHistory = PlanHistorySchema.parse({
     projectId,
@@ -185,4 +194,53 @@ export async function navigatePlanHistory(sessionId, projectId, direction) {
   });
   await saveSession({ sessionId, planHistory: nextHistory });
   return structuredClone(nextHistory.entries[targetIndex]);
+}
+
+function commandJournalPath(projectId) {
+  return path.join(
+    getStoragePaths().actionHistory,
+    `${sanitizeId(projectId, 'project')}.jsonl`
+  );
+}
+
+export async function loadCommandJournal(projectId) {
+  await ensureStorage();
+  const filePath = commandJournalPath(projectId);
+  let raw;
+  try {
+    raw = await readFile(filePath, 'utf8');
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return [];
+    }
+    throw error;
+  }
+
+  const records = [];
+  for (const [index, line] of raw.split(/\r?\n/).entries()) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    try {
+      records.push(CommandRecordSchema.parse(JSON.parse(trimmed)));
+    } catch (error) {
+      console.warn(
+        `[command-journal] skip bad line ${index + 1} in ${filePath}:`,
+        error instanceof Error ? error.message : error
+      );
+    }
+  }
+  return records;
+}
+
+export async function getNextCommandSeq(projectId) {
+  const journal = await loadCommandJournal(projectId);
+  return journal.length + 1;
+}
+
+export async function appendCommandRecord(record) {
+  await ensureStorage();
+  const parsed = CommandRecordSchema.parse(record);
+  const filePath = commandJournalPath(parsed.projectId);
+  await appendFile(filePath, `${JSON.stringify(parsed)}\n`);
+  return parsed;
 }

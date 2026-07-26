@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ClientRequestSchema,
+  CommandRecordSchema,
   IntentResultSchema,
   createClarifyResponse,
   createConfirmResponse,
@@ -78,6 +79,26 @@ describe('@homecraft/contracts smoke', () => {
       'sr'
     );
     assert.throws(() => IntentResultSchema.parse({ ...intent, language: 'fr' }));
+  });
+
+  it('parses a command journal record', () => {
+    const record = CommandRecordSchema.parse({
+      requestId: 'req-1',
+      projectId: 'proj-1',
+      sessionId: 'sess-1',
+      seq: 1,
+      rawInput: 'add base cabinet 600',
+      inputChannel: 'text',
+      language: 'en',
+      intentKind: 'add_module',
+      outcomeKind: 'applied',
+      compatibilityValid: true,
+      resultingVersion: 1,
+      catalogSnapshotId: 'kitchen-demo-v1',
+      createdAt: new Date().toISOString()
+    });
+    assert.equal(record.seq, 1);
+    assert.equal(record.outcomeKind, 'applied');
   });
 
   it('creates rich interactive responses', () => {
