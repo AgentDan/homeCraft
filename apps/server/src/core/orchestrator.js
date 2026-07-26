@@ -1,26 +1,19 @@
-import { runAiPipeline } from '../ai-services/pipeline.js';
 import {
-  buildClarifyResponse,
-  buildHelpResponse,
-  buildUnknownIntentResponse
-} from './output-builder.js';
+  CommandOutcomeKindSchema,
+  IntentKindSchema
+} from '@homecraft/contracts';
+import { runAiPipeline } from '../ai-services/pipeline.js';
+import { buildClarifyResponse } from './output-builder.js';
 import {
   appendDialogTurn,
   buildRoomContext,
   persistRoomContext
 } from './room-context-builder.js';
-import { getHelpMessage } from './help-service.js';
-import { getCachedBOM } from '../pricing-engine/bom-cache.js';
-import { createOrGetExport } from '../export/export-store.js';
-import {
-  ClientResponseSchema
-} from '@homecraft/contracts';
 import {
   appendCommandRecord,
   getCurrentPlanVersion,
   getNextCommandSeq,
   loadIdempotentResponse,
-  navigatePlanHistory,
   recordCommandRequest,
   saveIdempotentResponse,
   isVersionConflictError,
@@ -28,6 +21,12 @@ import {
 } from '../storage/local-storage.js';
 import { normalizeLanguage, t } from '../i18n/messages.js';
 import { runDownstream } from './run-downstream.js';
+import { intentHandlers } from './intent-handlers/index.js';
+
+const INTENT = IntentKindSchema.enum;
+const OUTCOME = CommandOutcomeKindSchema.enum;
+const HANDLER_RESPOND = /** @type {const} */ ('respond');
+const PLAN_OUTCOME_CLARIFY = /** @type {const} */ ('clarify');
 
 function buildVersionConflictResult(request, currentVersion) {
   const language = normalizeLanguage(request.language);
@@ -105,49 +104,10 @@ async function finalizeResponse({
 
 function resultingVersionFor(intentKind, response, createdVersion) {
   if (createdVersion) return response.planVersion ?? null;
-  if (intentKind === 'undo' || intentKind === 'redo') {
+  if (intentKind === INTENT.undo || intentKind === INTENT.redo) {
     return response.planVersion ?? null;
   }
   return null;
-}
-
-async function handleHistoryIntent(request, context, intentKind) {
-  const language = normalizeLanguage(request.language);
-  const entry = await navigatePlanHistory(
-    request.sessionId,
-    request.projectId,
-    intentKind
-  );
-
-  if (!entry) {
-    const prompt =
-      intentKind === 'undo'
-        ? t(language, 'nothingToUndo')
-        : t(language, 'nothingToRedo');
-    return {
-      response: buildClarifyResponse(request, prompt, context.planVersion ?? 0),
-      outcomeKind: /** @type {const} */ ('clarify'),
-      createdVersion: false
-    };
-  }
-
-  const message =
-    intentKind === 'undo' ? t(language, 'undone') : t(language, 'redone');
-  const response = await runDownstream({
-    request,
-    context,
-    plan: entry.plan,
-    message,
-    explanation: `Intent: ${intentKind}`,
-    existingVersion: entry.version,
-    changeSummary: { text: message, added: [], removed: [], moved: [] },
-    view: { kind: '2d_plan', render: 'full' }
-  });
-  return {
-    response,
-    outcomeKind: /** @type {const} */ ('applied'),
-    createdVersion: false
-  };
 }
 
 /**
@@ -227,172 +187,72 @@ export async function route(request) {
 
       const language = normalizeLanguage(request.language ?? intent.language);
 
-      if (intent.kind === 'undo' || intent.kind === 'redo') {
-        const historyResult = await handleHistoryIntent(
-          request,
-          context,
-          intent.kind
-        );
+      // Clarify is checked before the registry: it is shared across intents, not a
+      // property of any single handler. Moving it into the registry would apply
+      // set_budget / export_project where the pipeline asked for clarification.
+      if (outcome.kind === PLAN_OUTCOME_CLARIFY) {
         return finalizeResponse({
           request,
           context,
-          response: historyResult.response,
-          intentKind: intent.kind,
-          outcomeKind: historyResult.outcomeKind,
-          createdVersion: historyResult.createdVersion
-        });
-      }
-
-      if (intent.kind === 'help') {
-        const help = buildHelpResponse(
-          request,
-          getHelpMessage(language),
-          context.planVersion ?? 0
-        );
-        return finalizeResponse({
-          request,
-          context,
-          response: help,
-          intentKind: 'help',
-          outcomeKind: 'read_only'
-        });
-      }
-
-      if (intent.kind === 'unknown') {
-        const unknown = buildUnknownIntentResponse(
-          request,
-          context,
-          context.planVersion ?? 0
-        );
-        return finalizeResponse({
-          request,
-          context,
-          response: unknown,
-          intentKind: 'unknown',
-          outcomeKind: 'clarify'
-        });
-      }
-
-      if (outcome.kind === 'clarify') {
-        const clarify = buildClarifyResponse(
-          request,
-          outcome.prompt,
-          context.planVersion
-        );
-        return finalizeResponse({
-          request,
-          context,
-          response: clarify,
-          intentKind: intent.kind,
-          outcomeKind: 'clarify'
-        });
-      }
-
-      if (intent.kind === 'set_budget') {
-        if (intent.slots?.budgetEur === undefined) {
-          const clarify = buildClarifyResponse(
+          response: buildClarifyResponse(
             request,
-            t(language, 'budgetClarify'),
+            outcome.prompt,
             context.planVersion
-          );
-          return finalizeResponse({
-            request,
-            context,
-            response: clarify,
-            intentKind: 'set_budget',
-            outcomeKind: 'clarify'
-          });
-        }
-        context = { ...context, budgetEur: intent.slots.budgetEur };
+          ),
+          intentKind: intent.kind,
+          outcomeKind: OUTCOME.clarify
+        });
       }
 
-      if (intent.kind === 'export_project') {
-        if (!plan?.operations?.length) {
-          const clarify = buildClarifyResponse(
-            request,
-            t(language, 'exportEmpty'),
-            context.planVersion ?? 0
-          );
-          return finalizeResponse({
-            request,
-            context,
-            response: clarify,
-            intentKind: 'export_project',
-            outcomeKind: 'clarify'
-          });
-        }
-
-        const bom = await getCachedBOM(plan, plan.catalogSnapshotId);
-        const exported = await createOrGetExport({
-          projectId: request.projectId,
-          planVersion: context.planVersion ?? 0,
-          catalogSnapshotId: plan.catalogSnapshotId,
-          requestId: request.requestId,
-          plan,
-          bom
-        });
-
-        const message = t(language, 'exportReady', {
-          version: context.planVersion ?? 0,
-          catalog: plan.catalogSnapshotId
-        });
-        const exportResponse = ClientResponseSchema.parse({
-          requestId: request.requestId,
-          sessionId: request.sessionId,
-          projectId: request.projectId,
-          status: 'ok',
-          responseType: 'export',
-          message,
-          speech: message,
-          explanation: t(language, 'exportExplanation', {
-            sha: exported.record.contentSha256.slice(0, 12),
-            reused: exported.reused ? 'yes' : 'no'
-          }),
-          interaction: { expects: 'none' },
-          planVersion: context.planVersion ?? 0,
-          plan,
-          bom,
-          budgetEur: context.budgetEur ?? null,
-          compatibility: null,
-          downloadUrl: exported.downloadUrl,
-          errors: [],
-          createdAt: new Date().toISOString()
-        });
-
-        return finalizeResponse({
+      const handler = intentHandlers[intent.kind];
+      if (handler) {
+        const result = await handler({
           request,
           context,
-          response: exportResponse,
-          intentKind: 'export_project',
-          outcomeKind: 'read_only'
+          intent,
+          plan,
+          outcome,
+          language
         });
+        if (result.kind === HANDLER_RESPOND) {
+          return finalizeResponse({
+            request,
+            context: result.context ?? context,
+            response: result.response,
+            intentKind: intent.kind,
+            outcomeKind: result.outcomeKind,
+            createdVersion: result.createdVersion ?? false
+          });
+        }
+        context = result.context ?? context;
       }
 
       const messages = {
-        add_module:
+        [INTENT.add_module]:
           (outcome.addedCount ?? 0) > 1
             ? t(language, 'starterKitchenAdded', {
                 count: outcome.addedCount ?? 0
               })
             : t(language, 'moduleAdded', { sku: outcome.sku ?? '' }),
-        remove_module: t(language, 'moduleRemoved', {
+        [INTENT.remove_module]: t(language, 'moduleRemoved', {
           instanceId: outcome.instanceId ?? ''
         }),
-        replace_module: t(language, 'moduleReplaced', {
+        [INTENT.replace_module]: t(language, 'moduleReplaced', {
           instanceId: outcome.instanceId ?? '',
           sku: outcome.sku ?? ''
         }),
-        change_finish: t(language, 'finishSelected', {
+        [INTENT.change_finish]: t(language, 'finishSelected', {
           finishId: outcome.finishId ?? '',
           instanceId: outcome.instanceId ?? ''
         }),
-        set_budget: t(language, 'budgetSet', {
+        [INTENT.set_budget]: t(language, 'budgetSet', {
           budgetEur: intent.slots?.budgetEur ?? 0
         }),
-        show_price: t(language, 'priceCalculated')
+        [INTENT.show_price]: t(language, 'priceCalculated')
       };
 
-      const readOnly = intent.kind === 'show_price' || intent.kind === 'set_budget';
+      const isReadOnly =
+        intent.kind === INTENT.show_price || intent.kind === INTENT.set_budget;
       const newOperations = plan.operations.slice(context.planOperations.length);
       const changeSummary = {
         text: messages[intent.kind] ?? t(language, 'commandCompleted'),
@@ -420,15 +280,22 @@ export async function route(request) {
         plan,
         message: messages[intent.kind] ?? t(language, 'commandCompleted'),
         explanation: `Intent: ${intent.kind}`,
-        persistVersion: !readOnly,
-        existingVersion: readOnly ? context.planVersion : undefined,
+        persistVersion: !isReadOnly,
+        existingVersion: isReadOnly ? context.planVersion : undefined,
         changeSummary,
         view: { kind: '3d_scene', render: 'full' }
       });
 
-      const rejected = response.compatibility && !response.compatibility.valid;
-      const createdVersion = !readOnly && !rejected;
-      const outcomeKind = rejected ? 'rejected' : readOnly ? 'read_only' : 'applied';
+      const isRejected = Boolean(
+        response.compatibility && !response.compatibility.valid
+      );
+      const createdVersion = !isReadOnly && !isRejected;
+      let outcomeKind = OUTCOME.applied;
+      if (isRejected) {
+        outcomeKind = OUTCOME.rejected;
+      } else if (isReadOnly) {
+        outcomeKind = OUTCOME.read_only;
+      }
 
       return finalizeResponse({
         request,
