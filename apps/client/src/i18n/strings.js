@@ -46,7 +46,8 @@ const STRINGS = {
     voiceTitle: 'Voice command',
     voicePrompt: 'Voice transcript (demo):',
     voiceSample: 'add module',
-    language: 'Language'
+    language: 'Language',
+    versionConflict: 'Version conflict (server is at {current}). Retry the command.'
   },
   ru: {
     command: 'Команда',
@@ -75,7 +76,8 @@ const STRINGS = {
     voiceTitle: 'Голосовая команда',
     voicePrompt: 'Голосовая расшифровка (демо):',
     voiceSample: 'добавь модуль',
-    language: 'Язык'
+    language: 'Язык',
+    versionConflict: 'Конфликт версий (на сервере {current}). Повторите команду.'
   },
   sr: {
     command: 'Komanda',
@@ -104,7 +106,8 @@ const STRINGS = {
     voiceTitle: 'Glasovna komanda',
     voicePrompt: 'Glasovni transkript (demo):',
     voiceSample: 'dodaj modul',
-    language: 'Jezik'
+    language: 'Jezik',
+    versionConflict: 'Konflikt verzija (server je na {current}). Ponovite komandu.'
   }
 };
 

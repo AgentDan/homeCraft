@@ -17,6 +17,7 @@ describe('@homecraft/contracts smoke', () => {
       sessionId: 'sess-1',
       projectId: 'proj-1',
       command: 'hello',
+      expectedVersion: 0,
       clientState: {}
     });
     assert.equal(parsed.command, 'hello');
@@ -43,6 +44,7 @@ describe('@homecraft/contracts smoke', () => {
         sessionId: 'sess-1',
         projectId: 'proj-1',
         command: 'move the cabinet',
+        expectedVersion: 0,
         inputMode: 'editor',
         editorOperations: [],
         clientState: {}

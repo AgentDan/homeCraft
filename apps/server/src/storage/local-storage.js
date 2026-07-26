@@ -159,8 +159,98 @@ export async function loadPlanHistory(sessionId, projectId) {
   return PlanHistorySchema.parse(structuredClone(session.planHistory));
 }
 
-export async function appendPlanVersion(sessionId, projectId, plan, requestId) {
+export async function getCurrentPlanVersion(sessionId, projectId) {
   const history = await loadPlanHistory(sessionId, projectId);
+  if (history.currentIndex < 0 || history.entries.length === 0) {
+    return 0;
+  }
+  return history.entries[history.currentIndex].version;
+}
+
+export class VersionConflictError extends Error {
+  /**
+   * @param {number} currentVersion
+   * @param {number} expectedVersion
+   */
+  constructor(currentVersion, expectedVersion) {
+    super('version_conflict');
+    this.name = 'VersionConflictError';
+    this.code = 'version_conflict';
+    this.currentVersion = currentVersion;
+    this.expectedVersion = expectedVersion;
+  }
+}
+
+/**
+ * @param {string} sessionId
+ * @param {string} requestId
+ * @returns {Promise<{ statusCode: number, response: object } | null>}
+ */
+export async function loadIdempotentResponse(sessionId, requestId) {
+  const session = await loadSessionDocument(sessionId);
+  const entry = session.idempotency?.[requestId];
+  if (!entry?.response || typeof entry.statusCode !== 'number') {
+    return null;
+  }
+  return {
+    statusCode: entry.statusCode,
+    response: structuredClone(entry.response)
+  };
+}
+
+/**
+ * @param {string} sessionId
+ * @param {string} requestId
+ * @param {number} statusCode
+ * @param {object} response
+ */
+export async function saveIdempotentResponse(
+  sessionId,
+  requestId,
+  statusCode,
+  response
+) {
+  const session = await loadSessionDocument(sessionId);
+  const idempotency = {
+    ...(session.idempotency && typeof session.idempotency === 'object'
+      ? session.idempotency
+      : {}),
+    [requestId]: {
+      statusCode,
+      response: structuredClone(response),
+      savedAt: new Date().toISOString()
+    }
+  };
+  const keys = Object.keys(idempotency);
+  if (keys.length > 100) {
+    for (const key of keys.slice(0, keys.length - 100)) {
+      delete idempotency[key];
+    }
+  }
+  await saveSession({ sessionId, idempotency });
+}
+
+export async function appendPlanVersion(
+  sessionId,
+  projectId,
+  plan,
+  requestId,
+  expectedVersion
+) {
+  const history = await loadPlanHistory(sessionId, projectId);
+  const currentVersion =
+    history.currentIndex < 0 || history.entries.length === 0
+      ? 0
+      : history.entries[history.currentIndex].version;
+
+  if (
+    expectedVersion !== undefined &&
+    expectedVersion !== null &&
+    expectedVersion !== currentVersion
+  ) {
+    throw new VersionConflictError(currentVersion, expectedVersion);
+  }
+
   const retainedEntries = history.entries.slice(0, history.currentIndex + 1);
   const createdAt = new Date().toISOString();
   const entry = {
@@ -243,4 +333,34 @@ export async function appendCommandRecord(record) {
   const filePath = commandJournalPath(parsed.projectId);
   await appendFile(filePath, `${JSON.stringify(parsed)}\n`);
   return parsed;
+}
+
+/** @type {Map<string, Promise<void>>} */
+const sessionLocks = new Map();
+
+/**
+ * Serialize mutations for one session (file-store optimistic locking).
+ * @template T
+ * @param {string} sessionId
+ * @param {() => Promise<T>} fn
+ * @returns {Promise<T>}
+ */
+export async function withSessionLock(sessionId, fn) {
+  const key = sanitizeId(sessionId, 'local-session');
+  const previous = sessionLocks.get(key) ?? Promise.resolve();
+  let release = () => {};
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const chained = previous.then(() => gate);
+  sessionLocks.set(key, chained);
+  await previous;
+  try {
+    return await fn();
+  } finally {
+    release();
+    if (sessionLocks.get(key) === chained) {
+      sessionLocks.delete(key);
+    }
+  }
 }

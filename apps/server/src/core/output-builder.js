@@ -88,7 +88,7 @@ export function buildOutput(input) {
   });
 }
 
-export function buildUnknownIntentResponse(request, _context) {
+export function buildUnknownIntentResponse(request, _context, planVersion = 0) {
   const language = normalizeLanguage(request.language);
   const prompt = t(language, 'unknownIntent');
   return ClientResponseSchema.parse({
@@ -101,13 +101,13 @@ export function buildUnknownIntentResponse(request, _context) {
     speech: prompt,
     explanation: t(language, 'unknownExplanation'),
     interaction: { expects: 'free_text', prompt },
-    planVersion: 0,
+    planVersion,
     errors: [],
     createdAt: new Date().toISOString()
   });
 }
 
-export function buildHelpResponse(request, helpMessage) {
+export function buildHelpResponse(request, helpMessage, planVersion = 0) {
   const language = normalizeLanguage(request.language);
   const message = helpMessage ?? t(language, 'helpFallback');
   return ClientResponseSchema.parse({
@@ -120,7 +120,7 @@ export function buildHelpResponse(request, helpMessage) {
     speech: message,
     explanation: t(language, 'helpExplanation'),
     interaction: { expects: 'none' },
-    planVersion: 0,
+    planVersion,
     errors: [],
     createdAt: new Date().toISOString()
   });

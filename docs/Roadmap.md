@@ -5,7 +5,7 @@ Phases 0–3 ✅. Pilot MVP = Step 4. Order: `1→2→3→4`, `5→6→7`, `8` p
 ## Todo
 
 - [x] **1. Command journal** — append-only JSONL in `data/action-history/`
-- [ ] **2. Idempotency + optimistic locking** — `expectedVersion` → 409; dedupe `requestId`
+- [x] **2. Idempotency + optimistic locking** — `expectedVersion` → 409; dedupe `requestId`
 - [ ] **3. Replay test in CI** — `replayJournal` == snapshot
 - [ ] **4. Production Export** — PDF bound to version + catalog snapshot
 - [ ] **5. Branches** — history as tree (`create_branch` / `switch_branch`)

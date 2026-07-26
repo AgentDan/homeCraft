@@ -11,6 +11,7 @@ export const ClientRequestSchema = z.object({
   inputChannel: InputChannelSchema.default('text'),
   language: LanguageSchema.default('en'),
   command: z.string().min(1),
+  expectedVersion: z.number().int().nonnegative(),
   catalogSnapshotId: z.string().optional(),
   clientState: ClientStateSchema,
   createdAt: z.string().datetime().optional()

@@ -59,7 +59,6 @@ export function mountRoutes(app) {
       sendJson(res, 200, {
         status: 'ok',
         service: 'homecraft-server',
-        step: '3',
         env: runtimeLabel(),
         storage,
         mongo: mongo ? 'connected' : 'disconnected',

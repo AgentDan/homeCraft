@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
-import { getHealth, postCommand } from './api/client.js';
+import { ApiError, getHealth, postCommand } from './api/client.js';
 import { BomPanel } from './components/BomPanel.jsx';
 import { BudgetIndicator } from './components/BudgetIndicator.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
@@ -139,6 +139,7 @@ export function App() {
   const [budgetEur, setBudgetEur] = useState(
     /** @type {number | null} */ (null)
   );
+  const [planVersion, setPlanVersion] = useState(0);
   const speak = useSpeech();
 
   useEffect(() => {
@@ -166,9 +167,13 @@ export function App() {
           inputChannel,
           language: locale,
           command,
+          expectedVersion: planVersion,
           clientState: {}
         });
         setResponse(result);
+        if (typeof result.planVersion === 'number') {
+          setPlanVersion(result.planVersion);
+        }
         if (result.speech) speak(result.speech, speechLang);
         if (result.sceneResult) {
           setSceneResult(result.sceneResult);
@@ -191,16 +196,32 @@ export function App() {
           }
         ]);
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        setTurns((current) => [
-          ...current,
-          { id: newId('turn'), role: 'assistant', text: message }
-        ]);
+        if (err instanceof ApiError && err.code === 'version_conflict') {
+          const current =
+            typeof err.body?.currentVersion === 'number'
+              ? err.body.currentVersion
+              : planVersion;
+          setPlanVersion(current);
+          setTurns((currentTurns) => [
+            ...currentTurns,
+            {
+              id: newId('turn'),
+              role: 'assistant',
+              text: t('versionConflict', { current })
+            }
+          ]);
+        } else {
+          const message = err instanceof Error ? err.message : String(err);
+          setTurns((current) => [
+            ...current,
+            { id: newId('turn'), role: 'assistant', text: message }
+          ]);
+        }
       } finally {
         setLoading(false);
       }
     },
-    [projectId, sessionId, speak, locale, speechLang, t]
+    [projectId, sessionId, speak, locale, speechLang, t, planVersion]
   );
 
   return (

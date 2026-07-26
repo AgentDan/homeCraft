@@ -46,7 +46,9 @@ const MESSAGES = {
       'Specify a module and SKU to swap, for example "replace module-1 with BASE-400".',
     clarifyMissingModule: 'Module {target} is not in the project.',
     clarifyFinish:
-      'Specify a finish and module, for example "change the last cabinet to oak".'
+      'Specify a finish and module, for example "change the last cabinet to oak".',
+    versionConflict:
+      'Version conflict: client expected {expected}, server is at {current}. Refresh and retry.'
   },
   ru: {
     commandProcessed: 'Команда обработана.',
@@ -80,7 +82,9 @@ const MESSAGES = {
       'Укажите модуль и SKU для замены, например «замени module-1 на BASE-400».',
     clarifyMissingModule: 'Модуля {target} нет в проекте.',
     clarifyFinish:
-      'Укажите отделку и модуль, например «сделай фасад дуб».'
+      'Укажите отделку и модуль, например «сделай фасад дуб».',
+    versionConflict:
+      'Конфликт версий: клиент ожидал {expected}, на сервере {current}. Обновите и повторите.'
   },
   sr: {
     commandProcessed: 'Komanda je obrađena.',
@@ -114,7 +118,9 @@ const MESSAGES = {
       'Navedite modul i SKU za zamenu, na primer „zameni module-1 sa BASE-400”.',
     clarifyMissingModule: 'Modul {target} nije u projektu.',
     clarifyFinish:
-      'Navedite završnu obradu i modul, na primer „uradi fasadu hrast”.'
+      'Navedite završnu obradu i modul, na primer „uradi fasadu hrast”.',
+    versionConflict:
+      'Konflikt verzija: klijent očekuje {expected}, server je na {current}. Osvežite i pokušajte ponovo.'
   }
 };
 

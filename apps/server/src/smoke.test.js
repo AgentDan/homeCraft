@@ -116,6 +116,7 @@ describe('@homecraft/server smoke', () => {
           inputMode: 'editor',
           editorOperations: [],
           command: 'move cabinet',
+          expectedVersion: 0,
           clientState: {}
         })
       });
@@ -147,6 +148,7 @@ describe('@homecraft/server smoke', () => {
     const endpoint = `http://127.0.0.1:${address.port}/api/commands`;
     const sessionId = `sess-${Date.now()}`;
     const projectId = `proj-${Date.now()}`;
+    let expectedVersion = 0;
 
     async function postCommand(command, requestId, inputChannel = 'text') {
       const response = await fetch(endpoint, {
@@ -158,11 +160,14 @@ describe('@homecraft/server smoke', () => {
           projectId,
           inputChannel,
           command,
+          expectedVersion,
           clientState: {}
         })
       });
       assert.equal(response.status, 200);
-      return ClientResponseSchema.parse(await response.json());
+      const body = ClientResponseSchema.parse(await response.json());
+      expectedVersion = body.planVersion;
+      return body;
     }
 
     try {
@@ -175,6 +180,7 @@ describe('@homecraft/server smoke', () => {
           projectId: `${projectId}-starter`,
           inputChannel: 'text',
           command: 'add kitchen cabinet 3x4',
+          expectedVersion: 0,
           clientState: {}
         })
       });

@@ -89,7 +89,7 @@ AI понимает клиента и переводит его слова в с
 
 **Phase 3 закрыта:** snapshots API, BOM cache (memory+Redis), BomPanel/BudgetIndicator, `budgetEur`.
 
-**Следующий шаг по Roadmap:** Step 2 — Idempotency + optimistic locking.
+**Следующий шаг по Roadmap:** Step 3 — Replay test in CI.
 
 ---
 
@@ -112,6 +112,7 @@ DoD каждой фазы: acceptance criteria выполнены + `lint`/`test
 
 | Дата | Что изменили | Почему | Что устарело в паспорте |
 |---|---|---|---|
+| 2026-07-26 | Step 2: `expectedVersion` + idempotency по `requestId` (409 `version_conflict`) | Защита от double-submit и гонок вкладок | Next step → 3; контракт ClientRequest |
 | 2026-07-26 | Журнал команд (JSONL), `summarizeBOM`, i18n зафиксирован как 🟢 | Закрыть жёлтые блоки Event Log и explanation templates | Карта блоков; Roadmap Step 1 |
 | 2026-07-25 | Языки интентов и UI: `en` / `ru` / `sr` (`LanguageSchema`, матчеры в `intent-registry`, `LOCALES`, i18n) | Закрыть вопрос языка до консультанта; UI и детект на трёх локалях | Инвариант 4; статус AI Understanding; открытый вопрос про язык |
 | 2026-07-22 | Phase 3 (ветка `phase-3`): BOM cache (memory+Redis), `GET /api/catalog/snapshots`, клиентские BomPanel/BudgetIndicator, `budgetEur` в ClientResponse | Дать видимую смету/бюджет и ускорить повторный BOM | Раздел 6 (Phase 3 в работе); Redis в стеке |
