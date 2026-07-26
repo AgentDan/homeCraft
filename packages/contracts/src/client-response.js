@@ -12,7 +12,8 @@ export const ClientResponseTypeSchema = z.enum([
   'unknown_intent',
   'clarify',
   'options',
-  'confirm'
+  'confirm',
+  'export'
 ]);
 
 export const ChangeSummarySchema = z.object({
@@ -78,7 +79,7 @@ export const ClientResponseSchema = z.object({
   bom: BOMSchema.nullable().optional(),
   budgetEur: z.number().nonnegative().nullable().optional(),
   compatibility: CompatibilityReportSchema.nullable().optional(),
-  downloadUrl: z.string().url().nullable().optional(),
+  downloadUrl: z.string().min(1).nullable().optional(),
   errors: z.array(z.string()).default([]),
   createdAt: z.string().datetime()
 });

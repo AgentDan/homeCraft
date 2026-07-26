@@ -34,7 +34,7 @@ AI понимает клиента и переводит его слова в с
 | Rules Engine | `compatibility-engine/assertCompatible.js` + `rules/*` + `analog-suggester.js` | детерминированный, **единственный rejector** | 🚧 5 правил (dimensions/mounting/overlap/utilities/clearances) + analog suggester |
 | Scene Graph / 3D Engine | `domain-modules/kitchen/pipeline.js` + client `ScenePreview.jsx` (R3F) | детерминированный | ✅ базовая версия |
 | Calculation Engine | `pricing-engine/calculateBOM.js` + `bom-cache.js` | детерминированный, чистый калькулятор + кэш | ✅ snapshot BOM + cache |
-| Production / ERP Integration | Step 4 (export) | детерминированный | 🔲 |
+| Production / ERP Integration | `export/*` + `GET /api/exports/:id` | детерминированный | ✅ PDF export (Step 4) |
 | Command journal | `storage/local-storage.js` (append-only JSONL) | детерминированный | ✅ |
 | Explanation (templates) | `output-builder.js` + `summarizeBOM` + i18n | детерминированный | ✅ templates; LLM 🔲 Step 10 |
 
@@ -89,7 +89,7 @@ AI понимает клиента и переводит его слова в с
 
 **Phase 3 закрыта:** snapshots API, BOM cache (memory+Redis), BomPanel/BudgetIndicator, `budgetEur`.
 
-**Следующий шаг по Roadmap:** Step 3 — Replay test in CI.
+**Следующий шаг по Roadmap:** Step 5 — Branches (history as tree).
 
 ---
 
@@ -112,6 +112,8 @@ DoD каждой фазы: acceptance criteria выполнены + `lint`/`test
 
 | Дата | Что изменили | Почему | Что устарело в паспорте |
 |---|---|---|---|
+| 2026-07-26 | Step 4: Production Export PDF (`export_project`, frozen by version+catalog) | Pilot MVP: клиент уносит спецификацию | Production блок ✅; next → 5 |
+| 2026-07-26 | Step 3: `replayJournal` + CI snapshot; детерминированный `planId` | Инвариант «истина в журнале» проверяется тестом | Next step → 4 |
 | 2026-07-26 | Step 2: `expectedVersion` + idempotency по `requestId` (409 `version_conflict`) | Защита от double-submit и гонок вкладок | Next step → 3; контракт ClientRequest |
 | 2026-07-26 | Журнал команд (JSONL), `summarizeBOM`, i18n зафиксирован как 🟢 | Закрыть жёлтые блоки Event Log и explanation templates | Карта блоков; Roadmap Step 1 |
 | 2026-07-25 | Языки интентов и UI: `en` / `ru` / `sr` (`LanguageSchema`, матчеры в `intent-registry`, `LOCALES`, i18n) | Закрыть вопрос языка до консультанта; UI и детект на трёх локалях | Инвариант 4; статус AI Understanding; открытый вопрос про язык |

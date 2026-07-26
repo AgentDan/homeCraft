@@ -105,6 +105,31 @@ const RULES = [
     ]
   },
   {
+    kind: 'export_project',
+    matchers: [
+      {
+        language: 'en',
+        patterns: [/\b(?:export|download)\b/i, /\b(?:pdf|spec|specification|bom)\b/i]
+      },
+      {
+        language: 'en',
+        patterns: [/\bexport\s+(?:project|plan|kitchen)\b/i]
+      },
+      {
+        language: 'ru',
+        patterns: [/(?:экспорт|выгруз|скач)/i, /(?:pdf|спецификац|смет)/i]
+      },
+      {
+        language: 'ru',
+        patterns: [/(?:экспорт(?:ируй)?\s+проект)/i]
+      },
+      {
+        language: 'sr',
+        patterns: [/(?:izvoz|preuzmi|export)/i, /(?:pdf|specifikac|predračun|predracun)/i]
+      }
+    ]
+  },
+  {
     kind: 'show_price',
     matchers: [
       {

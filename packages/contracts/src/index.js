@@ -60,3 +60,5 @@ export {
   CommandRecordSchema,
   CommandOutcomeKindSchema
 } from './command.js';
+
+export { ExportRecordSchema } from './export.js';

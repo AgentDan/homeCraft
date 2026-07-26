@@ -1,13 +1,23 @@
+import { createHash } from 'node:crypto';
 import {
   ConfigurationPlanSchema,
   createEmptyPlan
 } from '@homecraft/contracts';
 
+function stablePlanId(projectId, operations) {
+  const digest = createHash('sha256')
+    .update(JSON.stringify(operations))
+    .digest('hex')
+    .slice(0, 12);
+  return `plan-${projectId}-${digest}`;
+}
+
 function createPlan(input, operations) {
+  const projectId = input.context.projectId;
   return ConfigurationPlanSchema.parse({
     ...createEmptyPlan({
-      planId: `plan-${Date.now()}`,
-      projectId: input.context.projectId,
+      planId: stablePlanId(projectId, operations),
+      projectId,
       catalogSnapshotId: input.context.catalogSnapshotId
     }),
     operations

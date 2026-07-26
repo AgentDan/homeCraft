@@ -37,6 +37,11 @@ describe('@homecraft/ai smoke', () => {
     assert.equal(result.language, 'sr');
   });
 
+  it('detects export_project intent', () => {
+    assert.equal(matchIntent('export pdf', { language: 'en' }).kind, 'export_project');
+    assert.equal(matchIntent('экспорт pdf', { language: 'ru' }).kind, 'export_project');
+  });
+
   it('detects undo and redo without ambiguous fallback', () => {
     assert.equal(matchIntent('revert the last change').kind, 'undo');
     assert.equal(matchIntent('repeat').kind, 'redo');

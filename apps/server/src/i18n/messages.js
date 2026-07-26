@@ -48,7 +48,11 @@ const MESSAGES = {
     clarifyFinish:
       'Specify a finish and module, for example "change the last cabinet to oak".',
     versionConflict:
-      'Version conflict: client expected {expected}, server is at {current}. Refresh and retry.'
+      'Version conflict: client expected {expected}, server is at {current}. Refresh and retry.',
+    exportEmpty: 'Add modules before exporting a specification PDF.',
+    exportReady:
+      'Specification PDF ready (plan v{version}, catalog {catalog}).',
+    exportExplanation: 'Frozen export checksum {sha}… (reused: {reused}).'
   },
   ru: {
     commandProcessed: 'Команда обработана.',
@@ -84,7 +88,11 @@ const MESSAGES = {
     clarifyFinish:
       'Укажите отделку и модуль, например «сделай фасад дуб».',
     versionConflict:
-      'Конфликт версий: клиент ожидал {expected}, на сервере {current}. Обновите и повторите.'
+      'Конфликт версий: клиент ожидал {expected}, на сервере {current}. Обновите и повторите.',
+    exportEmpty: 'Добавьте модули перед экспортом спецификации в PDF.',
+    exportReady:
+      'PDF спецификации готов (план v{version}, каталог {catalog}).',
+    exportExplanation: 'Замороженный экспорт, checksum {sha}… (повтор: {reused}).'
   },
   sr: {
     commandProcessed: 'Komanda je obrađena.',
@@ -120,7 +128,11 @@ const MESSAGES = {
     clarifyFinish:
       'Navedite završnu obradu i modul, na primer „uradi fasadu hrast”.',
     versionConflict:
-      'Konflikt verzija: klijent očekuje {expected}, server je na {current}. Osvežite i pokušajte ponovo.'
+      'Konflikt verzija: klijent očekuje {expected}, server je na {current}. Osvežite i pokušajte ponovo.',
+    exportEmpty: 'Dodajte module pre izvoza specifikacije u PDF.',
+    exportReady:
+      'PDF specifikacije je spreman (plan v{version}, katalog {catalog}).',
+    exportExplanation: 'Zamrznuti izvoz, checksum {sha}… (ponovo: {reused}).'
   }
 };
 
@@ -146,6 +158,7 @@ const HELP_EXAMPLES = {
     '"change the last cabinet to oak"',
     '"remove the last module"',
     '"show price"',
+    '"export pdf"',
     '"budget up to 150000"',
     '"add kitchen cabinet 3x4"',
     '"undo" or "redo"'
@@ -157,6 +170,7 @@ const HELP_EXAMPLES = {
     '«сделай фасад дуб»',
     '«удали последний модуль»',
     '«покажи цену»',
+    '«экспорт pdf»',
     '«бюджет до 150000»',
     '«кухня 3x4»',
     '«отмена» или «повтор»'
@@ -168,6 +182,7 @@ const HELP_EXAMPLES = {
     '„uradi fasadu hrast”',
     '„ukloni poslednji modul”',
     '„pokaži cenu”',
+    '„izvoz pdf”',
     '„budžet do 150000”',
     '„kuhinja 3x4”',
     '„poništi” ili „ponovi”'

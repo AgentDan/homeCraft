@@ -114,6 +114,23 @@ export function ResponseRouter({ response, onCommand, disabled }) {
           </div>
         </CompactPrompt>
       );
+    case 'export':
+      return (
+        <CompactPrompt>
+          <p className="mb-2 text-xs leading-snug text-[var(--hc-text)]">
+            {response.message}
+          </p>
+          {response.downloadUrl ? (
+            <a
+              href={response.downloadUrl}
+              className="hc-btn-accent inline-flex rounded-[10px] px-3 py-1.5 text-xs font-semibold"
+              download
+            >
+              {t('downloadSpec')}
+            </a>
+          ) : null}
+        </CompactPrompt>
+      );
     default:
       return null;
   }

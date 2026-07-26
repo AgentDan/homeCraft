@@ -47,7 +47,8 @@ const STRINGS = {
     voicePrompt: 'Voice transcript (demo):',
     voiceSample: 'add module',
     language: 'Language',
-    versionConflict: 'Version conflict (server is at {current}). Retry the command.'
+    versionConflict: 'Version conflict (server is at {current}). Retry the command.',
+    downloadSpec: 'Download specification PDF'
   },
   ru: {
     command: 'Команда',
@@ -77,7 +78,8 @@ const STRINGS = {
     voicePrompt: 'Голосовая расшифровка (демо):',
     voiceSample: 'добавь модуль',
     language: 'Язык',
-    versionConflict: 'Конфликт версий (на сервере {current}). Повторите команду.'
+    versionConflict: 'Конфликт версий (на сервере {current}). Повторите команду.',
+    downloadSpec: 'Скачать спецификацию PDF'
   },
   sr: {
     command: 'Komanda',
@@ -107,7 +109,8 @@ const STRINGS = {
     voicePrompt: 'Glasovni transkript (demo):',
     voiceSample: 'dodaj modul',
     language: 'Jezik',
-    versionConflict: 'Konflikt verzija (server je na {current}). Ponovite komandu.'
+    versionConflict: 'Konflikt verzija (server je na {current}). Ponovite komandu.',
+    downloadSpec: 'Preuzmi specifikaciju PDF'
   }
 };
 

@@ -7,6 +7,7 @@ import { connectMongo } from '../../storage/mongo.js';
 import { connectRedis, redisConfigured } from '../../storage/redis.js';
 import { getBomCacheStats } from '../../pricing-engine/bom-cache.js';
 import { listCatalogSnapshots } from '../../knowledge-base/catalog-store.js';
+import { loadExportRecord } from '../../export/export-store.js';
 import { isProduction, runtimeLabel } from '../../config/runtime.js';
 import { sendJson } from '../../lib/send-json.js';
 import {
@@ -45,6 +46,7 @@ export function mountRoutes(app) {
         'GET /api/health',
         'GET /api/storage/status',
         'GET /api/catalog/snapshots',
+        'GET /api/exports/:id',
         'POST /api/commands'
       ]
     });
@@ -81,6 +83,35 @@ export function mountRoutes(app) {
       sendJson(res, 200, {
         snapshots: await listCatalogSnapshots()
       });
+    })
+  );
+
+  app.get(
+    '/api/exports/:id',
+    wrapAsync(async (req, res) => {
+      const exportId = String(req.params.id ?? '').trim();
+      const loaded = exportId ? await loadExportRecord(exportId) : null;
+      if (!loaded) {
+        sendJson(res, 404, {
+          status: 'error',
+          message: 'Export not found.',
+          errors: [`Unknown export id: ${exportId}`]
+        });
+        return;
+      }
+      res.status(200);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${loaded.record.fileName}"`
+      );
+      res.setHeader('X-HomeCraft-Plan-Version', String(loaded.record.planVersion));
+      res.setHeader(
+        'X-HomeCraft-Catalog-Snapshot',
+        loaded.record.catalogSnapshotId
+      );
+      res.setHeader('X-HomeCraft-Content-SHA256', loaded.record.contentSha256);
+      res.send(loaded.pdf);
     })
   );
 

@@ -14,6 +14,10 @@ import {
 import { getHelpMessage } from './help-service.js';
 import { runPipeline as runKitchenPipeline } from '../domain-modules/kitchen/pipeline.js';
 import { getCachedBOM } from '../pricing-engine/bom-cache.js';
+import { createOrGetExport } from '../export/export-store.js';
+import {
+  ClientResponseSchema
+} from '@homecraft/contracts';
 import {
   appendCommandRecord,
   appendPlanVersion,
@@ -367,6 +371,68 @@ export async function route(request) {
           });
         }
         context = { ...context, budgetEur: intent.slots.budgetEur };
+      }
+
+      if (intent.kind === 'export_project') {
+        if (!plan?.operations?.length) {
+          const clarify = buildClarifyResponse(
+            request,
+            t(language, 'exportEmpty'),
+            context.planVersion ?? 0
+          );
+          return finalizeResponse({
+            request,
+            context,
+            response: clarify,
+            intentKind: 'export_project',
+            outcomeKind: 'clarify'
+          });
+        }
+
+        const bom = await getCachedBOM(plan, plan.catalogSnapshotId);
+        const exported = await createOrGetExport({
+          projectId: request.projectId,
+          planVersion: context.planVersion ?? 0,
+          catalogSnapshotId: plan.catalogSnapshotId,
+          requestId: request.requestId,
+          plan,
+          bom
+        });
+
+        const message = t(language, 'exportReady', {
+          version: context.planVersion ?? 0,
+          catalog: plan.catalogSnapshotId
+        });
+        const exportResponse = ClientResponseSchema.parse({
+          requestId: request.requestId,
+          sessionId: request.sessionId,
+          projectId: request.projectId,
+          status: 'ok',
+          responseType: 'export',
+          message,
+          speech: message,
+          explanation: t(language, 'exportExplanation', {
+            sha: exported.record.contentSha256.slice(0, 12),
+            reused: exported.reused ? 'yes' : 'no'
+          }),
+          interaction: { expects: 'none' },
+          planVersion: context.planVersion ?? 0,
+          plan,
+          bom,
+          budgetEur: context.budgetEur ?? null,
+          compatibility: null,
+          downloadUrl: exported.downloadUrl,
+          errors: [],
+          createdAt: new Date().toISOString()
+        });
+
+        return finalizeResponse({
+          request,
+          context,
+          response: exportResponse,
+          intentKind: 'export_project',
+          outcomeKind: 'read_only'
+        });
       }
 
       const messages = {
