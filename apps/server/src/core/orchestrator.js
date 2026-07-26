@@ -137,6 +137,7 @@ async function runDefaultIntentPath(input) {
   const isRejected = Boolean(
     response.compatibility && !response.compatibility.valid
   );
+  /** @type {import('./intent-handlers/types.js').OutcomeKind} */
   let outcomeKind = OUTCOME.applied;
   if (isRejected) {
     outcomeKind = OUTCOME.rejected;
@@ -159,12 +160,14 @@ async function resolveRoutedCommand(request, context) {
   const { intent, plan, outcome } = await runAiPipeline(request, context);
   let nextContext = applyRoomDimensionSlots(context, intent);
   const language = normalizeLanguage(request.language ?? intent.language);
+  // Pipeline returns a runtime-valid IntentResult; matchIntent kinds are untyped strings.
+  /** @type {import('./intent-handlers/types.js').IntentHandlerInput} */
   const handlerInput = {
     request,
     context: nextContext,
-    intent,
+    intent: /** @type {import('./intent-handlers/types.js').Intent} */ (intent),
     plan,
-    outcome,
+    outcome: /** @type {import('./intent-handlers/types.js').PlanOutcome} */ (outcome),
     language
   };
 
