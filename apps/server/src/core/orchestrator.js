@@ -211,8 +211,12 @@ async function resolveRoutedCommand(request, context) {
 
 /**
  * Routes a dialog command through intent detection and the shared downstream pipeline.
+ *
+ * Owns idempotency, session locking, version checks, context persistence, and the
+ * single finalizeResponse call. Intent-specific work lives in intent-handlers/.
  */
 export async function route(request) {
+  // Fast path: replay a cached response before taking the session lock.
   const cached = await loadIdempotentResponse(
     request.sessionId,
     request.requestId
@@ -222,6 +226,7 @@ export async function route(request) {
   }
 
   return withSessionLock(request.sessionId, async () => {
+    // Re-check inside the lock so concurrent duplicates share one execution.
     const cachedInsideLock = await loadIdempotentResponse(
       request.sessionId,
       request.requestId
@@ -262,6 +267,7 @@ export async function route(request) {
 
     try {
       const resolved = await resolveRoutedCommand(request, context);
+      // Single finalize point: journal + idempotency writes stay out of handlers.
       return finalizeResponse({
         request,
         context: resolved.context,
