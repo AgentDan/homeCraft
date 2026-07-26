@@ -1,21 +1,39 @@
 const API_BASE = '/api';
 
-export class ApiError extends Error {
-  /**
-   * @param {number} status
-   * @param {object} body
-   */
-  constructor(status, body) {
-    super(
-      typeof body?.message === 'string'
-        ? body.message
-        : `API ${status}: ${JSON.stringify(body)}`
-    );
-    this.name = 'ApiError';
-    this.status = status;
-    this.body = body;
-    this.code = typeof body?.code === 'string' ? body.code : undefined;
+/**
+ * @param {number} status
+ * @param {object} body
+ * @returns {Error & {
+ *   status: number,
+ *   body: object,
+ *   code?: string
+ * }}
+ */
+export function createApiError(status, body) {
+  const message =
+    typeof body?.message === 'string'
+      ? body.message
+      : `API ${status}: ${JSON.stringify(body)}`;
+  const error = /** @type {Error & {
+ *   status: number,
+ *   body: object,
+ *   code?: string
+ * }} */ (new Error(message));
+  error.name = 'ApiError';
+  error.status = status;
+  error.body = body;
+  if (typeof body?.code === 'string') {
+    error.code = body.code;
   }
+  return error;
+}
+
+/**
+ * @param {unknown} error
+ * @returns {error is Error & { status: number, body: object, code?: string }}
+ */
+export function isApiError(error) {
+  return error instanceof Error && error.name === 'ApiError';
 }
 
 export async function postCommand(payload) {
@@ -31,7 +49,7 @@ export async function postCommand(payload) {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new ApiError(response.status, data);
+    throw createApiError(response.status, data);
   }
 
   return data;

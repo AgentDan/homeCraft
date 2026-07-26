@@ -27,7 +27,7 @@ import {
   navigatePlanHistory,
   recordCommandRequest,
   saveIdempotentResponse,
-  VersionConflictError,
+  isVersionConflictError,
   withSessionLock
 } from '../storage/local-storage.js';
 import { normalizeLanguage, t } from '../i18n/messages.js';
@@ -506,7 +506,7 @@ export async function route(request) {
         createdVersion
       });
     } catch (error) {
-      if (error instanceof VersionConflictError) {
+      if (isVersionConflictError(error)) {
         const conflict = buildVersionConflictResult(
           request,
           error.currentVersion

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
-import { ApiError, getHealth, postCommand } from './api/client.js';
+import { getHealth, isApiError, postCommand } from './api/client.js';
 import { BomPanel } from './components/BomPanel.jsx';
 import { BudgetIndicator } from './components/BudgetIndicator.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
@@ -196,7 +196,7 @@ export function App() {
           }
         ]);
       } catch (err) {
-        if (err instanceof ApiError && err.code === 'version_conflict') {
+        if (isApiError(err) && err.code === 'version_conflict') {
           const current =
             typeof err.body?.currentVersion === 'number'
               ? err.body.currentVersion

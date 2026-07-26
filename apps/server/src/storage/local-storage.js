@@ -167,18 +167,37 @@ export async function getCurrentPlanVersion(sessionId, projectId) {
   return history.entries[history.currentIndex].version;
 }
 
-export class VersionConflictError extends Error {
-  /**
-   * @param {number} currentVersion
-   * @param {number} expectedVersion
-   */
-  constructor(currentVersion, expectedVersion) {
-    super('version_conflict');
-    this.name = 'VersionConflictError';
-    this.code = 'version_conflict';
-    this.currentVersion = currentVersion;
-    this.expectedVersion = expectedVersion;
-  }
+/**
+ * @param {number} currentVersion
+ * @param {number} expectedVersion
+ * @returns {Error & {
+ *   code: 'version_conflict',
+ *   currentVersion: number,
+ *   expectedVersion: number
+ * }}
+ */
+export function createVersionConflictError(currentVersion, expectedVersion) {
+  const error = /** @type {Error & {
+ *   code: 'version_conflict',
+ *   currentVersion: number,
+ *   expectedVersion: number
+ * }} */ (new Error('version_conflict'));
+  error.name = 'VersionConflictError';
+  error.code = 'version_conflict';
+  error.currentVersion = currentVersion;
+  error.expectedVersion = expectedVersion;
+  return error;
+}
+
+/**
+ * @param {unknown} error
+ * @returns {error is Error & { code: 'version_conflict', currentVersion: number, expectedVersion: number }}
+ */
+export function isVersionConflictError(error) {
+  return (
+    error instanceof Error &&
+    /** @type {{ code?: string }} */ (error).code === 'version_conflict'
+  );
 }
 
 /**
@@ -248,7 +267,7 @@ export async function appendPlanVersion(
     expectedVersion !== null &&
     expectedVersion !== currentVersion
   ) {
-    throw new VersionConflictError(currentVersion, expectedVersion);
+    throw createVersionConflictError(currentVersion, expectedVersion);
   }
 
   const retainedEntries = history.entries.slice(0, history.currentIndex + 1);
@@ -349,8 +368,11 @@ export async function withSessionLock(sessionId, fn) {
   const key = sanitizeId(sessionId, 'local-session');
   const previous = sessionLocks.get(key) ?? Promise.resolve();
   let release = () => {};
+  /** @type {Promise<void>} */
   const gate = new Promise((resolve) => {
-    release = resolve;
+    release = () => {
+      resolve();
+    };
   });
   const chained = previous.then(() => gate);
   sessionLocks.set(key, chained);
