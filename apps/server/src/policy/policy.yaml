@@ -1,0 +1,13 @@
+# HomeCraft candidate selection policy (Step 7).
+# Weights are relative; they are normalized at load time.
+# Auto-apply only when the top score beats the second by minGapToSecond.
+
+version: "1"
+
+weights:
+  price: 0.5
+  ergonomics: 0.3
+  style: 0.2
+
+# Minimum score gap between 1st and 2nd to auto-apply without asking.
+minGapToSecond: 0.08

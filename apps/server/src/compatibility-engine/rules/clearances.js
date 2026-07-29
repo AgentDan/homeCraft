@@ -9,8 +9,6 @@ import { footprint } from './geometry.js';
  * not be treated as required gaps — otherwise a normal run of base cabinets would
  * be rejected. Values below the threshold are considered cosmetic and ignored.
  */
-export const RULE_ID = 'clearances';
-
 const MIN_ENFORCED_CLEARANCE_MM = 20;
 
 /**

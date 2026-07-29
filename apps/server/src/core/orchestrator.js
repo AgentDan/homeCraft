@@ -142,9 +142,12 @@ async function runDefaultIntentPath(input) {
   const isRejected = Boolean(
     response.compatibility && !response.compatibility.valid
   );
+  const isOptions = response.responseType === 'options';
   /** @type {import('./intent-handlers/types.js').OutcomeKind} */
   let outcomeKind = OUTCOME.applied;
-  if (isRejected) {
+  if (isOptions) {
+    outcomeKind = OUTCOME.clarify;
+  } else if (isRejected) {
     outcomeKind = OUTCOME.rejected;
   } else if (isReadOnly) {
     outcomeKind = OUTCOME.read_only;
@@ -152,7 +155,7 @@ async function runDefaultIntentPath(input) {
   return {
     response,
     outcomeKind,
-    createdVersion: !isReadOnly && !isRejected
+    createdVersion: !isReadOnly && !isRejected && !isOptions
   };
 }
 

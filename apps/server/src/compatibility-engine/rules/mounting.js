@@ -1,5 +1,4 @@
 /** Mounting rule: wall units hang above the floor, everything else stands on it. */
-export const RULE_ID = 'mounting';
 
 /**
  * @param {import('./types.js').RuleContext} ctx

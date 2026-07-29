@@ -227,13 +227,35 @@ describe('orchestrator journal characterization', () => {
 
       const rejected = await post('add module', 'req-reject');
       assert.equal(rejected.status, 200);
-      assert.equal(rejected.body.compatibility?.valid, false);
-      assertJournalFields((await loadJournal()).at(-1), {
-        intentKind: 'add_module',
-        outcomeKind: 'rejected',
-        resultingVersion: null,
-        compatibilityValid: false
-      });
+
+      // Step 6/7: a conflict may yield priced options (near-tie) or a
+      // policy auto-apply. Hard reject remains when no candidate validates.
+      const journal = (await loadJournal()).at(-1);
+      if (rejected.body.responseType === 'options') {
+        assert.equal(rejected.body.compatibility?.valid, false);
+        assertJournalFields(journal, {
+          intentKind: 'add_module',
+          outcomeKind: 'clarify',
+          resultingVersion: null,
+          compatibilityValid: false
+        });
+      } else if (rejected.body.compatibility?.valid === false) {
+        assertJournalFields(journal, {
+          intentKind: 'add_module',
+          outcomeKind: 'rejected',
+          resultingVersion: null,
+          compatibilityValid: false
+        });
+      } else {
+        assert.equal(rejected.body.responseType, 'scene');
+        assert.match(rejected.body.message, /policy|Conflict resolved/i);
+        assertJournalFields(journal, {
+          intentKind: 'add_module',
+          outcomeKind: 'applied',
+          resultingVersion: rejected.body.planVersion,
+          compatibilityValid: true
+        });
+      }
     });
   });
 

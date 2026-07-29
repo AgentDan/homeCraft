@@ -1,5 +1,6 @@
 import { assertCompatible } from '../compatibility-engine/assertCompatible.js';
 import { generateCandidates } from '../compatibility-engine/candidate-generator.js';
+import { decideCandidates } from '../policy/decide-candidates.js';
 import { buildOutput, buildCandidatesResponse } from './output-builder.js';
 import { runPipeline as runKitchenPipeline } from '../domain-modules/kitchen/pipeline.js';
 import { getCachedBOM } from '../pricing-engine/bom-cache.js';
@@ -50,13 +51,74 @@ export async function runDownstream({
       request.projectId
     );
     if (candidates.length > 0) {
+      const decision = await decideCandidates(candidates, {
+        catalogSnapshotId: plan.catalogSnapshotId,
+        rejectedPlan: plan
+      });
+
+      if (decision.decision === 'auto_apply' && decision.winner) {
+        const winner = decision.winner;
+        const appliedPlan = winner.candidate.plan;
+        const appliedScene = await runKitchenPipeline(appliedPlan, context);
+        const appliedBom = winner.candidate.bom;
+        /** @type {{ version: number } | null} */
+        let versionEntry = null;
+        if (persistVersion && existingVersion === undefined) {
+          versionEntry = await appendPlanVersion(
+            request.sessionId,
+            request.projectId,
+            appliedPlan,
+            request.requestId,
+            request.expectedVersion
+          );
+        }
+        const appliedCompat = await assertCompatible(appliedPlan, context);
+        const appliedMessage = t(language, 'policyApplied', {
+          sku: winner.candidate.replacedWithSku,
+          instanceId: winner.candidate.replacedInstanceId,
+          totalEur: appliedBom.totalEur
+        });
+        const policyNote = t(language, 'policyExplanation', {
+          score: winner.score,
+          gap: decision.gap,
+          policyVersion: decision.policy.version
+        });
+        return buildOutput({
+          request,
+          plan: appliedPlan,
+          scene: appliedScene,
+          bom: appliedBom,
+          compatibility: appliedCompat,
+          roomShape: context.roomShape,
+          budgetEur: context.budgetEur ?? null,
+          message: appliedMessage,
+          explanation: [explanation, policyNote].filter(Boolean).join(' '),
+          changeSummary: {
+            text: appliedMessage,
+            added: [winner.candidate.replacedWithSku],
+            removed: [winner.candidate.replacedInstanceId],
+            moved: []
+          },
+          view: view ?? { kind: '3d_scene', render: 'full' },
+          planVersion:
+            existingVersion
+            ?? versionEntry?.version
+            ?? context.planVersion
+            ?? 0,
+          branchId: branchMeta.branchId,
+          branchName: branchMeta.branchName
+        });
+      }
+
       return buildCandidatesResponse({
         request,
         plan,
         scene,
         bom,
         compatibility,
-        candidates,
+        scored: decision.ranked,
+        gap: decision.gap,
+        policyVersion: decision.policy.version,
         roomShape: context.roomShape,
         budgetEur: context.budgetEur ?? null,
         explanation,
@@ -94,6 +156,7 @@ export async function runDownstream({
     });
   }
 
+  /** @type {{ version: number } | null} */
   let versionEntry = null;
   if (persistVersion && existingVersion === undefined) {
     versionEntry = await appendPlanVersion(

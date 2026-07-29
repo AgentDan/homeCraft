@@ -1,7 +1,6 @@
 import { boundingBox, boxesOverlap } from './geometry.js';
 
 /** Overlap rule: two modules must not occupy the same volume (broad-phase via spatial index). */
-export const RULE_ID = 'overlap';
 
 /**
  * @param {import('./types.js').RuleContext} ctx

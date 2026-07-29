@@ -46,7 +46,7 @@ export const PlanVersionEntrySchema = z.object({
   createdAt: z.string().datetime().optional()
 });
 
-export const PlanBranchSchema = z.object({
+const PlanBranchSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   /** Versions committed on this branch (linear undo/redo within the branch). */
@@ -73,7 +73,7 @@ const PlanHistoryObjectSchema = z.object({
  * Migrates legacy linear `{ entries, currentIndex }` histories to the tree shape.
  * @param {unknown} raw
  */
-export function migratePlanHistory(raw) {
+function migratePlanHistory(raw) {
   if (!raw || typeof raw !== 'object') {
     return raw;
   }

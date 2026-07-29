@@ -1,7 +1,6 @@
 import { footprint } from './geometry.js';
 
 /** Room-bounds rule: a module must stay inside the room shell. */
-export const RULE_ID = 'dimensions';
 
 /**
  * @param {import('./types.js').RuleContext} ctx

@@ -8,8 +8,6 @@ import { centerXZ } from './geometry.js';
  * kind, that requirement is treated as "not modeled yet" and skipped rather than
  * rejected — this keeps Phase 1 rooms (empty utilities) valid.
  */
-export const RULE_ID = 'utilities';
-
 const MAX_UTILITY_DISTANCE_MM = 900;
 
 /**

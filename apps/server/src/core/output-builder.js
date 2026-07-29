@@ -136,27 +136,39 @@ export function buildOutput(input) {
 }
 
 /**
- * Builds an `options` response containing priced candidate plans after a conflict.
+ * Builds an `options` response containing priced candidate plans after a conflict
+ * when policy confidence is too low to auto-apply.
  */
 export function buildCandidatesResponse(input) {
   const language = normalizeLanguage(input.language ?? input.request?.language);
   const rejectDetails = input.compatibility.conflicts
     .map((conflict) => conflict.message)
     .join(' ');
-  const intro = t(language, 'candidatesIntro', {
-    count: input.candidates.length,
-    details: rejectDetails
+  const ranked = input.scored ?? [];
+  const intro = t(language, 'candidatesNearTie', {
+    count: ranked.length,
+    details: rejectDetails,
+    gap: input.gap ?? 0
   });
   const bomSummary = summarizeBOM(input.bom, language);
-  const explanationParts = [input.explanation, bomSummary].filter(Boolean);
+  const policyNote = input.policyVersion
+    ? t(language, 'policyNearTieNote', {
+        gap: input.gap ?? 0,
+        policyVersion: input.policyVersion
+      })
+    : undefined;
+  const explanationParts = [input.explanation, policyNote, bomSummary].filter(
+    Boolean
+  );
 
-  const options = input.candidates.map((candidate, index) => ({
+  const options = ranked.map((entry, index) => ({
     id: `candidate-${index + 1}`,
-    label: t(language, 'candidateOption', {
+    label: t(language, 'candidateOptionScored', {
       index: index + 1,
-      sku: candidate.replacedWithSku,
-      instanceId: candidate.replacedInstanceId,
-      totalEur: candidate.bom.totalEur
+      sku: entry.candidate.replacedWithSku,
+      instanceId: entry.candidate.replacedInstanceId,
+      totalEur: entry.candidate.bom.totalEur,
+      score: entry.score
     })
   }));
 
