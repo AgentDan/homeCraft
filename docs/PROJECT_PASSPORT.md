@@ -89,7 +89,7 @@ AI понимает клиента и переводит его слова в с
 
 **Phase 3 закрыта:** snapshots API, BOM cache (memory+Redis), BomPanel/BudgetIndicator, `budgetEur`.
 
-**Следующий шаг по Roadmap:** Step 6 — Candidates on conflict.
+**Следующий шаг по Roadmap:** Step 7 — Policy + confidence.
 
 ---
 
@@ -116,6 +116,7 @@ DoD каждой фазы: acceptance criteria выполнены + `lint`/`test
 | 2026-07-26 | Step 4: Production Export PDF (`export_project`, frozen by version+catalog) | Pilot MVP: клиент уносит спецификацию | Production блок ✅; next → 5 |
 | 2026-07-26 | Step 3: `replayJournal` + CI snapshot; детерминированный `planId` | Инвариант «истина в журнале» проверяется тестом | Next step → 4 |
 | 2026-07-26 | Step 2: `expectedVersion` + idempotency по `requestId` (409 `version_conflict`) | Защита от double-submit и гонок вкладок | Next step → 3; контракт ClientRequest |
+| 2026-07-29 | Step 6 — Candidates on conflict: `candidate-generator.js` строит до 3 валидных альтернатив с BOM при конфликте; `runDownstream` возвращает `options` response вместо hard reject; i18n `candidatesIntro`/`candidateOption` EN/RU/SR; тест `candidates.test.js` | Вместо отказа предлагать пользователю выбор из проверенных вариантов | Roadmap Step 6 ✅ |
 | 2026-07-26 | Журнал команд (JSONL), `summarizeBOM`, i18n зафиксирован как 🟢 | Закрыть жёлтые блоки Event Log и explanation templates | Карта блоков; Roadmap Step 1 |
 | 2026-07-25 | Языки интентов и UI: `en` / `ru` / `sr` (`LanguageSchema`, матчеры в `intent-registry`, `LOCALES`, i18n) | Закрыть вопрос языка до консультанта; UI и детект на трёх локалях | Инвариант 4; статус AI Understanding; открытый вопрос про язык |
 | 2026-07-22 | Phase 3 (ветка `phase-3`): BOM cache (memory+Redis), `GET /api/catalog/snapshots`, клиентские BomPanel/BudgetIndicator, `budgetEur` в ClientResponse | Дать видимую смету/бюджет и ускорить повторный BOM | Раздел 6 (Phase 3 в работе); Redis в стеке |

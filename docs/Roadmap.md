@@ -9,7 +9,7 @@ Phases 0–3 ✅. Pilot MVP = Step 4. Order: `1→2→3→4`, `5→6→7`, `8` p
 - [x] **3. Replay test in CI** — `replayJournal` == snapshot
 - [x] **4. Production Export** — PDF bound to version + catalog snapshot
 - [x] **5. Branches** — history as tree (`create_branch` / `switch_branch`)
-- [ ] **6. Candidates on conflict** — 2–3 priced options instead of hard reject
+- [x] **6. Candidates on conflict** — 2–3 priced options instead of hard reject
 - [ ] **7. Policy + confidence** — `policy.yaml` weights; ask on near-tie
 - [ ] **8. LLM parser (flag)** — intent JSON + Zod; fallback to rules
 - [ ] **9. Voice input** — STT V1–V5 ([voice-stt-plan.md](voice-stt-plan.md))

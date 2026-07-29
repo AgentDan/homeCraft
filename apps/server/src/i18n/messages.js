@@ -47,6 +47,10 @@ const MESSAGES = {
     bomSummary:
       'Estimate: {lineCount} line(s), subtotal €{subtotalEur}, total €{totalEur} (catalog {catalogSnapshotId}).',
     changesRejected: 'Changes rejected: {details}',
+    candidatesIntro:
+      'The change caused a conflict ({details}). Here are {count} alternative(s):',
+    candidateOption:
+      'Option {index}: replace {instanceId} with {sku} — total €{totalEur}',
     budgetExceeded: 'The cost exceeds the budget by €{over}.',
     clarifyAddModule:
       'Which module should be added? Enter a type and width, for example "base cabinet 600".',
@@ -96,6 +100,10 @@ const MESSAGES = {
     bomSummary:
       'Смета: {lineCount} поз., сумма €{subtotalEur}, итого €{totalEur} (каталог {catalogSnapshotId}).',
     changesRejected: 'Изменения отклонены: {details}',
+    candidatesIntro:
+      'Изменение вызвало конфликт ({details}). Вот {count} альтернатив(ы):',
+    candidateOption:
+      'Вариант {index}: заменить {instanceId} на {sku} — итого €{totalEur}',
     budgetExceeded: 'Стоимость превышает бюджет на €{over}.',
     clarifyAddModule:
       'Какой модуль добавить? Укажите тип и ширину, например «шкаф 600».',
@@ -145,6 +153,10 @@ const MESSAGES = {
     bomSummary:
       'Predračun: {lineCount} stavki, međuzbir €{subtotalEur}, ukupno €{totalEur} (katalog {catalogSnapshotId}).',
     changesRejected: 'Izmene odbijene: {details}',
+    candidatesIntro:
+      'Izmena je izazvala konflikt ({details}). Evo {count} alternativa:',
+    candidateOption:
+      'Opcija {index}: zameni {instanceId} sa {sku} — ukupno €{totalEur}',
     budgetExceeded: 'Cena premašuje budžet za €{over}.',
     clarifyAddModule:
       'Koji modul da dodam? Unesite tip i širinu, na primer „ormar 600”.',

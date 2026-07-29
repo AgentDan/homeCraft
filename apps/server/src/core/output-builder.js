@@ -135,6 +135,61 @@ export function buildOutput(input) {
   });
 }
 
+/**
+ * Builds an `options` response containing priced candidate plans after a conflict.
+ */
+export function buildCandidatesResponse(input) {
+  const language = normalizeLanguage(input.language ?? input.request?.language);
+  const rejectDetails = input.compatibility.conflicts
+    .map((conflict) => conflict.message)
+    .join(' ');
+  const intro = t(language, 'candidatesIntro', {
+    count: input.candidates.length,
+    details: rejectDetails
+  });
+  const bomSummary = summarizeBOM(input.bom, language);
+  const explanationParts = [input.explanation, bomSummary].filter(Boolean);
+
+  const options = input.candidates.map((candidate, index) => ({
+    id: `candidate-${index + 1}`,
+    label: t(language, 'candidateOption', {
+      index: index + 1,
+      sku: candidate.replacedWithSku,
+      instanceId: candidate.replacedInstanceId,
+      totalEur: candidate.bom.totalEur
+    })
+  }));
+
+  return ClientResponseSchema.parse({
+    requestId: input.request.requestId,
+    sessionId: input.request.sessionId,
+    projectId: input.request.projectId,
+    status: 'needs_input',
+    responseType: 'options',
+    message: intro,
+    speech: summarizeForSpeech(intro),
+    explanation: explanationParts.length > 0 ? explanationParts.join(' ') : undefined,
+    changeSummary: { text: intro, added: [], removed: [], moved: [] },
+    view: { kind: '3d_scene', render: 'full' },
+    interaction: {
+      expects: 'choice',
+      prompt: intro,
+      options
+    },
+    planVersion: input.planVersion ?? 0,
+    branchId: input.branchId,
+    branchName: input.branchName,
+    plan: input.plan,
+    sceneResult: input.scene ?? null,
+    roomShape: input.roomShape ?? null,
+    bom: input.bom ?? null,
+    budgetEur: input.budgetEur ?? null,
+    compatibility: input.compatibility,
+    errors: [],
+    createdAt: new Date().toISOString()
+  });
+}
+
 export function buildUnknownIntentResponse(request, _context, planVersion = 0) {
   const language = normalizeLanguage(request.language);
   const prompt = t(language, 'unknownIntent');

@@ -1,5 +1,6 @@
 import { assertCompatible } from '../compatibility-engine/assertCompatible.js';
-import { buildOutput } from './output-builder.js';
+import { generateCandidates } from '../compatibility-engine/candidate-generator.js';
+import { buildOutput, buildCandidatesResponse } from './output-builder.js';
 import { runPipeline as runKitchenPipeline } from '../domain-modules/kitchen/pipeline.js';
 import { getCachedBOM } from '../pricing-engine/bom-cache.js';
 import {
@@ -38,14 +39,63 @@ export async function runDownstream({
   const compatibility = await assertCompatible(plan, context);
   const scene = await runKitchenPipeline(plan, context);
   const bom = await getCachedBOM(plan, plan.catalogSnapshotId);
-  const effectiveMessage = compatibility.valid
-    ? message
-    : t(language, 'changesRejected', {
-        details: compatibility.conflicts.map((conflict) => conflict.message).join(' ')
+  if (!compatibility.valid) {
+    const candidates = await generateCandidates({
+      plan,
+      compatibility,
+      context
+    });
+    const branchMeta = await getActiveBranchMeta(
+      request.sessionId,
+      request.projectId
+    );
+    if (candidates.length > 0) {
+      return buildCandidatesResponse({
+        request,
+        plan,
+        scene,
+        bom,
+        compatibility,
+        candidates,
+        roomShape: context.roomShape,
+        budgetEur: context.budgetEur ?? null,
+        explanation,
+        planVersion: existingVersion ?? context.planVersion ?? 0,
+        branchId: branchMeta.branchId,
+        branchName: branchMeta.branchName,
+        language
       });
+    }
+    const rejectMessage = t(language, 'changesRejected', {
+      details: compatibility.conflicts
+        .map((conflict) => conflict.message)
+        .join(' ')
+    });
+    return buildOutput({
+      request,
+      plan,
+      scene,
+      bom,
+      compatibility,
+      roomShape: context.roomShape,
+      budgetEur: context.budgetEur ?? null,
+      message: rejectMessage,
+      explanation,
+      changeSummary: {
+        text: rejectMessage,
+        added: [],
+        removed: [],
+        moved: []
+      },
+      view,
+      planVersion: existingVersion ?? context.planVersion ?? 0,
+      branchId: branchMeta.branchId,
+      branchName: branchMeta.branchName
+    });
+  }
 
   let versionEntry = null;
-  if (persistVersion && existingVersion === undefined && compatibility.valid) {
+  if (persistVersion && existingVersion === undefined) {
     versionEntry = await appendPlanVersion(
       request.sessionId,
       request.projectId,
@@ -75,18 +125,11 @@ export async function runDownstream({
     compatibility,
     roomShape: context.roomShape,
     budgetEur: context.budgetEur ?? null,
-    message: effectiveMessage,
+    message,
     explanation: budgetExplanation
       ? [explanation, budgetExplanation].filter(Boolean).join(' ')
       : explanation,
-    changeSummary: compatibility.valid
-      ? changeSummary
-      : {
-          text: effectiveMessage,
-          added: [],
-          removed: [],
-          moved: []
-        },
+    changeSummary,
     view,
     planVersion: existingVersion ?? versionEntry?.version ?? context.planVersion ?? 0,
     branchId: branchMeta.branchId,
