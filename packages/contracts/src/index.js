@@ -41,11 +41,10 @@ export {
 export {
   CompatibilityReportSchema,
   ConflictSchema,
-  ConflictKindSchema,
-  createValidCompatibilityReport
+  ConflictKindSchema
 } from './compatibility.js';
 
-export { BOMSchema, BOMLineSchema, createEmptyBOM } from './bom.js';
+export { BOMSchema, BOMLineSchema } from './bom.js';
 
 export {
   LanguageSchema,

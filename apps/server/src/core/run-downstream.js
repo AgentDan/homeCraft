@@ -2,7 +2,10 @@ import { assertCompatible } from '../compatibility-engine/assertCompatible.js';
 import { buildOutput } from './output-builder.js';
 import { runPipeline as runKitchenPipeline } from '../domain-modules/kitchen/pipeline.js';
 import { getCachedBOM } from '../pricing-engine/bom-cache.js';
-import { appendPlanVersion } from '../storage/local-storage.js';
+import {
+  appendPlanVersion,
+  getActiveBranchMeta
+} from '../storage/local-storage.js';
 import { normalizeLanguage, t } from '../i18n/messages.js';
 
 /**
@@ -59,6 +62,11 @@ export async function runDownstream({
         })
       : undefined;
 
+  const branchMeta = await getActiveBranchMeta(
+    request.sessionId,
+    request.projectId
+  );
+
   return buildOutput({
     request,
     plan,
@@ -80,6 +88,8 @@ export async function runDownstream({
           moved: []
         },
     view,
-    planVersion: existingVersion ?? versionEntry?.version ?? context.planVersion ?? 0
+    planVersion: existingVersion ?? versionEntry?.version ?? context.planVersion ?? 0,
+    branchId: branchMeta.branchId,
+    branchName: branchMeta.branchName
   });
 }

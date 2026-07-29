@@ -35,7 +35,7 @@ AI понимает клиента и переводит его слова в с
 | Scene Graph / 3D Engine | `domain-modules/kitchen/pipeline.js` + client `ScenePreview.jsx` (R3F) | детерминированный | ✅ базовая версия |
 | Calculation Engine | `pricing-engine/calculateBOM.js` + `bom-cache.js` | детерминированный, чистый калькулятор + кэш | ✅ snapshot BOM + cache |
 | Production / ERP Integration | `export/*` + `GET /api/exports/:id` | детерминированный | ✅ PDF export (Step 4) |
-| Command journal | `storage/local-storage.js` (append-only JSONL) | детерминированный | ✅ |
+| Command journal | `storage/local-storage.js` (append-only JSONL) + tree `PlanHistory` | детерминированный | ✅ Step 5 branches |
 | Explanation (templates) | `output-builder.js` + `summarizeBOM` + i18n | детерминированный | ✅ templates; LLM 🔲 Step 10 |
 
 **Соответствие с исходным документом:** блоки почти полностью совпадают 1:1. Отличие — в документе RAG и 3D Engine описаны как отдельные крупные подсистемы, в коде они пока встроены как модули внутри общего пайплайна, без выделенных сервисов.
@@ -89,7 +89,7 @@ AI понимает клиента и переводит его слова в с
 
 **Phase 3 закрыта:** snapshots API, BOM cache (memory+Redis), BomPanel/BudgetIndicator, `budgetEur`.
 
-**Следующий шаг по Roadmap:** Step 5 — Branches (history as tree).
+**Следующий шаг по Roadmap:** Step 6 — Candidates on conflict.
 
 ---
 
@@ -112,6 +112,7 @@ DoD каждой фазы: acceptance criteria выполнены + `lint`/`test
 
 | Дата | Что изменили | Почему | Что устарело в паспорте |
 |---|---|---|---|
+| 2026-07-29 | Step 5: PlanHistory as tree (`create_branch` / `switch_branch`, `branchId` in response) | Сравнивать варианты без потери соседних путей | Next step → 6 |
 | 2026-07-26 | Step 4: Production Export PDF (`export_project`, frozen by version+catalog) | Pilot MVP: клиент уносит спецификацию | Production блок ✅; next → 5 |
 | 2026-07-26 | Step 3: `replayJournal` + CI snapshot; детерминированный `planId` | Инвариант «истина в журнале» проверяется тестом | Next step → 4 |
 | 2026-07-26 | Step 2: `expectedVersion` + idempotency по `requestId` (409 `version_conflict`) | Защита от double-submit и гонок вкладок | Next step → 3; контракт ClientRequest |

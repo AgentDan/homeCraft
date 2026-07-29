@@ -98,7 +98,7 @@ export async function getStorageStatus() {
   };
 }
 
-export async function saveSession(session) {
+async function saveSession(session) {
   await ensureStorage();
   const sessionId = sanitizeId(session.sessionId, 'local-session');
   const filePath = sessionFilePath(sessionId);
@@ -141,13 +141,58 @@ export async function recordCommandRequest(clientRequest) {
   return { session: sessionRef };
 }
 
+const MAIN_BRANCH_ID = 'main';
+
 function createEmptyPlanHistory(projectId) {
   return PlanHistorySchema.parse({
     projectId,
     entries: [],
-    currentIndex: -1,
+    branches: [
+      {
+        id: MAIN_BRANCH_ID,
+        name: MAIN_BRANCH_ID,
+        versions: [],
+        currentIndex: -1,
+        baseVersion: null
+      }
+    ],
+    activeBranchId: MAIN_BRANCH_ID,
     nextVersion: 1
   });
+}
+
+/**
+ * @param {import('zod').infer<typeof PlanHistorySchema>} history
+ */
+function getActiveBranch(history) {
+  return (
+    history.branches.find((branch) => branch.id === history.activeBranchId) ??
+    history.branches[0] ??
+    null
+  );
+}
+
+/**
+ * @param {import('zod').infer<typeof PlanHistorySchema>} history
+ */
+export function resolveCurrentEntry(history) {
+  const branch = getActiveBranch(history);
+  if (!branch) {
+    return null;
+  }
+  if (branch.currentIndex >= 0) {
+    const version = branch.versions[branch.currentIndex];
+    if (typeof version === 'number') {
+      return history.entries.find((entry) => entry.version === version) ?? null;
+    }
+  }
+  if (branch.baseVersion != null) {
+    return (
+      history.entries.find((entry) => entry.version === branch.baseVersion) ??
+      null
+    );
+  }
+  return null;
 }
 
 export async function loadPlanHistory(sessionId, projectId) {
@@ -161,10 +206,20 @@ export async function loadPlanHistory(sessionId, projectId) {
 
 export async function getCurrentPlanVersion(sessionId, projectId) {
   const history = await loadPlanHistory(sessionId, projectId);
-  if (history.currentIndex < 0 || history.entries.length === 0) {
-    return 0;
-  }
-  return history.entries[history.currentIndex].version;
+  return resolveCurrentEntry(history)?.version ?? 0;
+}
+
+/**
+ * @param {string} sessionId
+ * @param {string} projectId
+ */
+export async function getActiveBranchMeta(sessionId, projectId) {
+  const history = await loadPlanHistory(sessionId, projectId);
+  const branch = getActiveBranch(history);
+  return {
+    branchId: branch?.id ?? MAIN_BRANCH_ID,
+    branchName: branch?.name ?? MAIN_BRANCH_ID
+  };
 }
 
 /**
@@ -176,7 +231,7 @@ export async function getCurrentPlanVersion(sessionId, projectId) {
  *   expectedVersion: number
  * }}
  */
-export function createVersionConflictError(currentVersion, expectedVersion) {
+function createVersionConflictError(currentVersion, expectedVersion) {
   const error = /** @type {Error & {
  *   code: 'version_conflict',
  *   currentVersion: number,
@@ -257,10 +312,11 @@ export async function appendPlanVersion(
   expectedVersion
 ) {
   const history = await loadPlanHistory(sessionId, projectId);
-  const currentVersion =
-    history.currentIndex < 0 || history.entries.length === 0
-      ? 0
-      : history.entries[history.currentIndex].version;
+  const branch = getActiveBranch(history);
+  if (!branch) {
+    throw new Error('plan_history_missing_branch');
+  }
+  const currentVersion = resolveCurrentEntry(history)?.version ?? 0;
 
   if (
     expectedVersion !== undefined &&
@@ -270,17 +326,34 @@ export async function appendPlanVersion(
     throw createVersionConflictError(currentVersion, expectedVersion);
   }
 
-  const retainedEntries = history.entries.slice(0, history.currentIndex + 1);
+  const retainedVersions =
+    branch.currentIndex < 0
+      ? []
+      : branch.versions.slice(0, branch.currentIndex + 1);
+  const parentVersion =
+    retainedVersions.length > 0
+      ? retainedVersions[retainedVersions.length - 1]
+      : branch.baseVersion;
   const createdAt = new Date().toISOString();
   const entry = {
     version: history.nextVersion,
     plan: structuredClone(plan),
+    branchId: branch.id,
+    parentVersion,
     ...(requestId ? { requestId, createdAt } : { createdAt })
+  };
+  const nextBranch = {
+    ...branch,
+    versions: [...retainedVersions, entry.version],
+    currentIndex: retainedVersions.length
   };
   const nextHistory = PlanHistorySchema.parse({
     projectId,
-    entries: [...retainedEntries, entry],
-    currentIndex: retainedEntries.length,
+    entries: [...history.entries, entry],
+    branches: history.branches.map((item) =>
+      item.id === branch.id ? nextBranch : item
+    ),
+    activeBranchId: history.activeBranchId,
     nextVersion: history.nextVersion + 1
   });
 
@@ -290,19 +363,129 @@ export async function appendPlanVersion(
 
 export async function navigatePlanHistory(sessionId, projectId, direction) {
   const history = await loadPlanHistory(sessionId, projectId);
-  const offset = direction === 'undo' ? -1 : 1;
-  const targetIndex = history.currentIndex + offset;
-
-  if (targetIndex < 0 || targetIndex >= history.entries.length) {
+  const branch = getActiveBranch(history);
+  if (!branch) {
     return null;
+  }
+  const offset = direction === 'undo' ? -1 : 1;
+  const targetIndex = branch.currentIndex + offset;
+
+  if (targetIndex >= branch.versions.length) {
+    return null;
+  }
+  // Root main cannot undo past the first commit (matches legacy linear stack).
+  if (targetIndex < 0 && branch.baseVersion == null) {
+    return null;
+  }
+  if (targetIndex < -1) {
+    return null;
+  }
+
+  const nextBranch = { ...branch, currentIndex: targetIndex };
+  const nextHistory = PlanHistorySchema.parse({
+    ...history,
+    branches: history.branches.map((item) =>
+      item.id === branch.id ? nextBranch : item
+    )
+  });
+  await saveSession({ sessionId, planHistory: nextHistory });
+  const entry = resolveCurrentEntry(nextHistory);
+  return entry ? structuredClone(entry) : null;
+}
+
+function sanitizeBranchName(value) {
+  const cleaned = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return cleaned.slice(0, 48);
+}
+
+/**
+ * Forks a new branch from the current tip and activates it.
+ * @param {string} sessionId
+ * @param {string} projectId
+ * @param {string} [requestedName]
+ * @returns {Promise<
+ *   | { ok: true, branch: object, entry: object }
+ *   | { ok: false, reason: 'empty' | 'exists', name?: string }
+ * >}
+ */
+export async function createPlanBranch(sessionId, projectId, requestedName) {
+  const history = await loadPlanHistory(sessionId, projectId);
+  const entry = resolveCurrentEntry(history);
+  if (!entry) {
+    return { ok: false, reason: 'empty' };
+  }
+
+  const fallbackName = `branch-${history.branches.length + 1}`;
+  const name = sanitizeBranchName(requestedName) || fallbackName;
+  const exists = history.branches.some(
+    (branch) =>
+      branch.id === name || branch.name.toLowerCase() === name.toLowerCase()
+  );
+  if (exists) {
+    return { ok: false, reason: 'exists', name };
+  }
+
+  const branch = {
+    id: name,
+    name,
+    versions: [],
+    currentIndex: -1,
+    baseVersion: entry.version,
+    createdAt: new Date().toISOString()
+  };
+  const nextHistory = PlanHistorySchema.parse({
+    ...history,
+    branches: [...history.branches, branch],
+    activeBranchId: branch.id
+  });
+  await saveSession({ sessionId, planHistory: nextHistory });
+  return {
+    ok: true,
+    branch,
+    entry: structuredClone(entry)
+  };
+}
+
+/**
+ * Activates an existing branch by id or name.
+ * @param {string} sessionId
+ * @param {string} projectId
+ * @param {string} nameOrId
+ * @returns {Promise<
+ *   | { ok: true, branch: object, entry: object | null }
+ *   | { ok: false, reason: 'missing_name' | 'not_found' }
+ * >}
+ */
+export async function switchPlanBranch(sessionId, projectId, nameOrId) {
+  const needle = sanitizeBranchName(nameOrId);
+  if (!needle) {
+    return { ok: false, reason: 'missing_name' };
+  }
+
+  const history = await loadPlanHistory(sessionId, projectId);
+  const branch = history.branches.find(
+    (item) =>
+      item.id.toLowerCase() === needle || item.name.toLowerCase() === needle
+  );
+  if (!branch) {
+    return { ok: false, reason: 'not_found' };
   }
 
   const nextHistory = PlanHistorySchema.parse({
     ...history,
-    currentIndex: targetIndex
+    activeBranchId: branch.id
   });
   await saveSession({ sessionId, planHistory: nextHistory });
-  return structuredClone(nextHistory.entries[targetIndex]);
+  const entry = resolveCurrentEntry(nextHistory);
+  return {
+    ok: true,
+    branch,
+    entry: entry ? structuredClone(entry) : null
+  };
 }
 
 function commandJournalPath(projectId) {

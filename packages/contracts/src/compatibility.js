@@ -21,11 +21,3 @@ export const CompatibilityReportSchema = z.object({
   conflicts: z.array(ConflictSchema),
   checkedAt: z.string().datetime()
 });
-
-export function createValidCompatibilityReport() {
-  return {
-    valid: true,
-    conflicts: [],
-    checkedAt: new Date().toISOString()
-  };
-}

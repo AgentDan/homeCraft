@@ -2,6 +2,7 @@ import { RoomContextSchema } from '@homecraft/contracts';
 import {
   loadPlanHistory,
   loadSessionDocument,
+  resolveCurrentEntry,
   saveRoomContextState
 } from '../storage/local-storage.js';
 import {
@@ -40,7 +41,8 @@ export async function buildRoomContext(userId, projectId, sessionId, inputChanne
     session.roomContext?.projectId === projectId
       ? session.roomContext
       : mongoProject ?? {};
-  const currentPlan = history.entries[history.currentIndex]?.plan;
+  const currentEntry = resolveCurrentEntry(history);
+  const currentPlan = currentEntry?.plan;
   const context = {
     projectId,
     sessionId,
@@ -50,10 +52,7 @@ export async function buildRoomContext(userId, projectId, sessionId, inputChanne
     roomShape: persisted.roomShape ?? defaultRoomShape(),
     budgetEur: persisted.budgetEur,
     planOperations: currentPlan?.operations ?? mongoProject?.planOperations ?? [],
-    planVersion:
-      history.entries[history.currentIndex]?.version
-      ?? mongoProject?.planVersion
-      ?? 0,
+    planVersion: currentEntry?.version ?? mongoProject?.planVersion ?? 0,
     dialogTurns: persisted.dialogTurns ?? [],
     updatedAt: new Date().toISOString()
   };

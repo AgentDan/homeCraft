@@ -17,14 +17,3 @@ export const BOMSchema = z.object({
   totalEur: z.number().nonnegative(),
   calculatedAt: z.string().datetime()
 });
-
-export function createEmptyBOM(catalogSnapshotId) {
-  return {
-    catalogSnapshotId,
-    lines: [],
-    subtotalEur: 0,
-    vatEur: 0,
-    totalEur: 0,
-    calculatedAt: new Date().toISOString()
-  };
-}

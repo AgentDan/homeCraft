@@ -10,6 +10,8 @@ export const IntentKindSchema = z.enum([
   'set_budget',
   'show_price',
   'export_project',
+  'create_branch',
+  'switch_branch',
   'undo',
   'redo',
   'help',
@@ -25,6 +27,7 @@ export const IntentSlotsSchema = z
     finishId: z.string().optional(),
     category: z.string().optional(),
     layout: z.string().optional(),
+    branchName: z.string().optional(),
     roomWidthMm: z.number().positive().optional(),
     roomDepthMm: z.number().positive().optional()
   })

@@ -73,6 +73,8 @@ export const ClientResponseSchema = z.object({
   view: ViewSchema.optional(),
   interaction: InteractionSchema.default({ expects: 'none' }),
   planVersion: z.number().int().nonnegative().default(0),
+  branchId: z.string().min(1).optional(),
+  branchName: z.string().min(1).optional(),
   plan: ConfigurationPlanSchema.optional(),
   sceneResult: SceneResultSchema.nullable().optional(),
   roomShape: RoomShapeSchema.nullable().optional(),

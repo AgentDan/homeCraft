@@ -81,7 +81,7 @@ export function buildChangeSummary(plan, message, options = {}) {
  * } | null | undefined} bom
  * @param {unknown} language
  */
-export function summarizeBOM(bom, language) {
+function summarizeBOM(bom, language) {
   if (!bom) {
     return '';
   }
@@ -115,6 +115,8 @@ export function buildOutput(input) {
       view: input.view ?? { kind: '2d_plan', render: 'full' },
       interaction: { expects: 'none' },
       planVersion: input.planVersion ?? 0,
+      branchId: input.branchId,
+      branchName: input.branchName,
       plan: input.plan,
       sceneResult: input.scene,
       roomShape: input.roomShape ?? null,

@@ -42,6 +42,19 @@ describe('@homecraft/ai smoke', () => {
     assert.equal(matchIntent('экспорт pdf', { language: 'ru' }).kind, 'export_project');
   });
 
+  it('detects create_branch and switch_branch', () => {
+    const created = matchIntent('create branch alt');
+    assert.equal(created.kind, 'create_branch');
+    assert.equal(created.slots?.branchName, 'alt');
+    assert.equal(
+      matchIntent('создай ветку option-b', { language: 'ru' }).kind,
+      'create_branch'
+    );
+    const switched = matchIntent('switch branch main');
+    assert.equal(switched.kind, 'switch_branch');
+    assert.equal(switched.slots?.branchName, 'main');
+  });
+
   it('detects undo and redo without ambiguous fallback', () => {
     assert.equal(matchIntent('revert the last change').kind, 'undo');
     assert.equal(matchIntent('repeat').kind, 'redo');

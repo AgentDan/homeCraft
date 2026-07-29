@@ -27,6 +27,15 @@ const MESSAGES = {
     nothingToRedo: 'There is nothing to redo. Undo a change first.',
     undone: 'The last change was undone.',
     redone: 'The undone change was restored.',
+    branchCreated: 'Created branch "{name}" and switched to it.',
+    branchSwitched: 'Switched to branch "{name}".',
+    branchEmpty: 'Add modules before creating a branch.',
+    branchExists:
+      'Branch "{name}" already exists. Say "switch branch {name}" to open it.',
+    branchNotFound:
+      'Branch "{name}" was not found. Create it with "create branch {name}".',
+    branchSwitchClarify:
+      'Which branch should I open? For example "switch branch main".',
     budgetClarify: 'Enter a numeric budget, for example "budget up to 150000".',
     starterKitchenAdded: 'Starter kitchen added: {count} modules.',
     moduleAdded: 'Module {sku} added.',
@@ -67,6 +76,15 @@ const MESSAGES = {
     nothingToRedo: 'Нечего повторить. Сначала отмените изменение.',
     undone: 'Последнее изменение отменено.',
     redone: 'Отменённое изменение восстановлено.',
+    branchCreated: 'Создана ветка «{name}» и выполнен переход на неё.',
+    branchSwitched: 'Переключение на ветку «{name}».',
+    branchEmpty: 'Сначала добавьте модули, затем создайте ветку.',
+    branchExists:
+      'Ветка «{name}» уже есть. Скажите «переключи ветку {name}».',
+    branchNotFound:
+      'Ветка «{name}» не найдена. Создайте её командой «создай ветку {name}».',
+    branchSwitchClarify:
+      'На какую ветку переключиться? Например «переключи ветку main».',
     budgetClarify: 'Укажите числовой бюджет, например «бюджет до 150000».',
     starterKitchenAdded: 'Стартовая кухня добавлена: {count} модулей.',
     moduleAdded: 'Модуль {sku} добавлен.',
@@ -107,6 +125,15 @@ const MESSAGES = {
     nothingToRedo: 'Nema šta da se ponovi. Prvo poništite izmenu.',
     undone: 'Poslednja izmena je poništena.',
     redone: 'Poništena izmena je vraćena.',
+    branchCreated: 'Kreirana je grana „{name}” i prebačeno je na nju.',
+    branchSwitched: 'Prebaceno na granu „{name}”.',
+    branchEmpty: 'Prvo dodajte module, pa kreirajte granu.',
+    branchExists:
+      'Grana „{name}” već postoji. Recite „prebaci granu {name}”.',
+    branchNotFound:
+      'Grana „{name}” nije pronađena. Kreirajte je sa „kreiraj granu {name}”.',
+    branchSwitchClarify:
+      'Na koju granu da prebacim? Na primer „prebaci granu main”.',
     budgetClarify: 'Unesite brojčani budžet, na primer „budžet do 150000”.',
     starterKitchenAdded: 'Početna kuhinja dodata: {count} modula.',
     moduleAdded: 'Modul {sku} je dodat.',
@@ -161,6 +188,8 @@ const HELP_EXAMPLES = {
     '"export pdf"',
     '"budget up to 150000"',
     '"add kitchen cabinet 3x4"',
+    '"create branch alt"',
+    '"switch branch main"',
     '"undo" or "redo"'
   ],
   ru: [
@@ -173,6 +202,8 @@ const HELP_EXAMPLES = {
     '«экспорт pdf»',
     '«бюджет до 150000»',
     '«кухня 3x4»',
+    '«создай ветку alt»',
+    '«переключи ветку main»',
     '«отмена» или «повтор»'
   ],
   sr: [
@@ -185,6 +216,8 @@ const HELP_EXAMPLES = {
     '„izvoz pdf”',
     '„budžet do 150000”',
     '„kuhinja 3x4”',
+    '„kreiraj granu alt”',
+    '„prebaci granu main”',
     '„poništi” ili „ponovi”'
   ]
 };

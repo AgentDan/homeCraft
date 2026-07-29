@@ -1,5 +1,39 @@
 const RULES = [
   {
+    kind: 'create_branch',
+    matchers: [
+      {
+        language: 'en',
+        patterns: [/\b(?:create|new)\s+branch\b/i]
+      },
+      {
+        language: 'ru',
+        patterns: [/(?:создай|создать|новая)\s+ветк/i]
+      },
+      {
+        language: 'sr',
+        patterns: [/(?:kreiraj|napravi|nova)\s+gran/i]
+      }
+    ]
+  },
+  {
+    kind: 'switch_branch',
+    matchers: [
+      {
+        language: 'en',
+        patterns: [/\bswitch\s+(?:to|branch)\b/i]
+      },
+      {
+        language: 'ru',
+        patterns: [/(?:переключ|смен)\w*\s+(?:на\s+)?ветк/i]
+      },
+      {
+        language: 'sr',
+        patterns: [/(?:prebaci|pređi|predi)\s+(?:na\s+)?gran/i]
+      }
+    ]
+  },
+  {
     kind: 'replace_module',
     matchers: [
       {
@@ -238,9 +272,31 @@ function parseMetricPair(rawText) {
  * @property {string} [finishId]
  * @property {string} [category]
  * @property {string} [layout]
+ * @property {string} [branchName]
  * @property {number} [roomWidthMm]
  * @property {number} [roomDepthMm]
  */
+
+/**
+ * @param {string} rawText
+ * @param {string} kind
+ * @returns {string | undefined}
+ */
+function extractBranchName(rawText, kind) {
+  if (kind === 'create_branch') {
+    const match = rawText.match(
+      /(?:create|new)\s+branch\s+([a-z0-9._-]+)|(?:создай|создать|новая)\s+ветк\w*\s+([a-z0-9._-]+)|(?:kreiraj|napravi|nova)\s+gran\w*\s+([a-z0-9._-]+)/i
+    );
+    return match?.[1] ?? match?.[2] ?? match?.[3];
+  }
+  if (kind === 'switch_branch') {
+    const match = rawText.match(
+      /switch\s+(?:to\s+)?(?:branch\s+)?([a-z0-9._-]+)|(?:переключ|смен)\w*\s+(?:на\s+)?ветк\w*\s+([a-z0-9._-]+)|(?:prebaci|pređi|predi)\s+(?:na\s+)?gran\w*\s+([a-z0-9._-]+)/i
+    );
+    return match?.[1] ?? match?.[2] ?? match?.[3];
+  }
+  return undefined;
+}
 
 /**
  * @param {string} rawText
@@ -260,11 +316,13 @@ function extractSlots(rawText, kind) {
     /\b(?:BASE|WALL|SINK|HOB|OVEN|CORNER|TALL|FRIDGE|DISHWASHER)-\d+\b/i
   );
   const instanceMatch = rawText.match(/\bmodule-\d+\b/i);
+  const branchName = extractBranchName(rawText, kind);
 
   if (widthMatch) slots.widthMm = Number(widthMatch[1]);
   if (budgetMatch) slots.budgetEur = Number(budgetMatch[1].replace(/[\s,]/g, ''));
   if (skuMatch) slots.sku = skuMatch[0].toUpperCase();
   if (instanceMatch) slots.instanceId = instanceMatch[0].toLowerCase();
+  if (branchName) slots.branchName = branchName.toLowerCase();
   if (/\boak\b|дуб|hrast|храст/i.test(rawText)) slots.finishId = 'oak';
   if (/\bwhite\b|бел|bel[ae]|bijel/i.test(rawText)) slots.finishId = 'white';
   if (/\bsink\b|мойк|sudoper|судопер/i.test(rawText)) slots.category = 'sink_cabinet';

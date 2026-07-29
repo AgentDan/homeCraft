@@ -52,7 +52,7 @@ export async function handleHistory(input) {
       explanation: `Intent: ${intentKind}`,
       existingVersion: entry.version,
       changeSummary: { text: message, added: [], removed: [], moved: [] },
-      view: { kind: '2d_plan', render: 'full' }
+      view: { kind: '3d_scene', render: 'full' }
     }),
     outcomeKind: OUTCOME.applied,
     createdVersion: false

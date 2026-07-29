@@ -1,5 +1,9 @@
 import { route } from '../core/orchestrator.js';
-import { loadCommandJournal, loadPlanHistory } from './local-storage.js';
+import {
+  loadCommandJournal,
+  loadPlanHistory,
+  resolveCurrentEntry
+} from './local-storage.js';
 
 /**
  * Strip volatile fields so two plans can be compared for replay purity.
@@ -21,14 +25,14 @@ export function normalizePlanSnapshot(plan) {
  */
 export async function loadCurrentPlanSnapshot(sessionId, projectId) {
   const history = await loadPlanHistory(sessionId, projectId);
-  if (history.currentIndex < 0 || history.entries.length === 0) {
+  const entry = resolveCurrentEntry(history);
+  if (!entry) {
     return {
       planVersion: 0,
       plan: null,
       normalized: null
     };
   }
-  const entry = history.entries[history.currentIndex];
   return {
     planVersion: entry.version,
     plan: structuredClone(entry.plan),

@@ -106,7 +106,12 @@ async function finalizeResponse({
 
 function resultingVersionFor(intentKind, response, createdVersion) {
   if (createdVersion) return response.planVersion ?? null;
-  if (intentKind === INTENT.undo || intentKind === INTENT.redo) {
+  if (
+    intentKind === INTENT.undo ||
+    intentKind === INTENT.redo ||
+    intentKind === INTENT.create_branch ||
+    intentKind === INTENT.switch_branch
+  ) {
     return response.planVersion ?? null;
   }
   return null;
