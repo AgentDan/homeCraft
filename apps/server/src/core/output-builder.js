@@ -4,6 +4,10 @@ import {
   createStubClientResponse
 } from '@homecraft/contracts';
 import { normalizeLanguage, t } from '../i18n/messages.js';
+import {
+  buildDecisionReport,
+  explainFromReport
+} from './decision-report.js';
 
 const OPERATION_ADD_MODULE = 'add_module';
 const OPERATION_REMOVE_MODULE = 'remove_module';
@@ -72,25 +76,37 @@ export function buildChangeSummary(plan, message, options = {}) {
 }
 
 /**
- * Deterministic BOM summary for explanations (no LLM).
+ * Resolve grounded explanation from intent/BOM/policy fields.
  * @param {{
- *   lines?: unknown[];
- *   subtotalEur?: number;
- *   totalEur?: number;
- *   catalogSnapshotId?: string;
- * } | null | undefined} bom
- * @param {unknown} language
+ *   intentKind?: string,
+ *   bom?: { lines?: unknown[], subtotalEur?: number, totalEur?: number } | null,
+ *   budgetEur?: number | null,
+ *   compatibility?: { valid?: boolean, conflicts?: unknown[] } | null,
+ *   policy?: {
+ *     decision: 'auto_apply' | 'ask_user' | 'none',
+ *     winnerSku?: string,
+ *     score?: number,
+ *     gap?: number,
+ *     policyVersion?: string
+ *   } | null,
+ *   explanation?: string
+ * }} input
+ * @param {string} language
+ * @param {string} message
  */
-function summarizeBOM(bom, language) {
-  if (!bom) {
-    return '';
+function resolveExplanation(input, language, message) {
+  if (input.intentKind || input.bom || input.compatibility || input.policy) {
+    const report = buildDecisionReport({
+      intentKind: input.intentKind,
+      message,
+      bom: input.bom,
+      budgetEur: input.budgetEur,
+      compatibility: input.compatibility,
+      policy: input.policy
+    });
+    return explainFromReport(report, language);
   }
-  return t(language, 'bomSummary', {
-    lineCount: bom.lines?.length ?? 0,
-    subtotalEur: bom.subtotalEur ?? 0,
-    totalEur: bom.totalEur ?? 0,
-    catalogSnapshotId: bom.catalogSnapshotId ?? ''
-  });
+  return input.explanation;
 }
 
 /**
@@ -99,8 +115,8 @@ function summarizeBOM(bom, language) {
 export function buildOutput(input) {
   const language = normalizeLanguage(input.request?.language ?? input.language);
   const message = input.message ?? t(language, 'commandProcessed');
-  const bomSummary = summarizeBOM(input.bom, language);
-  const explanationParts = [input.explanation, bomSummary].filter(Boolean);
+  const explanation = resolveExplanation(input, language, message);
+  const speechSource = explanation || message;
   const base = createStubClientResponse(
     {
       requestId: input.request.requestId,
@@ -109,8 +125,8 @@ export function buildOutput(input) {
     },
     {
       message,
-      speech: input.speech ?? summarizeForSpeech(message),
-      explanation: explanationParts.length > 0 ? explanationParts.join(' ') : undefined,
+      speech: input.speech ?? summarizeForSpeech(speechSource),
+      explanation,
       changeSummary: input.changeSummary ?? buildChangeSummary(input.plan, message),
       view: input.view ?? { kind: '2d_plan', render: 'full' },
       interaction: { expects: 'none' },
@@ -150,15 +166,20 @@ export function buildCandidatesResponse(input) {
     details: rejectDetails,
     gap: input.gap ?? 0
   });
-  const bomSummary = summarizeBOM(input.bom, language);
-  const policyNote = input.policyVersion
-    ? t(language, 'policyNearTieNote', {
+  const explanation = resolveExplanation(
+    {
+      intentKind: input.intentKind,
+      bom: input.bom,
+      budgetEur: input.budgetEur,
+      compatibility: input.compatibility,
+      policy: {
+        decision: 'ask_user',
         gap: input.gap ?? 0,
         policyVersion: input.policyVersion
-      })
-    : undefined;
-  const explanationParts = [input.explanation, policyNote, bomSummary].filter(
-    Boolean
+      }
+    },
+    language,
+    intro
   );
 
   const options = ranked.map((entry, index) => ({
@@ -179,8 +200,8 @@ export function buildCandidatesResponse(input) {
     status: 'needs_input',
     responseType: 'options',
     message: intro,
-    speech: summarizeForSpeech(intro),
-    explanation: explanationParts.length > 0 ? explanationParts.join(' ') : undefined,
+    speech: summarizeForSpeech(explanation || intro),
+    explanation,
     changeSummary: { text: intro, added: [], removed: [], moved: [] },
     view: { kind: '3d_scene', render: 'full' },
     interaction: {

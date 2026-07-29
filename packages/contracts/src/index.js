@@ -1,17 +1,11 @@
 export {
-  ClientRequestSchema,
-  InputChannelSchema
+  ClientRequestSchema
 } from './client-request.js';
 
 export {
   ClientResponseSchema,
-  ClientResponseStatusSchema,
   ClientResponseTypeSchema,
-  ChangeSummarySchema,
-  InteractionOptionSchema,
-  InteractionSchema,
   SceneResultSchema,
-  ViewSchema,
   createClarifyResponse,
   createConfirmResponse,
   createOptionsResponse,
@@ -20,38 +14,29 @@ export {
 
 export {
   ConfigurationPlanSchema,
-  PlanOperationSchema,
   PlanHistorySchema,
-  PlanVersionEntrySchema,
   createEmptyPlan
 } from './configuration-plan.js';
 
 export {
   RoomContextSchema,
-  RoomShapeSchema,
-  RoomDimensionsSchema
+  RoomShapeSchema
 } from './room-context.js';
 
 export {
   ModuleSchema,
-  RetrievedModuleSchema,
-  MountingKindSchema
+  RetrievedModuleSchema
 } from './module.js';
 
 export {
-  CompatibilityReportSchema,
-  ConflictSchema,
-  ConflictKindSchema
+  CompatibilityReportSchema
 } from './compatibility.js';
 
-export { BOMSchema, BOMLineSchema } from './bom.js';
+export { BOMSchema } from './bom.js';
 
 export {
   LanguageSchema,
-  IntentSchema,
   IntentKindSchema,
-  IntentSlotsSchema,
-  UnknownIntentSchema,
   IntentResultSchema
 } from './intent.js';
 

@@ -3,6 +3,7 @@ import {
   ConfigurationPlanSchema,
   createEmptyPlan
 } from '@homecraft/contracts';
+import { normalizeLanguage, t } from '../i18n/messages.js';
 
 function stablePlanId(projectId, operations) {
   const digest = createHash('sha256')
@@ -106,6 +107,7 @@ function starterKitchenOperations() {
 export async function generatePlan(input) {
   const operations = structuredClone(input.context.planOperations ?? []);
   const slots = input.intent.slots ?? {};
+  const language = normalizeLanguage(input.intent.language);
 
   if (input.intent.kind === 'add_module') {
     if (slots.layout === 'starter_kitchen') {
@@ -122,7 +124,7 @@ export async function generatePlan(input) {
         plan: createPlan(input, operations),
         outcome: {
           kind: 'clarify',
-          prompt: 'Which module should be added? Enter a type and width, for example "base cabinet 600".'
+          prompt: t(language, 'clarifyAddModule')
         }
       };
     }
@@ -148,7 +150,10 @@ export async function generatePlan(input) {
     if (!target) {
       return {
         plan: createPlan(input, operations),
-        outcome: { kind: 'clarify', prompt: 'The project has no module that can be removed.' }
+        outcome: {
+          kind: 'clarify',
+          prompt: t(language, 'clarifyNothingToRemove')
+        }
       };
     }
     operations.push({ type: 'remove_module', instanceId: target });
@@ -169,7 +174,7 @@ export async function generatePlan(input) {
         plan: createPlan(input, operations),
         outcome: {
           kind: 'clarify',
-          prompt: 'Specify a module and SKU to swap, for example "replace module-1 with BASE-400".'
+          prompt: t(language, 'clarifyReplace')
         }
       };
     }
@@ -178,7 +183,7 @@ export async function generatePlan(input) {
         plan: createPlan(input, operations),
         outcome: {
           kind: 'clarify',
-          prompt: `Module ${target} is not in the project.`
+          prompt: t(language, 'clarifyMissingModule', { target })
         }
       };
     }
@@ -197,7 +202,7 @@ export async function generatePlan(input) {
         plan: createPlan(input, operations),
         outcome: {
           kind: 'clarify',
-          prompt: 'Specify a finish and module, for example "change the last cabinet to oak".'
+          prompt: t(language, 'clarifyFinish')
         }
       };
     }

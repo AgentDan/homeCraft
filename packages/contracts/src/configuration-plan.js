@@ -37,7 +37,7 @@ export const ConfigurationPlanSchema = z.object({
   createdAt: z.string().datetime()
 });
 
-export const PlanVersionEntrySchema = z.object({
+const PlanVersionEntrySchema = z.object({
   version: z.number().int().nonnegative(),
   plan: ConfigurationPlanSchema,
   branchId: z.string().min(1).default('main'),

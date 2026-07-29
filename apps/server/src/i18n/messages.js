@@ -44,8 +44,14 @@ const MESSAGES = {
     finishSelected: 'Finish {finishId} selected for {instanceId}.',
     budgetSet: 'Budget set to €{budgetEur}.',
     priceCalculated: 'Project cost calculated.',
-    bomSummary:
-      'Estimate: {lineCount} line(s), subtotal €{subtotalEur}, total €{totalEur} (catalog {catalogSnapshotId}).',
+    explainIntent: 'Handled as {kind}.',
+    explainBom:
+      'Estimate: {lineCount} line(s), subtotal €{subtotalEur}, total €{totalEur}.',
+    explainPolicyApplied:
+      'Policy v{policyVersion} chose {sku} (score {score}, gap {gap}).',
+    explainPolicyNearTie:
+      'Policy v{policyVersion} near-tie (gap {gap}); choose among the options.',
+    explainConflict: 'Compatibility reported {count} conflict(s).',
     changesRejected: 'Changes rejected: {details}',
     candidatesNearTie:
       'The change caused a conflict ({details}). {count} alternatives are close in score (gap {gap}) — please choose:',
@@ -53,10 +59,6 @@ const MESSAGES = {
       'Option {index}: replace {instanceId} with {sku} — total €{totalEur} (score {score})',
     policyApplied:
       'Conflict resolved by policy: replaced {instanceId} with {sku} (total €{totalEur}).',
-    policyExplanation:
-      'Policy v{policyVersion} auto-applied (score {score}, gap {gap}).',
-    policyNearTieNote:
-      'Policy v{policyVersion} gap {gap} is below the auto-apply threshold — user choice required.',
     budgetExceeded: 'The cost exceeds the budget by €{over}.',
     clarifyAddModule:
       'Which module should be added? Enter a type and width, for example "base cabinet 600".',
@@ -103,8 +105,14 @@ const MESSAGES = {
     finishSelected: 'Отделка {finishId} выбрана для {instanceId}.',
     budgetSet: 'Бюджет установлен: €{budgetEur}.',
     priceCalculated: 'Стоимость проекта рассчитана.',
-    bomSummary:
-      'Смета: {lineCount} поз., сумма €{subtotalEur}, итого €{totalEur} (каталог {catalogSnapshotId}).',
+    explainIntent: 'Обработано как {kind}.',
+    explainBom:
+      'Смета: {lineCount} поз., сумма €{subtotalEur}, итого €{totalEur}.',
+    explainPolicyApplied:
+      'Policy v{policyVersion} выбрала {sku} (оценка {score}, разрыв {gap}).',
+    explainPolicyNearTie:
+      'Policy v{policyVersion}: близкие оценки (разрыв {gap}); выберите вариант.',
+    explainConflict: 'Совместимость: {count} конфликт(ов).',
     changesRejected: 'Изменения отклонены: {details}',
     candidatesNearTie:
       'Изменение вызвало конфликт ({details}). {count} альтернативы близки по оценке (разрыв {gap}) — выберите:',
@@ -112,10 +120,6 @@ const MESSAGES = {
       'Вариант {index}: заменить {instanceId} на {sku} — итого €{totalEur} (оценка {score})',
     policyApplied:
       'Конфликт разрешён политикой: {instanceId} заменён на {sku} (итого €{totalEur}).',
-    policyExplanation:
-      'Policy v{policyVersion} применена автоматически (оценка {score}, разрыв {gap}).',
-    policyNearTieNote:
-      'Policy v{policyVersion}: разрыв {gap} ниже порога — нужен выбор пользователя.',
     budgetExceeded: 'Стоимость превышает бюджет на €{over}.',
     clarifyAddModule:
       'Какой модуль добавить? Укажите тип и ширину, например «шкаф 600».',
@@ -162,8 +166,14 @@ const MESSAGES = {
     finishSelected: 'Završna obrada {finishId} izabrana za {instanceId}.',
     budgetSet: 'Budžet je postavljen na €{budgetEur}.',
     priceCalculated: 'Cena projekta je izračunata.',
-    bomSummary:
-      'Predračun: {lineCount} stavki, međuzbir €{subtotalEur}, ukupno €{totalEur} (katalog {catalogSnapshotId}).',
+    explainIntent: 'Obrađeno kao {kind}.',
+    explainBom:
+      'Predračun: {lineCount} stavki, međuzbir €{subtotalEur}, ukupno €{totalEur}.',
+    explainPolicyApplied:
+      'Policy v{policyVersion} izabrala {sku} (ocena {score}, razlika {gap}).',
+    explainPolicyNearTie:
+      'Policy v{policyVersion}: bliske ocene (razlika {gap}); izaberite opciju.',
+    explainConflict: 'Kompatibilnost: {count} konflikt(a).',
     changesRejected: 'Izmene odbijene: {details}',
     candidatesNearTie:
       'Izmena je izazvala konflikt ({details}). {count} alternative su blizu po oceni (razlika {gap}) — izaberite:',
@@ -171,10 +181,6 @@ const MESSAGES = {
       'Opcija {index}: zameni {instanceId} sa {sku} — ukupno €{totalEur} (ocena {score})',
     policyApplied:
       'Konflikt rešen politikom: {instanceId} zamenjen sa {sku} (ukupno €{totalEur}).',
-    policyExplanation:
-      'Policy v{policyVersion} primenjena automatski (ocena {score}, razlika {gap}).',
-    policyNearTieNote:
-      'Policy v{policyVersion}: razlika {gap} ispod praga — potreban izbor korisnika.',
     budgetExceeded: 'Cena premašuje budžet za €{over}.',
     clarifyAddModule:
       'Koji modul da dodam? Unesite tip i širinu, na primer „ormar 600”.',

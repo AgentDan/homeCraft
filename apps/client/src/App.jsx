@@ -8,6 +8,7 @@ import { ConflictPanel } from './components/ConflictPanel.jsx';
 import { LanguageSwitcher } from './components/LanguageSwitcher.jsx';
 import { ResponseRouter } from './components/ResponseRouter.jsx';
 import { useSpeech } from './hooks/useSpeech.js';
+import { useSpeechCommand } from './hooks/useSpeechCommand.js';
 import { useLocale } from './i18n/LocaleContext.jsx';
 import { replaceSuggestionCommand } from './i18n/strings.js';
 
@@ -75,17 +76,36 @@ const DEFAULT_ROOM_SHAPE = {
  * @param {{
  *   onVoice: () => void,
  *   disabled?: boolean,
- *   voiceTitle: string
+ *   voiceTitle: string,
+ *   listening?: boolean,
+ *   muted?: boolean,
+ *   speakReplies?: boolean,
+ *   onToggleMute?: () => void,
+ *   onToggleSpeakReplies?: () => void,
+ *   muteTitle?: string,
+ *   speakRepliesTitle?: string
  * }} props
  */
-function Toolstrip({ onVoice, disabled, voiceTitle }) {
+function Toolstrip({
+  onVoice,
+  disabled,
+  voiceTitle,
+  listening = false,
+  muted = false,
+  speakReplies = false,
+  onToggleMute,
+  onToggleSpeakReplies,
+  muteTitle = 'Mute',
+  speakRepliesTitle = 'Speak replies'
+}) {
   return (
     <div className="flex items-center gap-1" aria-label="Quick tools">
       <button
         type="button"
-        className="hc-icon-btn hc-icon-btn--ghost"
+        className={`hc-icon-btn hc-icon-btn--ghost ${listening ? 'text-[var(--hc-accent)]' : ''}`}
         disabled={disabled}
         title={voiceTitle}
+        aria-pressed={listening}
         onClick={onVoice}
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -93,14 +113,37 @@ function Toolstrip({ onVoice, disabled, voiceTitle }) {
           <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v3M8 21h8" />
         </svg>
       </button>
-      <button type="button" className="hc-icon-btn hc-icon-btn--ghost" title="Home view" disabled>
+      <button
+        type="button"
+        className={`hc-icon-btn hc-icon-btn--ghost ${speakReplies ? 'text-[var(--hc-accent)]' : ''}`}
+        title={speakRepliesTitle}
+        aria-pressed={speakReplies}
+        onClick={onToggleSpeakReplies}
+      >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5z" />
+          <path d="M11 5 6 9H3v6h3l5 4V5z" />
+          <path d="M15.5 8.5a4 4 0 0 1 0 7M18 6a7 7 0 0 1 0 12" />
         </svg>
       </button>
-      <button type="button" className="hc-icon-btn hc-icon-btn--ghost" title="Menu" disabled>
+      <button
+        type="button"
+        className={`hc-icon-btn hc-icon-btn--ghost ${muted ? 'text-[var(--hc-accent)]' : ''}`}
+        title={muteTitle}
+        aria-pressed={muted}
+        onClick={onToggleMute}
+      >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M4 7h16M4 12h16M4 17h16" />
+          {muted ? (
+            <>
+              <path d="M11 5 6 9H3v6h3l5 4V5z" />
+              <path d="m16 9 6 6M22 9l-6 6" />
+            </>
+          ) : (
+            <>
+              <path d="M11 5 6 9H3v6h3l5 4V5z" />
+              <path d="M15.5 8.5a4 4 0 0 1 0 7" />
+            </>
+          )}
         </svg>
       </button>
     </div>
@@ -140,7 +183,14 @@ export function App() {
     /** @type {number | null} */ (null)
   );
   const [planVersion, setPlanVersion] = useState(0);
-  const speak = useSpeech();
+  const [interimTranscript, setInterimTranscript] = useState('');
+  const {
+    speak,
+    muted,
+    setMuted,
+    speakReplies,
+    setSpeakReplies
+  } = useSpeech();
 
   useEffect(() => {
     getHealth()
@@ -155,6 +205,7 @@ export function App() {
      */
     async (command, inputChannel = 'text') => {
       setLoading(true);
+      setInterimTranscript('');
       setTurns((current) => [
         ...current,
         { id: newId('turn'), role: 'user', text: command }
@@ -174,7 +225,9 @@ export function App() {
         if (typeof result.planVersion === 'number') {
           setPlanVersion(result.planVersion);
         }
-        if (result.speech) speak(result.speech, speechLang);
+        if (result.speech) {
+          speak(result.speech, speechLang, { fromVoice: inputChannel === 'voice' });
+        }
         if (result.sceneResult) {
           setSceneResult(result.sceneResult);
         }
@@ -224,6 +277,33 @@ export function App() {
     [projectId, sessionId, speak, locale, speechLang, t, planVersion]
   );
 
+  const {
+    status: voiceStatus,
+    error: voiceError,
+    listening,
+    start: startVoice,
+    stop: stopVoice,
+    supported: voiceSupported
+  } = useSpeechCommand({
+    lang: speechLang,
+    disabled: loading,
+    onInterim: setInterimTranscript,
+    onFinal: (transcript) => {
+      setInterimTranscript('');
+      if (transcript.trim()) {
+        sendCommand(transcript.trim(), 'voice');
+      }
+    }
+  });
+
+  const voiceTitle = listening
+    ? t('voiceListening')
+    : voiceStatus === 'unsupported'
+      ? t('voiceUnsupported')
+      : voiceError
+        ? t('voiceError', { error: voiceError })
+        : t('voiceTitle');
+
   return (
     <div className="relative h-dvh w-full overflow-hidden text-[var(--hc-text)]">
       <Suspense fallback={<div className="absolute inset-0 animate-pulse bg-[var(--hc-bg)]" />}>
@@ -252,7 +332,11 @@ export function App() {
       </div>
 
       <div className="pointer-events-auto absolute right-4 bottom-5 z-20 flex w-[min(100%-2rem,22rem)] flex-col gap-2">
-        <CommandInput onSubmit={sendCommand} disabled={loading} />
+        <CommandInput
+          onSubmit={sendCommand}
+          disabled={loading}
+          interimTranscript={interimTranscript}
+        />
         <ResponseRouter
           key={response?.requestId}
           response={response}
@@ -274,11 +358,22 @@ export function App() {
           online={online}
           tools={
             <Toolstrip
-              disabled={loading}
-              voiceTitle={t('voiceTitle')}
+              disabled={loading || !voiceSupported}
+              voiceTitle={voiceTitle}
+              listening={listening}
+              muted={muted}
+              speakReplies={speakReplies}
+              muteTitle={muted ? t('unmuteSpeech') : t('muteSpeech')}
+              speakRepliesTitle={t('speakReplies')}
+              onToggleMute={() => setMuted((value) => !value)}
+              onToggleSpeakReplies={() => setSpeakReplies((value) => !value)}
               onVoice={() => {
-                const sample = window.prompt(t('voicePrompt'), t('voiceSample'));
-                if (sample?.trim()) sendCommand(sample.trim(), 'voice');
+                if (listening) {
+                  stopVoice();
+                  setInterimTranscript('');
+                  return;
+                }
+                startVoice();
               }}
             />
           }

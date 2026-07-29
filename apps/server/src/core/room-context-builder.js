@@ -74,11 +74,12 @@ export function appendDialogTurn(context, role, text) {
  * Does not mutate the input context.
  *
  * @param {import('zod').infer<typeof RoomContextSchema>} context
- * @param {{ slots?: { roomWidthMm?: number, roomDepthMm?: number } }} intent
+ * @param {import('zod').infer<typeof import('@homecraft/contracts').IntentResultSchema>} intent
  */
 export function applyRoomDimensionSlots(context, intent) {
-  const roomWidthMm = intent.slots?.roomWidthMm;
-  const roomDepthMm = intent.slots?.roomDepthMm;
+  const slots = 'slots' in intent ? intent.slots : undefined;
+  const roomWidthMm = slots?.roomWidthMm;
+  const roomDepthMm = slots?.roomDepthMm;
   if (!roomWidthMm || !roomDepthMm) {
     return context;
   }

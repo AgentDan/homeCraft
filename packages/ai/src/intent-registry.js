@@ -358,6 +358,7 @@ function extractSlots(rawText, kind) {
 /**
  * @param {string} text
  * @param {{ language?: 'en' | 'ru' | 'sr' }} [options]
+ * @returns {import('zod').infer<typeof import('@homecraft/contracts').IntentResultSchema>}
  */
 export function matchIntent(text, options = {}) {
   const rawText = text.trim();
@@ -372,7 +373,9 @@ export function matchIntent(text, options = {}) {
       const matched = matcher.patterns.every((pattern) => pattern.test(rawText));
       if (matched) {
         return {
-          kind: rule.kind,
+          kind: /** @type {Exclude<import('zod').infer<typeof import('@homecraft/contracts').IntentKindSchema>, 'unknown'>} */ (
+            rule.kind
+          ),
           confidence: 0.75,
           language,
           rawText,

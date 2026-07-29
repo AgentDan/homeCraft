@@ -19,9 +19,9 @@ const RESPOND = /** @type {const} */ ('respond');
  * @param {import('./types.js').IntentHandlerInput} input
  * @param {object | null | undefined} entry
  * @param {string} message
- * @param {string} explanation
+ * @param {string} intentKind
  */
-async function respondWithBranchPlan(input, entry, message, explanation) {
+async function respondWithBranchPlan(input, entry, message, intentKind) {
   const { request, context } = input;
   const plan =
     entry?.plan ??
@@ -39,7 +39,7 @@ async function respondWithBranchPlan(input, entry, message, explanation) {
       context,
       plan,
       message,
-      explanation,
+      intentKind,
       existingVersion: version,
       changeSummary: { text: message, added: [], removed: [], moved: [] },
       view: { kind: '3d_scene', render: 'full' }
@@ -112,7 +112,7 @@ export async function handleBranch(input) {
       input,
       result.entry,
       t(language, 'branchCreated', { name: result.branch.name }),
-      `Intent: ${intentKind}; branch=${result.branch.id}`
+      intentKind
     );
   }
 
@@ -150,6 +150,6 @@ export async function handleBranch(input) {
     input,
     result.entry,
     t(language, 'branchSwitched', { name: result.branch.name }),
-    `Intent: ${intentKind}; branch=${result.branch.id}`
+    intentKind
   );
 }

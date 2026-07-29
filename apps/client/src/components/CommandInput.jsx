@@ -4,10 +4,11 @@ import { useLocale } from '../i18n/LocaleContext.jsx';
 /**
  * @param {{
  *   onSubmit: (command: string, inputChannel?: 'text' | 'voice') => void,
- *   disabled?: boolean
+ *   disabled?: boolean,
+ *   interimTranscript?: string
  * }} props
  */
-export function CommandInput({ onSubmit, disabled }) {
+export function CommandInput({ onSubmit, disabled, interimTranscript = '' }) {
   const { t } = useLocale();
   const [value, setValue] = useState('');
   const inputRef = useRef(/** @type {HTMLInputElement | null} */ (null));
@@ -47,6 +48,8 @@ export function CommandInput({ onSubmit, disabled }) {
     setValue('');
   }
 
+  const displayValue = interimTranscript || value;
+
   return (
     <form className="hc-glass hc-glass--compact px-3 pt-2.5 pb-3" onSubmit={handleSubmit}>
       <label
@@ -63,15 +66,23 @@ export function CommandInput({ onSubmit, disabled }) {
           ref={inputRef}
           id="command"
           type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
+          value={displayValue}
+          onChange={(e) => {
+            if (interimTranscript) return;
+            setValue(e.target.value);
+          }}
           placeholder={t('commandPlaceholder')}
           disabled={disabled}
-          className="min-w-0 flex-1 bg-transparent px-2.5 py-2 text-sm text-[var(--hc-text)] outline-none placeholder:text-[var(--hc-muted)]/70 disabled:opacity-60"
+          readOnly={Boolean(interimTranscript)}
+          className={`min-w-0 flex-1 bg-transparent px-2.5 py-2 text-sm outline-none placeholder:text-[var(--hc-muted)]/70 disabled:opacity-60 ${
+            interimTranscript
+              ? 'text-[var(--hc-accent)] italic'
+              : 'text-[var(--hc-text)]'
+          }`}
         />
         <button
           type="submit"
-          disabled={disabled}
+          disabled={disabled || Boolean(interimTranscript)}
           className="hc-btn-accent shrink-0 rounded-[10px] px-3.5 py-2 text-xs font-semibold"
         >
           {t('send')}

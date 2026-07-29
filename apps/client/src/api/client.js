@@ -2,10 +2,10 @@ const API_BASE = '/api';
 
 /**
  * @param {number} status
- * @param {object} body
+ * @param {{ message?: string, code?: string, currentVersion?: number, [key: string]: unknown }} body
  * @returns {Error & {
  *   status: number,
- *   body: object,
+ *   body: { message?: string, code?: string, currentVersion?: number, [key: string]: unknown },
  *   code?: string
  * }}
  */
@@ -16,7 +16,7 @@ export function createApiError(status, body) {
       : `API ${status}: ${JSON.stringify(body)}`;
   const error = /** @type {Error & {
  *   status: number,
- *   body: object,
+ *   body: { message?: string, code?: string, currentVersion?: number, [key: string]: unknown },
  *   code?: string
  * }} */ (new Error(message));
   error.name = 'ApiError';
@@ -30,7 +30,11 @@ export function createApiError(status, body) {
 
 /**
  * @param {unknown} error
- * @returns {error is Error & { status: number, body: object, code?: string }}
+ * @returns {error is Error & {
+ *   status: number,
+ *   body: { message?: string, code?: string, currentVersion?: number, [key: string]: unknown },
+ *   code?: string
+ * }}
  */
 export function isApiError(error) {
   return error instanceof Error && error.name === 'ApiError';

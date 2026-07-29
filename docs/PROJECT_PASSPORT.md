@@ -27,7 +27,7 @@ AI понимает клиента и переводит его слова в с
 | Блок (из Architecture Vision) | Модуль в коде (`phase-1`) | Кто владелец логики | Статус |
 |---|---|---|---|
 | Conversation Engine | `core/orchestrator.js` (`orchestrator.route()`) | детерминированный | ✅ dialog-only |
-| AI Understanding Engine | `ai-services/intent-detector.js` | AI | ✅ rule-based EN/RU/SR |
+| AI Understanding Engine | `ai-services/intent-detector.js` | AI | ✅ rule-based EN/RU/SR; LLM intent ⚑ `HOMECRAFT_LLM_INTENT` |
 | Customer Context / Memory | `core/room-context-builder.js` | детерминированный | ✅ MongoDB + local fallback |
 | Knowledge / RAG Engine | `ai-services/catalog-rag-retriever.js`, `knowledge-base/*` | AI (retrieval) | ✅ file vector index |
 | Configuration Engine | `ai-services/configuration-plan-generator.js` | rule-based | ✅ |
@@ -36,7 +36,8 @@ AI понимает клиента и переводит его слова в с
 | Calculation Engine | `pricing-engine/calculateBOM.js` + `bom-cache.js` | детерминированный, чистый калькулятор + кэш | ✅ snapshot BOM + cache |
 | Production / ERP Integration | `export/*` + `GET /api/exports/:id` | детерминированный | ✅ PDF export (Step 4) |
 | Command journal | `storage/local-storage.js` (append-only JSONL) + tree `PlanHistory` | детерминированный | ✅ Step 5 branches |
-| Explanation (templates) | `output-builder.js` + `summarizeBOM` + i18n | детерминированный | ✅ templates; LLM 🔲 Step 10 |
+| Explanation (templates) | `decision-report.js` + `output-builder.js` + i18n | детерминированный | ✅ grounded report (Step 10); TTS client V6–V7 |
+| Voice input (STT) | client `useSpeechCommand` + `inputChannel: 'voice'` | клиент | ✅ Web Speech API (Step 9) |
 
 **Соответствие с исходным документом:** блоки почти полностью совпадают 1:1. Отличие — в документе RAG и 3D Engine описаны как отдельные крупные подсистемы, в коде они пока встроены как модули внутри общего пайплайна, без выделенных сервисов.
 
@@ -81,7 +82,7 @@ AI понимает клиента и переводит его слова в с
 **Не реализовано / отсутствует в текущем пайплайне:**
 - Полноценный Scene Graph как единый источник данных (сейчас 3D — модуль внутри kitchen-домена, не отдельная подсистема).
 - Production / ERP Integration (Phase 4 — not started).
-- LLM в проде (Phase 5 — rule-based intent/plan generation сейчас).
+- LLM intent parser за флагом `HOMECRAFT_LLM_INTENT` (Step 8); plan generation по-прежнему rule-based.
 - Дополнительные домены (wardrobe, other-furniture) — Phase 6+.
 
 **Сделано в Phase 2 (закрыта, 2.8 отложен):**
@@ -89,7 +90,7 @@ AI понимает клиента и переводит его слова в с
 
 **Phase 3 закрыта:** snapshots API, BOM cache (memory+Redis), BomPanel/BudgetIndicator, `budgetEur`.
 
-**Следующий шаг по Roadmap:** Step 8 — LLM parser (flag).
+**Следующий шаг по Roadmap:** backlog закрыт (1–10 ✅); дальше — Deferred (analog ranking, wardrobe / Expo / auth).
 
 ---
 
@@ -112,12 +113,15 @@ DoD каждой фазы: acceptance criteria выполнены + `lint`/`test
 
 | Дата | Что изменили | Почему | Что устарело в паспорте |
 |---|---|---|---|
+| 2026-07-29 | Step 10 — Grounded explanation (`decision-report`) + TTS mute / speak-replies | Числа в explanation только из отчёта; озвучка не блокирует UI | Explanation ✅; next → Deferred |
+| 2026-07-29 | Step 9 — Voice STT: `useSpeechCommand`, interim в CommandInput, без `window.prompt` | Голос = peer channel к тому же `/api/commands` | Voice ✅; next → 10 |
 | 2026-07-29 | Step 5: PlanHistory as tree (`create_branch` / `switch_branch`, `branchId` in response) | Сравнивать варианты без потери соседних путей | Next step → 6 |
 | 2026-07-26 | Step 4: Production Export PDF (`export_project`, frozen by version+catalog) | Pilot MVP: клиент уносит спецификацию | Production блок ✅; next → 5 |
 | 2026-07-26 | Step 3: `replayJournal` + CI snapshot; детерминированный `planId` | Инвариант «истина в журнале» проверяется тестом | Next step → 4 |
 | 2026-07-26 | Step 2: `expectedVersion` + idempotency по `requestId` (409 `version_conflict`) | Защита от double-submit и гонок вкладок | Next step → 3; контракт ClientRequest |
+| 2026-07-29 | Step 8 — LLM intent parser (flag): `HOMECRAFT_LLM_INTENT`; OpenAI-compatible provider; Zod `IntentResultSchema`; sanitize SKU/instanceId; silent fallback to `matchIntent`; тест `llm-intent.test.js` | Поднять потолок формулировок без ломки детерминированного пайплайна | Roadmap Step 8 ✅ |
 | 2026-07-29 | Step 7 — Policy + confidence: `policy.yaml` веса price/ergonomics/style; `score-candidates` + `selectByConfidence`; auto-apply при gap ≥ порога, иначе `options` near-tie; i18n EN/RU/SR; тест `policy.test.js` | Менять приоритеты без правки кода; не выбирать молча при ничьей | Roadmap Step 7 ✅ |
-| 2026-07-29 | Step 6 — Candidates on conflict: `candidate-generator.js` строит до 3 валидных альтернатив с BOM при конфликте; `runDownstream` возвращает `options` response вместо hard reject; i18n `candidatesIntro`/`candidateOption` EN/RU/SR; тест `candidates.test.js` | Вместо отказа предлагать пользователю выбор из проверенных вариантов | Roadmap Step 6 ✅ |
+| 2026-07-29 | Step 6 — Candidates on conflict: `candidate-generator.js` строит до 3 валидных альтернатив с BOM при конфликте; `runDownstream` возвращает `options` response вместо hard reject; i18n near-tie/scored options EN/RU/SR; тест `candidates.test.js` | Вместо отказа предлагать пользователю выбор из проверенных вариантов | Roadmap Step 6 ✅ |
 | 2026-07-26 | Журнал команд (JSONL), `summarizeBOM`, i18n зафиксирован как 🟢 | Закрыть жёлтые блоки Event Log и explanation templates | Карта блоков; Roadmap Step 1 |
 | 2026-07-25 | Языки интентов и UI: `en` / `ru` / `sr` (`LanguageSchema`, матчеры в `intent-registry`, `LOCALES`, i18n) | Закрыть вопрос языка до консультанта; UI и детект на трёх локалях | Инвариант 4; статус AI Understanding; открытый вопрос про язык |
 | 2026-07-22 | Phase 3 (ветка `phase-3`): BOM cache (memory+Redis), `GET /api/catalog/snapshots`, клиентские BomPanel/BudgetIndicator, `budgetEur` в ClientResponse | Дать видимую смету/бюджет и ускорить повторный BOM | Раздел 6 (Phase 3 в работе); Redis в стеке |
@@ -132,9 +136,9 @@ DoD каждой фазы: acceptance criteria выполнены + `lint`/`test
 | # | Вопрос | Решение | Когда |
 |---|---|---|---|
 | — | Языки (intent + UI) | `en` / `ru` / `sr`, rule-based | ✅ 2026-07-25 |
-| 5 | LLM-провайдер | Feature flag; intent JSON only | Step 8 |
+| 5 | LLM-провайдер | Feature flag `HOMECRAFT_LLM_INTENT`; intent JSON only; fallback rules | ✅ 2026-07-29 |
 | 6 | Авторизация | JWT → OAuth2 | Deferred |
-| 8 | Модель ввода | Только диалог; голос — peer channel | ✅ / Steps 9–10 |
+| 8 | Модель ввода | Только диалог; голос — peer channel (Web Speech STT) | ✅ 2026-07-29 |
 
 Актуальный backlog — см. `docs/Roadmap.md`.
 
@@ -143,6 +147,7 @@ DoD каждой фазы: acceptance criteria выполнены + `lint`/`test
 ## 10. Связанные документы
 
 - `docs/Roadmap.md` — фазы разработки
+- `docs/voice-stt-plan.md` — Voice STT / TTS (Steps 9–10)
 - `docs/step0.md` — итоги Phase 0
 - `docs/dialog-flow.md` — диалоговый флоу и API
 - `CONTRIBUTING.md` — инварианты и код-ревью чеклист

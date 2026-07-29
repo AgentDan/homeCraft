@@ -21,5 +21,30 @@ export const runtimeConfig = {
   redisTimeoutMs: Number(process.env.REDIS_TIMEOUT_MS ?? 500),
   bomCacheTtlSec: Number(process.env.BOM_CACHE_TTL_SEC ?? 3600),
   embeddingsProvider: process.env.EMBEDDINGS_PROVIDER ?? 'local-hash',
-  kbTopK: Number(process.env.KB_TOP_K ?? 5)
+  kbTopK: Number(process.env.KB_TOP_K ?? 5),
+  /** Step 8: LLM intent parser (off → rule-based matchIntent). */
+  llmIntentEnabled: isTruthy(process.env.HOMECRAFT_LLM_INTENT),
+  llmApiUrl:
+    process.env.HOMECRAFT_LLM_API_URL?.trim()
+    || 'https://api.openai.com/v1/chat/completions',
+  llmApiKey: process.env.HOMECRAFT_LLM_API_KEY?.trim() || '',
+  llmModel: process.env.HOMECRAFT_LLM_MODEL?.trim() || 'gpt-4o-mini',
+  llmTimeoutMs: Number(process.env.HOMECRAFT_LLM_TIMEOUT_MS ?? 8000)
 };
+
+/**
+ * @param {unknown} value
+ */
+function isTruthy(value) {
+  if (typeof value !== 'string') return false;
+  const normalized = value.trim().toLowerCase();
+  return normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on';
+}
+
+/** True when the flag is on and a provider endpoint is usable. */
+export function llmIntentConfigured() {
+  if (!runtimeConfig.llmIntentEnabled) return false;
+  if (runtimeConfig.llmApiKey) return true;
+  // Custom URL (e.g. local OpenAI-compatible server) may omit an API key.
+  return Boolean(process.env.HOMECRAFT_LLM_API_URL?.trim());
+}

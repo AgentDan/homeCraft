@@ -131,7 +131,7 @@ async function runDefaultIntentPath(input) {
     context,
     plan,
     message,
-    explanation: `Intent: ${intent.kind}`,
+    intentKind: intent.kind,
     persistVersion: !isReadOnly,
     existingVersion: isReadOnly ? context.planVersion : undefined,
     changeSummary: buildChangeSummary(plan, message, {

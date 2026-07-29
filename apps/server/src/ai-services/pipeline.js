@@ -1,6 +1,5 @@
 import { detectIntent } from './intent-detector.js';
 import { generatePlan } from './configuration-plan-generator.js';
-import { buildPrompt } from './prompt-builder.js';
 import {
   retrieve,
   retrievePlatformRules
@@ -8,8 +7,8 @@ import {
 import { runtimeConfig } from '../config/runtime.js';
 
 /**
- * AI pipeline: intent → retrieve → prompt → plan.
- * All ai-services stages are invoked from here (invariant: no dead paths).
+ * AI pipeline: intent → retrieve → plan.
+ * Retrieved catalog/rules feed generatePlan (no unused prompt path).
  */
 export async function runAiPipeline(request, context) {
   const dialogText = request.command;
@@ -19,18 +18,12 @@ export async function runAiPipeline(request, context) {
     retrieve(dialogText, context.catalogSnapshotId, runtimeConfig.kbTopK),
     retrievePlatformRules(dialogText, 3)
   ]);
-  const prompt = buildPrompt({
-    context,
-    intent,
-    chunks: [...candidates, ...platformRules]
-  });
   const { plan, outcome } = await generatePlan({
     intent,
     context,
     dialogText,
     candidates,
-    platformRules,
-    prompt
+    platformRules
   });
 
   return { intent, plan, outcome };

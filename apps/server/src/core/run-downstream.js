@@ -18,7 +18,7 @@ import { normalizeLanguage, t } from '../i18n/messages.js';
  *   context: import('zod').infer<typeof import('@homecraft/contracts').RoomContextSchema>,
  *   plan: import('zod').infer<typeof import('@homecraft/contracts').ConfigurationPlanSchema>,
  *   message: string,
- *   explanation?: string,
+ *   intentKind?: string,
  *   persistVersion?: boolean,
  *   existingVersion?: number,
  *   changeSummary?: object,
@@ -30,7 +30,7 @@ export async function runDownstream({
   context,
   plan,
   message,
-  explanation,
+  intentKind,
   persistVersion = true,
   existingVersion,
   changeSummary,
@@ -78,11 +78,6 @@ export async function runDownstream({
           instanceId: winner.candidate.replacedInstanceId,
           totalEur: appliedBom.totalEur
         });
-        const policyNote = t(language, 'policyExplanation', {
-          score: winner.score,
-          gap: decision.gap,
-          policyVersion: decision.policy.version
-        });
         return buildOutput({
           request,
           plan: appliedPlan,
@@ -92,7 +87,14 @@ export async function runDownstream({
           roomShape: context.roomShape,
           budgetEur: context.budgetEur ?? null,
           message: appliedMessage,
-          explanation: [explanation, policyNote].filter(Boolean).join(' '),
+          intentKind,
+          policy: {
+            decision: 'auto_apply',
+            winnerSku: winner.candidate.replacedWithSku,
+            score: winner.score,
+            gap: decision.gap,
+            policyVersion: decision.policy.version
+          },
           changeSummary: {
             text: appliedMessage,
             added: [winner.candidate.replacedWithSku],
@@ -119,9 +121,9 @@ export async function runDownstream({
         scored: decision.ranked,
         gap: decision.gap,
         policyVersion: decision.policy.version,
+        intentKind,
         roomShape: context.roomShape,
         budgetEur: context.budgetEur ?? null,
-        explanation,
         planVersion: existingVersion ?? context.planVersion ?? 0,
         branchId: branchMeta.branchId,
         branchName: branchMeta.branchName,
@@ -142,7 +144,7 @@ export async function runDownstream({
       roomShape: context.roomShape,
       budgetEur: context.budgetEur ?? null,
       message: rejectMessage,
-      explanation,
+      intentKind,
       changeSummary: {
         text: rejectMessage,
         added: [],
@@ -168,13 +170,6 @@ export async function runDownstream({
     );
   }
 
-  const budgetExplanation =
-    context.budgetEur !== undefined && bom.totalEur > context.budgetEur
-      ? t(language, 'budgetExceeded', {
-          over: bom.totalEur - context.budgetEur
-        })
-      : undefined;
-
   const branchMeta = await getActiveBranchMeta(
     request.sessionId,
     request.projectId
@@ -189,9 +184,7 @@ export async function runDownstream({
     roomShape: context.roomShape,
     budgetEur: context.budgetEur ?? null,
     message,
-    explanation: budgetExplanation
-      ? [explanation, budgetExplanation].filter(Boolean).join(' ')
-      : explanation,
+    intentKind,
     changeSummary,
     view,
     planVersion: existingVersion ?? versionEntry?.version ?? context.planVersion ?? 0,

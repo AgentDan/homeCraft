@@ -49,7 +49,7 @@ export async function handleHistory(input) {
       context,
       plan: entry.plan,
       message,
-      explanation: `Intent: ${intentKind}`,
+      intentKind,
       existingVersion: entry.version,
       changeSummary: { text: message, added: [], removed: [], moved: [] },
       view: { kind: '3d_scene', render: 'full' }
