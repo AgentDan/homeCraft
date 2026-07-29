@@ -59,7 +59,29 @@ export async function postCommand(payload) {
   return data;
 }
 
-export async function getHealth() {
-  const response = await fetch(`${API_BASE}/health`);
-  return response.json();
+/**
+ * @param {number} [attempts]
+ * @param {number} [delayMs]
+ */
+export async function getHealth(attempts = 8, delayMs = 400) {
+  /** @type {unknown} */
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetch(`${API_BASE}/health`);
+      if (!response.ok) {
+        throw createApiError(response.status, {
+          message: `Health check failed with ${response.status}`
+        });
+      }
+      return response.json();
+    } catch (error) {
+      lastError = error;
+      if (attempt === attempts) break;
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('Health check failed');
 }
