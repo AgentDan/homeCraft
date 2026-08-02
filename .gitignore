@@ -11,6 +11,10 @@ apps/server/src/knowledge-base/data/index/*
 !apps/server/src/knowledge-base/data/index/.gitkeep
 apps/server/gltf/*
 !apps/server/gltf/.gitkeep
+!apps/server/gltf/*.glb
+!apps/server/gltf/*.png
+!apps/server/gltf/CHANGELOG.md
+!apps/server/gltf/README.md
 
 .expo/
 apps/mobile/.expo/

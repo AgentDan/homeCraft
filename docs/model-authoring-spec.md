@@ -67,9 +67,25 @@ SKU {sku}: glTF added — author: …; date: YYYY-MM-DD
 
 ---
 
+## Валидация (фаза 2)
+
+Перед merge нового `.glb`:
+
+```bash
+npm run validate:gltf
+# или один SKU:
+npm run validate:gltf -- BASE-600
+```
+
+Скрипт: `apps/server/scripts/validate-gltf.mjs`  
+Проверяет: размер файла, tris, slots `facade`/`carcass`, отсутствие camera/light, bbox ≈ catalog (±10 mm), origin = центр bbox, фасад в +Z half-space.
+
+Иммутабельность: не перезаписывать уже отданный `{sku}.glb` под тем же snapshot. Журнал приёма: `apps/server/gltf/CHANGELOG.md`.
+
+---
+
 ## Вне скоупа этого документа
 
-- Валидатор / скрипт приёмки (фаза 2)
 - Клиентский `useGLTF` (фаза 3)
-- Любые `.glb` в репозитории (фаза 2)
 - Изменения `ScenePreview`, `ModuleSchema`, `SceneResultSchema`
+- Живой codegen моделей в приложении

@@ -1,6 +1,6 @@
 # HomeCraft — Roadmap: 3D-каталог + Project Journey
 
-Status: **in progress** — фаза 1 done ([model-authoring-spec.md](model-authoring-spec.md)); далее 2→3.  
+Status: **in progress** — фазы 1–2 done; далее фаза 3 (`useGLTF`).  
 Закрытый MVP (Steps 1–10) — в decision log паспорта. Порядок: `1 → 2 → 3`; фаза `5` после `2` (нужны `.glb`); фаза `4` параллельно после фиксации словаря journey (не зависит от glTF).
 
 Инварианты (не нарушать) — см. также [PROJECT_PASSPORT.md](PROJECT_PASSPORT.md):
@@ -20,7 +20,8 @@ Status: **in progress** — фаза 1 done ([model-authoring-spec.md](model-aut
 | `ModuleSchema` (`packages/contracts/src/module.js`) | Нет поля под 3D-модель — **и по этому roadmap отдельное поле не вводим** |
 | `SceneResultSchema` (`packages/contracts/src/client-response.js`) | Pose + `dimensions` + `finishId`; ссылки на glTF нет (клиент выводит путь из `sku`) |
 | Static `/gltf` (`apps/server/src/core/api/routes.js`) | `express.static(apps/server/gltf)` уже смонтирован |
-| `apps/server/gltf/` | Только `.gitkeep` |
+| `apps/server/gltf/` | Приоритетные placeholder `.glb` (7 SKU) + CHANGELOG; static `/gltf` |
+| `validate:gltf` | `apps/server/scripts/validate-gltf.mjs` — bbox/origin/slots/tris/size |
 | `catalog-store.js` | Один JSON; `getCatalogSnapshot` принимает только `kitchen-demo-v1` |
 | Demo-каталог | 18 SKU (`BASE-*`, `WALL-*`, `TALL-*`, `SINK-*`, `CORNER-900`, …) |
 | `ScenePreview.jsx` / `ModuleBox` | R3F: комната, свет, тени, камера, `OrbitControls`; модуль = `<boxGeometry>`; позиция = `position/1000 + size/2` (центр бокса); финиш = весь mesh через `FINISH_COLORS`; **`useGLTF` нигде нет** |
@@ -40,7 +41,7 @@ Status: **in progress** — фаза 1 done ([model-authoring-spec.md](model-aut
 ## Todo
 
 - [x] **1. Контракт авторства 3D** — [model-authoring-spec.md](model-authoring-spec.md) (без контента `.glb`)
-- [ ] **2. Валидация + приём моделей** — скрипт/чеклист; файлы от автора в `apps/server/gltf/`
+- [x] **2. Валидация + приём моделей** — `npm run validate:gltf`; приоритетные SKU в `apps/server/gltf/`
 - [ ] **3. Клиентский рендер** — `useGLTF('/gltf/{sku}.glb')` + box-fallback + material slots
 - [ ] **4. Project Journey 1–3** — state, dialog-router в `resolveRoutedCommand`, i18n-вопросы
 - [ ] **5. Превью кандидатов** — `option.thumbnailUrl` + PNG у SKU + `<img>` в `ResponseRouter`
@@ -92,30 +93,30 @@ Status: **in progress** — фаза 1 done ([model-authoring-spec.md](model-aut
 
 ### Задачи
 
-- [ ] Скрипт и/или чеклист валидации перед merge:
-  - bbox ≈ `dimensions` SKU (допуск на фурнитуру — порог в скрипте)
+- [x] Скрипт валидации перед merge (`npm run validate:gltf`):
+  - bbox ≈ `dimensions` SKU (допуск ±10 mm)
   - origin в геометрическом центре bbox
   - есть materials/slots `facade` и `carcass`
   - ≤15k tris, ≤2 МБ
   - нет light/camera в сцене файла
-- [ ] Приём моделей по мере готовности автора (приоритет demo-SKU: `BASE-400/600/800`, навесной, угловой, пенал, шкаф под мойку)
-- [ ] Класть файлы как `apps/server/gltf/{sku}.glb`; static route уже есть — не дублировать
-- [ ] При приёме модели (или отдельным шагом фазы 5): заготовка под offscreen PNG `{sku}.png` рядом с `.glb`
-- [ ] Опционально: заметка в каталоге/CHANGELOG «SKU X: glTF added, author, date» — **не** URL-поле схемы модели
-- [ ] **Сквозное:** не перезаписывать уже отданный под snapshot файл; замена = новый snapshot + новая path-policy
+- [x] Приём приоритетных demo-SKU: `BASE-400/600/800`, `WALL-600`, `CORNER-900`, `TALL-600`, `SINK-600`
+- [x] Файлы как `apps/server/gltf/{sku}.glb`; static route без дублирования
+- [x] Заготовка под PNG: README + warn валидатора при отсутствии `{sku}.png` (рендер — фаза 5)
+- [x] `apps/server/gltf/CHANGELOG.md` — author/date без URL-поля схемы
+- [x] **Сквозное:** README + gitignore allowlist; не перезаписывать под snapshot
 
 ### Затрагиваемые файлы
 
-- `apps/server/gltf/{sku}.glb`
-- `tools/` или `apps/server/scripts/validate-gltf.*` (новый)
-- `docs/model-authoring-spec.md` (ссылка на валидатор)
-- при необходимости комментарий/мета в `kitchen-catalog.json` без смены Zod-обязательных полей
+- `apps/server/gltf/{sku}.glb` ✅ (7 priority)
+- `apps/server/scripts/validate-gltf.mjs` ✅
+- `docs/model-authoring-spec.md` (ссылка на валидатор) ✅
+- `apps/server/gltf/CHANGELOG.md` / `README.md` ✅
 
 ### Критерий готовности
 
-1. Хотя бы несколько приоритетных SKU проходят валидатор и отдаются с `/gltf/{sku}.glb`.
-2. SKU без файла не ломают сервер/каталог.
-3. Генератора моделей в репозитории нет.
+1. ✅ Приоритетные SKU проходят валидатор и отдаются с `/gltf/{sku}.glb`.
+2. ✅ SKU без файла не ломают сервер/каталог (наличие файла опционально).
+3. ✅ Генератора моделей в репозитории нет.
 
 ### Явно вне скоупа
 
