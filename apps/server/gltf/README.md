@@ -8,7 +8,8 @@ Static files served at `/gltf/{sku}.glb` and `/gltf/{sku}.png`.
 - **Do not overwrite** a published `.glb` / `.png` under the same snapshot. Geometry/material/preview change ⇒ new snapshot + new path policy.
 - Author against [model-authoring-spec.md](../../../docs/model-authoring-spec.md).
 - Validate before merge: `npm run validate:gltf`
-- After adding a new `.glb`: `npm run render:gltf-thumbs` (skips existing PNGs)
+- After adding/replacing a `.glb`: `npm run render:gltf-thumbs` (skips existing PNGs unless deleted)
+- Demo authoring helper: `node apps/server/scripts/author-demo-glb.mjs --force`
 
 ## Thumbnails
 

@@ -16,3 +16,5 @@
 | 2026-08-02 | CORNER-900 | PNG thumbnail added |
 | 2026-08-02 | TALL-600 | PNG thumbnail added |
 | 2026-08-02 | SINK-600 | PNG thumbnail added |
+| 2026-08-02 | *priority* | glTF refreshed — carcass shell, shelves, plinth, doors, inset handles (still Homecraft placeholders) |
+| 2026-08-02 | *priority* | PNG thumbnails regenerated after glTF refresh |

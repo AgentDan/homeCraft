@@ -13,11 +13,15 @@ const RESPOND = /** @type {const} */ ('respond');
  */
 export async function handleHelp(input) {
   const { request, context, language } = input;
+  const message = await getHelpMessage(
+    language,
+    context.catalogSnapshotId ?? 'kitchen-demo-v1'
+  );
   return {
     kind: RESPOND,
     response: buildHelpResponse(
       request,
-      getHelpMessage(language),
+      message,
       context.planVersion ?? 0
     ),
     outcomeKind: OUTCOME.read_only,

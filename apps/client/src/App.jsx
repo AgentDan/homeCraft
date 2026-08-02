@@ -80,10 +80,14 @@ const DEFAULT_ROOM_SHAPE = {
  *   listening?: boolean,
  *   muted?: boolean,
  *   speakReplies?: boolean,
+ *   voiceEngine?: 'browser' | 'ai',
+ *   aiTtsAvailable?: boolean,
  *   onToggleMute?: () => void,
  *   onToggleSpeakReplies?: () => void,
+ *   onToggleVoiceEngine?: () => void,
  *   muteTitle?: string,
- *   speakRepliesTitle?: string
+ *   speakRepliesTitle?: string,
+ *   voiceEngineTitle?: string
  * }} props
  */
 function Toolstrip({
@@ -93,10 +97,14 @@ function Toolstrip({
   listening = false,
   muted = false,
   speakReplies = false,
+  voiceEngine = 'browser',
+  aiTtsAvailable = false,
   onToggleMute,
   onToggleSpeakReplies,
+  onToggleVoiceEngine,
   muteTitle = 'Mute',
-  speakRepliesTitle = 'Speak replies'
+  speakRepliesTitle = 'Speak replies',
+  voiceEngineTitle = 'Voice engine'
 }) {
   return (
     <div className="flex items-center gap-1" aria-label="Quick tools">
@@ -124,6 +132,18 @@ function Toolstrip({
           <path d="M11 5 6 9H3v6h3l5 4V5z" />
           <path d="M15.5 8.5a4 4 0 0 1 0 7M18 6a7 7 0 0 1 0 12" />
         </svg>
+      </button>
+      <button
+        type="button"
+        className={`hc-icon-btn hc-icon-btn--ghost ${voiceEngine === 'ai' ? 'text-[var(--hc-accent)]' : ''}`}
+        title={voiceEngineTitle}
+        aria-pressed={voiceEngine === 'ai'}
+        disabled={!aiTtsAvailable && voiceEngine !== 'ai'}
+        onClick={onToggleVoiceEngine}
+      >
+        <span className="text-[9px] font-semibold tracking-wide">
+          {voiceEngine === 'ai' ? 'AI' : 'BR'}
+        </span>
       </button>
       <button
         type="button"
@@ -189,7 +209,10 @@ export function App() {
     muted,
     setMuted,
     speakReplies,
-    setSpeakReplies
+    setSpeakReplies,
+    voiceEngine,
+    setVoiceEngine,
+    aiTtsAvailable
   } = useSpeech();
 
   useEffect(() => {
@@ -363,10 +386,24 @@ export function App() {
               listening={listening}
               muted={muted}
               speakReplies={speakReplies}
+              voiceEngine={voiceEngine}
+              aiTtsAvailable={aiTtsAvailable}
               muteTitle={muted ? t('unmuteSpeech') : t('muteSpeech')}
               speakRepliesTitle={t('speakReplies')}
+              voiceEngineTitle={
+                aiTtsAvailable
+                  ? voiceEngine === 'ai'
+                    ? t('voiceEngineAi')
+                    : t('voiceEngineBrowser')
+                  : t('voiceEngineAiUnavailable')
+              }
               onToggleMute={() => setMuted((value) => !value)}
               onToggleSpeakReplies={() => setSpeakReplies((value) => !value)}
+              onToggleVoiceEngine={() =>
+                setVoiceEngine((current) =>
+                  current === 'ai' ? 'browser' : 'ai'
+                )
+              }
               onVoice={() => {
                 if (listening) {
                   stopVoice();

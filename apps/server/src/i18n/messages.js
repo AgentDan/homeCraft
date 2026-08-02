@@ -22,7 +22,9 @@ const MESSAGES = {
     helpFallback: 'Describe the kitchen by text or voice.',
     helpIntro: 'I can help you assemble a kitchen from the demo catalog.',
     helpExamplesPrefix: 'Example commands',
-    helpExplanation: 'Available commands were provided by the Help service.',
+    helpExplanation: 'Available commands and catalog were provided by the Help service.',
+    catalogIntro: 'Catalog {version} ({count} modules)',
+    catalogUnavailable: 'Catalog listing is temporarily unavailable.',
     nothingToUndo: 'There is nothing to undo. Describe what you want to change.',
     nothingToRedo: 'There is nothing to redo. Undo a change first.',
     undone: 'The last change was undone.',
@@ -96,7 +98,9 @@ const MESSAGES = {
     helpFallback: 'Опишите кухню текстом или голосом.',
     helpIntro: 'Я помогу собрать кухню из демо-каталога.',
     helpExamplesPrefix: 'Примеры команд',
-    helpExplanation: 'Список доступных команд предоставлен сервисом помощи.',
+    helpExplanation: 'Список команд и каталог предоставлены сервисом помощи.',
+    catalogIntro: 'Каталог {version} ({count} модулей)',
+    catalogUnavailable: 'Список каталога временно недоступен.',
     nothingToUndo: 'Нечего отменять. Опишите, что хотите изменить.',
     nothingToRedo: 'Нечего повторить. Сначала отмените изменение.',
     undone: 'Последнее изменение отменено.',
@@ -170,7 +174,9 @@ const MESSAGES = {
     helpFallback: 'Opisite kuhinju tekstom ili glasom.',
     helpIntro: 'Mogu da pomognem da sastavite kuhinju iz demo kataloga.',
     helpExamplesPrefix: 'Primeri komandi',
-    helpExplanation: 'Lista dostupnih komandi je dobijena od Help servisa.',
+    helpExplanation: 'Lista komandi i katalog dobijeni su od Help servisa.',
+    catalogIntro: 'Katalog {version} ({count} modula)',
+    catalogUnavailable: 'Lista kataloga privremeno nije dostupna.',
     nothingToUndo: 'Nema šta da se poništi. Opisite šta želite da promenite.',
     nothingToRedo: 'Nema šta da se ponovi. Prvo poništite izmenu.',
     undone: 'Poslednja izmena je poništena.',
@@ -265,7 +271,8 @@ const HELP_EXAMPLES = {
     '"add kitchen cabinet 3x4"',
     '"create branch alt"',
     '"switch branch main"',
-    '"undo" or "redo"'
+    '"undo" or "redo"',
+    '"catalog" or "help"'
   ],
   ru: [
     '«замени module-1 на BASE-400»',
@@ -279,7 +286,8 @@ const HELP_EXAMPLES = {
     '«кухня 3x4»',
     '«создай ветку alt»',
     '«переключи ветку main»',
-    '«отмена» или «повтор»'
+    '«отмена» или «повтор»',
+    '«каталог» или «помощь»'
   ],
   sr: [
     '„zameni module-1 sa BASE-400”',
@@ -293,7 +301,8 @@ const HELP_EXAMPLES = {
     '„kuhinja 3x4”',
     '„kreiraj granu alt”',
     '„prebaci granu main”',
-    '„poništi” ili „ponovi”'
+    '„poništi” ili „ponovi”',
+    '„katalog” ili „pomoć”'
   ]
 };
 

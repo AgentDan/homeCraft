@@ -224,12 +224,36 @@ const RULES = [
         patterns: [/\bhelp\b|what can you do/i]
       },
       {
+        language: 'en',
+        patterns: [/\b(?:show\s+)?(?:the\s+)?catalog\b/i]
+      },
+      {
+        language: 'en',
+        patterns: [/\b(?:list|show)\s+commands?\b|\bavailable\s+commands?\b/i]
+      },
+      {
         language: 'ru',
         patterns: [/(?:помощ|справк|что\s+ты\s+умеешь)/i]
       },
       {
+        language: 'ru',
+        patterns: [/(?:каталог|список\s+модул)/i]
+      },
+      {
+        language: 'ru',
+        patterns: [/(?:какие\s+команды|список\s+команд|доступные\s+команды)/i]
+      },
+      {
         language: 'sr',
         patterns: [/(?:pomoć|pomoc|šta\s+možeš|sta\s+mozes|помоћ|шта\s+можеш)/i]
+      },
+      {
+        language: 'sr',
+        patterns: [/(?:katalog|lista\s+modul)/i]
+      },
+      {
+        language: 'sr',
+        patterns: [/(?:komande|lista\s+komand|dostupne\s+komande)/i]
       }
     ]
   }

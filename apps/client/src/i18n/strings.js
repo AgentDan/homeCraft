@@ -50,6 +50,9 @@ const STRINGS = {
     speakReplies: 'Speak replies',
     muteSpeech: 'Mute speech',
     unmuteSpeech: 'Unmute speech',
+    voiceEngineBrowser: 'Voice: browser TTS (click for AI)',
+    voiceEngineAi: 'Voice: AI TTS (click for browser)',
+    voiceEngineAiUnavailable: 'AI TTS unavailable — using browser voice',
     language: 'Language',
     versionConflict: 'Version conflict (server is at {current}). Retry the command.',
     downloadSpec: 'Download specification PDF'
@@ -85,6 +88,9 @@ const STRINGS = {
     speakReplies: 'Озвучивать ответы',
     muteSpeech: 'Выключить озвучку',
     unmuteSpeech: 'Включить озвучку',
+    voiceEngineBrowser: 'Голос: браузер (нажмите для AI)',
+    voiceEngineAi: 'Голос: AI (нажмите для браузера)',
+    voiceEngineAiUnavailable: 'AI TTS недоступен — голос браузера',
     language: 'Язык',
     versionConflict: 'Конфликт версий (на сервере {current}). Повторите команду.',
     downloadSpec: 'Скачать спецификацию PDF'
@@ -120,6 +126,9 @@ const STRINGS = {
     speakReplies: 'Izgovori odgovore',
     muteSpeech: 'Isključi govor',
     unmuteSpeech: 'Uključi govor',
+    voiceEngineBrowser: 'Glas: pregledač (klik za AI)',
+    voiceEngineAi: 'Glas: AI (klik za pregledač)',
+    voiceEngineAiUnavailable: 'AI TTS nije dostupan — glas pregledača',
     language: 'Jezik',
     versionConflict: 'Konflikt verzija (server je na {current}). Ponovite komandu.',
     downloadSpec: 'Preuzmi specifikaciju PDF'

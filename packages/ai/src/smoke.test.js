@@ -15,6 +15,13 @@ describe('@homecraft/ai smoke', () => {
     assert.equal(result.language, 'en');
   });
 
+  it('detects catalog / commands as help', () => {
+    assert.equal(matchIntent('show catalog', { language: 'en' }).kind, 'help');
+    assert.equal(matchIntent('каталог', { language: 'ru' }).kind, 'help');
+    assert.equal(matchIntent('какие команды', { language: 'ru' }).kind, 'help');
+    assert.equal(matchIntent('katalog', { language: 'sr' }).kind, 'help');
+  });
+
   it('detects Russian help and add_module intents', () => {
     assert.equal(matchIntent('помощь', { language: 'ru' }).kind, 'help');
     const add = matchIntent('добавь шкаф 600', { language: 'ru' });

@@ -10,6 +10,7 @@ import { listCatalogSnapshots } from '../../knowledge-base/catalog-store.js';
 import { loadExportRecord } from '../../export/export-store.js';
 import { isProduction, runtimeLabel } from '../../config/runtime.js';
 import { sendJson } from '../../lib/send-json.js';
+import { synthesizeSpeech, ttsConfigured } from '../../ai-services/tts.js';
 import {
   wrapAsync,
   notFoundApiHandler,
@@ -47,7 +48,9 @@ export function mountRoutes(app) {
         'GET /api/storage/status',
         'GET /api/catalog/snapshots',
         'GET /api/exports/:id',
-        'POST /api/commands'
+        'POST /api/commands',
+        'GET /api/tts/status',
+        'POST /api/tts'
       ]
     });
   });
@@ -121,6 +124,41 @@ export function mountRoutes(app) {
       const clientRequest = parseClientRequest(req.body);
       const result = await route(clientRequest);
       sendJson(res, result.statusCode, result.response);
+    })
+  );
+
+  app.get('/api/tts/status', (_req, res) => {
+    sendJson(res, 200, {
+      available: ttsConfigured(),
+      engines: ttsConfigured() ? ['browser', 'ai'] : ['browser']
+    });
+  });
+
+  app.post(
+    '/api/tts',
+    wrapAsync(async (req, res) => {
+      const text = typeof req.body?.text === 'string' ? req.body.text : '';
+      const language =
+        req.body?.language === 'ru' || req.body?.language === 'sr'
+          ? req.body.language
+          : 'en';
+      try {
+        const audio = await synthesizeSpeech({ text, language });
+        res.status(200);
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Cache-Control', 'no-store');
+        res.send(audio);
+      } catch (error) {
+        const statusCode =
+          error && typeof error === 'object' && 'statusCode' in error
+            ? Number(error.statusCode) || 500
+            : 500;
+        sendJson(res, statusCode, {
+          status: 'error',
+          message: error instanceof Error ? error.message : 'TTS failed',
+          errors: ['tts_failed']
+        });
+      }
     })
   );
 
