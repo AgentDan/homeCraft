@@ -1,30 +1,226 @@
-# HomeCraft — Roadmap
+# HomeCraft — Roadmap: 3D-каталог + Project Journey
 
-Phases 0–3 ✅. Pilot MVP = Step 4. Order: `1→2→3→4`, `5→6→7`, `8` parallel, `9` after 1, `10` after 7+8.
+Status: **planned** (не начато).  
+Связан с закрытым MVP в [Roadmap.md](Roadmap.md). Порядок: `1 → 2 → 3`; фаза `4` может идти параллельно после фиксации словаря journey (не зависит от glTF).
+
+Инварианты (не нарушать):
+
+- AI только распознаёт намерение; решения детерминированы
+- `catalogSnapshotId` неизменяем; `.glb` по опубликованному пути **не перезаписывать** (см. конвенцию путей ниже)
+- RU-first; без молчаливого fallback без объяснения
+- Immutable-состояние (`structuredClone`)
+- Контракты — Zod в `packages/contracts`
+
+---
+
+## Verified baseline (проверено по файлам)
+
+| Область | Факт |
+|---|---|
+| `ModuleSchema` (`packages/contracts/src/module.js`) | Нет поля под 3D-модель — **и по этому roadmap отдельное поле не вводим** |
+| `SceneResultSchema` (`packages/contracts/src/client-response.js`) | Pose + `dimensions` + `finishId`; ссылки на glTF нет (клиент выводит путь из `sku`) |
+| Static `/gltf` (`apps/server/src/core/api/routes.js`) | `express.static(apps/server/gltf)` уже смонтирован |
+| `apps/server/gltf/` | Только `.gitkeep` |
+| `catalog-store.js` | Один JSON; `getCatalogSnapshot` принимает только `kitchen-demo-v1` |
+| Demo-каталог | 18 SKU (`BASE-*`, `WALL-*`, `TALL-*`, `SINK-*`, `CORNER-900`, …) |
+| `ScenePreview.jsx` / `ModuleBox` | R3F: комната, свет, тени, камера, `OrbitControls`; модуль = `<boxGeometry>`; позиция = `position/1000 + size/2` (центр бокса); финиш = весь mesh через `FINISH_COLORS`; **`useGLTF` нигде нет** |
+| `docs/CONSULTANT_CONCEPT.md` | **Файла нет** — создать в фазе 4 как единый словарь journey |
+| `required_slots` | **Имени в коде нет.** Прецедент обследования: `roomWidthMm` / `roomDepthMm` → `applyRoomDimensionSlots`; нехватка слотов → `clarify`; `RoomShape.openings` / `utilities` часто пустые |
+| `homecraft_architecture.pdf` | В репо отсутствует |
+| Персист | `persistRoomContext`: local + Mongo best-effort |
+
+**Конвенция пути (зафиксировано):** клиент запрашивает `/gltf/{sku}.glb` (имя файла = точный `sku`). Отдельное поле в Zod/каталоге не требуется. Пока живёт один snapshot `kitchen-demo-v1`, путь без версии допустим **только если файл никогда не подменяют**. Смена геометрии/материалов = новый snapshot **и** новая схема путей (например `/gltf/{catalogVersion}/{sku}.glb`) — отдельное решение при втором snapshot, не в фазах 1–3.
+
+Связанный discovery-артефакт (вне репо): `journey-dialog-map.html` — 12 этапов. В коде фазы 4 — **только этапы 1–3**.
+
+---
 
 ## Todo
 
-- [x] **1. Command journal** — append-only JSONL in `data/action-history/`
-- [x] **2. Idempotency + optimistic locking** — `expectedVersion` → 409; dedupe `requestId`
-- [x] **3. Replay test in CI** — `replayJournal` == snapshot
-- [x] **4. Production Export** — PDF bound to version + catalog snapshot
-- [x] **5. Branches** — history as tree (`create_branch` / `switch_branch`)
-- [x] **6. Candidates on conflict** — 2–3 priced options instead of hard reject
-- [x] **7. Policy + confidence** — `policy.yaml` weights; ask on near-tie
-- [x] **8. LLM parser (flag)** — intent JSON + Zod; fallback to rules
-- [x] **9. Voice input** — STT V1–V5 ([voice-stt-plan.md](voice-stt-plan.md))
-- [x] **10. Explanation + TTS** — grounded numbers; V6–V7
+- [ ] **1. Контракт авторства 3D** — `docs/model-authoring-spec.md` (без контента `.glb`)
+- [ ] **2. Валидация + приём моделей** — скрипт/чеклист; файлы от автора в `apps/server/gltf/`
+- [ ] **3. Клиентский рендер** — `useGLTF('/gltf/{sku}.glb')` + box-fallback + material slots
+- [ ] **4. Project Journey 1–3** — state, dialog-router в `resolveRoutedCommand`, i18n-вопросы
 
-## Closed yellow (now green)
+---
 
-- [x] i18n EN/RU/SR (intent + UI + server messages)
-- [x] Command journal (Event Log layer)
-- [x] Grounded explanation (`decision-report` / `explainBom`) — deterministic numbers, no LLM
-- [x] Replay CI (`replayJournal` == normalized plan snapshot)
-- [x] Production Export PDF (`export pdf` → `/api/exports/:id`)
+## Фаза 1 — Контракт и спецификация моделей (без контента)
 
-## Deferred
+### Цель
 
-- [ ] Analog ranking polish (2.8)
-- [ ] Wardrobe domain / Expo / auth / multi-tenant / customer memory
-- [ ] **3D catalog + Project Journey** — [roadmap-catalog-journey.md](roadmap-catalog-journey.md) (фазы 1–4)
+Зафиксировать правила авторства glTF так, чтобы ручные `.glb` подставлялись в текущий `ModuleBox` **без смены** pose-логики в `materializePlan` / позиционирования.
+
+### Задачи
+
+- [ ] Создать `docs/model-authoring-spec.md` с необсуждаемыми параметрами:
+  - формат `.glb`, один файл, текстуры встроены; имя = точный `sku`; ≤15k треугольников; ≤2 МБ
+  - единицы — метры; Y-up; правая СК
+  - **origin = геометрический центр bounding box** по X/Y/Z (как центр текущего `boxGeometry`)
+  - фасад при `rotationY = 0` смотрит в **+Z**
+  - bbox геометрии = `dimensions` каталога (мм → м)
+  - material slots: `facade`, `carcass`; metallic-roughness; `metalness ≈ 0`; `roughness ≈ 0.6–0.8`
+  - без light/camera внутри `.glb`
+- [ ] Явно записать: **поле `modelUri` / аналог в контракты не добавляем**; наличие модели = наличие файла по `/gltf/{sku}.glb`
+- [ ] Зафиксировать в spec: модели делает человек вручную; codegen/asset-pack в репо не входят
+- [ ] **Сквозное:** в spec или комментарии к каталогу — место под авторство/дату модели (на будущее); отдельный трекинг лицензий не требуется для Homecraft-authored assets
+
+### Затрагиваемые файлы
+
+- `docs/model-authoring-spec.md` (новый)
+- этот roadmap (ссылка на spec)
+
+### Критерий готовности
+
+1. Spec смержен и однозначен (origin center, +Z facade, бюджеты, slots).
+2. Контракты Zod **не** меняются ради URI.
+3. Документировано, что pose/`ModuleBox` math не пересматриваются под corner-origin.
+
+### Явно вне скоупа
+
+- Любые `.glb`, валидатор, правки `ScenePreview`, поля в `ModuleSchema` / `SceneResultSchema`.
+
+---
+
+## Фаза 2 — Валидация и интеграция моделей
+
+### Цель
+
+Принимать авторские `.glb` в `apps/server/gltf/` только после проверки против каталога и spec; без процедурной генерации в коде.
+
+### Задачи
+
+- [ ] Скрипт и/или чеклист валидации перед merge:
+  - bbox ≈ `dimensions` SKU (допуск на фурнитуру — порог в скрипте)
+  - origin в геометрическом центре bbox
+  - есть materials/slots `facade` и `carcass`
+  - ≤15k tris, ≤2 МБ
+  - нет light/camera в сцене файла
+- [ ] Приём моделей по мере готовности автора (приоритет demo-SKU: `BASE-400/600/800`, навесной, угловой, пенал, шкаф под мойку)
+- [ ] Класть файлы как `apps/server/gltf/{sku}.glb`; static route уже есть — не дублировать
+- [ ] Опционально: заметка в каталоге/CHANGELOG «SKU X: glTF added, author, date» — **не** URL-поле схемы
+- [ ] **Сквозное:** не перезаписывать уже отданный под snapshot файл; замена = новый snapshot + новая path-policy
+
+### Затрагиваемые файлы
+
+- `apps/server/gltf/{sku}.glb`
+- `tools/` или `apps/server/scripts/validate-gltf.*` (новый)
+- `docs/model-authoring-spec.md` (ссылка на валидатор)
+- при необходимости комментарий/мета в `kitchen-catalog.json` без смены Zod-обязательных полей
+
+### Критерий готовности
+
+1. Хотя бы несколько приоритетных SKU проходят валидатор и отдаются с `/gltf/{sku}.glb`.
+2. SKU без файла не ломают сервер/каталог.
+3. Генератора моделей в репозитории нет.
+
+### Явно вне скоупа
+
+- Клиентский `useGLTF` (фаза 3), заказ внешнего asset-pack, смена `kitchen-demo-v1` id без нужды.
+
+---
+
+## Фаза 3 — Клиентский рендер
+
+### Цель
+
+Подменить геометрию бокса на glTF при успешной загрузке; сохранить fallback и перекраску через `facade`.
+
+### Задачи
+
+- [ ] В `ModuleBox`: `useGLTF(\`/gltf/${sku}.glb\`)` (drei); нет файла / ошибка → текущий `<boxGeometry>`
+- [ ] Не менять формулу позиции (`position/1000 + size/2`) — она уже под center-origin
+- [ ] Финиш: красить material slot `facade` по `FINISH_COLORS` / `finishId`; `carcass` не перекрашивать целиком как сейчас бокс
+- [ ] `Room`, свет, камера, `OrbitControls` — не трогать
+- [ ] **Сквозное:** smoke визуальной регрессии (скриншот или чеклист): тот же угол/габарит, что у box-fallback для `BASE-600`
+- [ ] Ошибка загрузки — без молчаливого «успеха»; fallback заметен только геометрией, не ломает диалог
+
+### Затрагиваемые файлы
+
+- `apps/client/src/components/ScenePreview.jsx`
+- тест/доки smoke-регрессии (минимально)
+
+### Критерий готовности
+
+1. SKU с `.glb` рендерится мешем; без файла — бокс.
+2. Смена `finishId` затрагивает `facade`.
+3. Позиционирование совпадает с прежним боксом при тех же `position` / `dimensions`.
+
+### Явно вне скоупа
+
+- Перестройка lighting, анимации фасадов, загрузка по `catalogVersion` в URL (пока один snapshot).
+
+---
+
+## Фаза 4 — Project Journey (этапы 1–3)
+
+### Цель
+
+Система ведёт клиента: Знакомство → Сбор задачи → Обследование помещения. Build-loop (Intent → Plan → Compatibility → BOM → Scene) остаётся инструментом, не центром.
+
+### Задачи
+
+- [ ] Создать **один** `docs/CONSULTANT_CONCEPT.md`: словарь `ProjectJourney` / этапы / слоты; `KitchenBrief` = будущие слоты потребностей (этап 4+, вне этой фазы); `dialog-router` = модуль маршрутизации реплик — без второго параллельного жаргона
+- [ ] Zod `ProjectJourneyState` в `packages/contracts`: stage, mode (`guided` \| `free`), known / missing / deferred, история вопросов
+- [ ] Вложить state в `RoomContext`; dual-write как у остального контекста (local + Mongo best-effort)
+- [ ] Таблица «этап → недостающее поле → ключ i18n» в логике + `apps/server/src/i18n/messages.js` (RU-first)
+- [ ] Этап 3 на прецеденте обследования (слоты размеров, openings/utilities, clarify) — **не** выдумывать уже существующий модуль `required_slots`; при необходимости ввести явную таблицу required fields для journey stage 3
+- [ ] В `resolveRoutedCommand()` **до** `intentHandlers[intent.kind]`: роутер — ответ на journey-вопрос vs обычная команда. Команда не блокируется; вопрос этапа можно переспросить следующим ходом
+- [ ] Явный выход в `journey.mode = free` в любой момент
+- [ ] **Сквозное:** минимальная наблюдаемость — drop-off по stage, счётчик re-ask (journal / JSONL)
+- [ ] Discovery: прогон sandbox-сценариев до кодирования финальной таблицы вопросов
+
+### Затрагиваемые файлы
+
+- `docs/CONSULTANT_CONCEPT.md` (новый)
+- `packages/contracts` — journey schema + `RoomContext`
+- `apps/server/src/core/orchestrator.js`
+- `apps/server/src/core/dialog-router.js` (новый)
+- `apps/server/src/core/room-context-builder.js`
+- `apps/server/src/storage/local-storage.js`, `mongo.js`
+- `apps/server/src/i18n/messages.js`
+- тесты router / orchestrator
+
+### Критерий готовности
+
+1. Guided path проходит этапы 1→2→3 вопросами системы.
+2. Free mode и обычные команды работают параллельно политике роутера.
+3. Ответы на вопросы этапа детерминированно пишут слоты (без LLM-решений).
+4. State переживает reload сессии.
+5. Этапы 4–12 только в backlog concept doc.
+
+### Явно вне скоупа
+
+- Этапы 4–12, LLM-ведёт сценарий, отказ от intent-handlers / `runDownstream`.
+
+---
+
+## Сквозные пункты (матрица)
+
+| Пункт | Ф1 | Ф2 | Ф3 | Ф4 |
+|---|---|---|---|---|
+| Авторство / дата модели (метаданные) | spec | при приёме файлов | — | — |
+| Выход journey → free | — | — | — | да |
+| Observability drop-off / re-ask | — | — | — | минимальные счётчики |
+| `journeyState` dual-write | — | — | — | да |
+| Visual regression smoke | — | — | да | — |
+| Не перезаписывать `.glb` snapshot | зафиксировать | соблюдать | — | — |
+
+---
+
+## Backlog после фазы 4
+
+- `tools/journey-sandbox/` (HTML + JSON сценарии)
+- Этапы 4–7 на существующем build-loop
+- Approval / freeze snapshot (этап 9)
+- Production package (этап 11)
+- Path-policy с `catalogVersion` при втором snapshot
+- Внешние asset-pack (только с лицензией)
+
+---
+
+## Definition of Done (инициатива)
+
+- [ ] Spec + валидатор; авторские `.glb` для приоритетных SKU на `/gltf/{sku}.glb`
+- [ ] Клиент: glTF или box-fallback; финиш по `facade`; pose без регрессии
+- [ ] Journey 1–3 guided + free escape + persist
+- [ ] Один словарь в `CONSULTANT_CONCEPT.md`; инварианты AI/Zod/RU/snapshot соблюдены
