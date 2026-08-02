@@ -8,6 +8,7 @@ import {
   buildDecisionReport,
   explainFromReport
 } from './decision-report.js';
+import { resolveSkuThumbnailUrl } from './gltf-thumbnail.js';
 
 const OPERATION_ADD_MODULE = 'add_module';
 const OPERATION_REMOVE_MODULE = 'remove_module';
@@ -182,16 +183,21 @@ export function buildCandidatesResponse(input) {
     intro
   );
 
-  const options = ranked.map((entry, index) => ({
-    id: `candidate-${index + 1}`,
-    label: t(language, 'candidateOptionScored', {
-      index: index + 1,
-      sku: entry.candidate.replacedWithSku,
-      instanceId: entry.candidate.replacedInstanceId,
-      totalEur: entry.candidate.bom.totalEur,
-      score: entry.score
-    })
-  }));
+  const options = ranked.map((entry, index) => {
+    const sku = entry.candidate.replacedWithSku;
+    const thumbnailUrl = resolveSkuThumbnailUrl(sku);
+    return {
+      id: `candidate-${index + 1}`,
+      label: t(language, 'candidateOptionScored', {
+        index: index + 1,
+        sku,
+        instanceId: entry.candidate.replacedInstanceId,
+        totalEur: entry.candidate.bom.totalEur,
+        score: entry.score
+      }),
+      ...(thumbnailUrl ? { thumbnailUrl } : {})
+    };
+  });
 
   return ClientResponseSchema.parse({
     requestId: input.request.requestId,

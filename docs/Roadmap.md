@@ -1,6 +1,6 @@
 # HomeCraft — Roadmap: 3D-каталог + Project Journey
 
-Status: **in progress** — фазы 1–4 done; далее фаза 5 (thumbnails).  
+Status: **phases 1–5 done** (3D catalog + journey 1–3 + option thumbnails).  
 Закрытый MVP (Steps 1–10) — в decision log паспорта. Порядок: `1 → 2 → 3`; фаза `5` после `2` (нужны `.glb`); фаза `4` параллельно после фиксации словаря journey (не зависит от glTF).
 
 Инварианты (не нарушать) — см. также [PROJECT_PASSPORT.md](PROJECT_PASSPORT.md):
@@ -29,8 +29,8 @@ Status: **in progress** — фазы 1–4 done; далее фаза 5 (thumbnai
 | `required_slots` | **Имени в коде нет.** Прецедент обследования: `roomWidthMm` / `roomDepthMm` → `applyRoomDimensionSlots`; нехватка слотов → `clarify`; `RoomShape.openings` / `utilities` часто пустые |
 | `homecraft_architecture.pdf` | В репо отсутствует |
 | Персист | `persistRoomContext`: local + Mongo best-effort |
-| Options UI (`ResponseRouter.jsx`) | `responseType: 'options'` — только текст `option.label`; картинок нет |
-| `InteractionOptionSchema` | `id`, `label`, `speechLabel` — **нет** `thumbnailUrl` |
+| Options UI (`ResponseRouter.jsx`) | `options`: `<img>` при `thumbnailUrl`, иначе только текст |
+| `InteractionOptionSchema` | `id`, `label`, `speechLabel`, optional `thumbnailUrl` |
 
 **Конвенция пути (зафиксировано):** клиент запрашивает `/gltf/{sku}.glb` (имя файла = точный `sku`). Отдельное поле модели в Zod/каталоге не требуется. Миниатюры: `/gltf/{sku}.png` рядом с `.glb` (та же иммутабельность). Пока живёт один snapshot `kitchen-demo-v1`, путь без версии допустим **только если файл никогда не подменяют**. Смена геометрии/материалов/превью = новый snapshot **и** новая схема путей — отдельное решение при втором snapshot, не в фазах 1–3.
 
@@ -44,7 +44,7 @@ Status: **in progress** — фазы 1–4 done; далее фаза 5 (thumbnai
 - [x] **2. Валидация + приём моделей** — `npm run validate:gltf`; приоритетные SKU в `apps/server/gltf/`
 - [x] **3. Клиентский рендер** — `useGLTF` + box-fallback + `facade` tint; [gltf-visual-smoke.md](gltf-visual-smoke.md)
 - [x] **4. Project Journey 1–3** — [CONSULTANT_CONCEPT.md](CONSULTANT_CONCEPT.md), dialog-router, persist
-- [ ] **5. Превью кандидатов** — `option.thumbnailUrl` + PNG у SKU + `<img>` в `ResponseRouter`
+- [x] **5. Превью кандидатов** — `thumbnailUrl` + PNG + `<img>` в `ResponseRouter`
 
 ---
 
@@ -208,27 +208,27 @@ Status: **in progress** — фазы 1–4 done; далее фаза 5 (thumbnai
 
 ### Задачи
 
-- [ ] Добавить необязательное `thumbnailUrl` в `InteractionOptionSchema` (`packages/contracts/src/client-response.js`)
-- [ ] Генерация миниатюры **один раз** при добавлении модели в каталог: offscreen-рендер `.glb` с фиксированного ракурса → PNG; движок тот же стек, что основная 3D-сцена (Three / R3F)
-- [ ] Класть файл рядом с моделью: `apps/server/gltf/{sku}.png` (URL `/gltf/{sku}.png`); не перезаписывать под тем же snapshot
-- [ ] В `buildCandidatesResponse()` (и местах сборки options) проставлять `thumbnailUrl`, если PNG для SKU кандидата есть
-- [ ] В `ResponseRouter.jsx` для `options`: `<img>` над `option.label` при наличии `thumbnailUrl`; без URL — как сейчас, только текст
-- [ ] **Сквозное:** PNG подчиняется той же иммутабельности, что `.glb`
+- [x] Необязательное `thumbnailUrl` в `InteractionOptionSchema`
+- [x] `npm run render:gltf-thumbs` — three.js GLTFLoader + offscreen PNG (не перезаписывает)
+- [x] PNG рядом с моделью: `apps/server/gltf/{sku}.png`
+- [x] `buildCandidatesResponse()` проставляет `thumbnailUrl`, если PNG есть
+- [x] `ResponseRouter` options: `<img>` над label при URL
+- [x] **Сквозное:** PNG иммутабелен под snapshot (как `.glb`)
 
 ### Затрагиваемые файлы
 
-- `packages/contracts/src/client-response.js`
-- `apps/server/src/core/output-builder.js` (`buildCandidatesResponse`)
-- `apps/client/src/components/ResponseRouter.jsx`
-- `apps/server/gltf/{sku}.png`
-- скрипт offscreen-рендера (рядом с validate-gltf / `tools/`)
+- `packages/contracts/src/client-response.js` ✅
+- `apps/server/src/core/output-builder.js` / `gltf-thumbnail.js` ✅
+- `apps/client/src/components/ResponseRouter.jsx` ✅
+- `apps/server/gltf/{sku}.png` ✅ (7 priority)
+- `apps/server/scripts/render-gltf-thumbnails.mjs` ✅
 
 ### Критерий готовности
 
-1. Zod принимает options с/без `thumbnailUrl`.
-2. Хотя бы для приоритетных SKU с `.glb` есть `.png`, отдаётся static `/gltf`.
-3. В UI options видна картинка, если URL задан; без URL UI не ломается.
-4. Кандидаты **не** рисуются как полупрозрачные объекты в основной сцене.
+1. ✅ Zod принимает options с/без `thumbnailUrl`.
+2. ✅ Приоритетные SKU с `.glb` имеют `.png` на `/gltf`.
+3. ✅ UI показывает картинку при URL; без URL — только текст.
+4. ✅ Кандидаты не рисуются ghost-мешами в основной сцене.
 
 ### Явно вне скоупа
 
@@ -264,8 +264,8 @@ Status: **in progress** — фазы 1–4 done; далее фаза 5 (thumbnai
 
 ## Definition of Done (инициатива)
 
-- [ ] Spec + валидатор; авторские `.glb` для приоритетных SKU на `/gltf/{sku}.glb`
-- [ ] Клиент: glTF или box-fallback; финиш по `facade`; pose без регрессии
-- [ ] Journey 1–3 guided + free escape + persist
-- [ ] Options с `thumbnailUrl` / PNG; без ghost в сцене
-- [ ] Один словарь в `CONSULTANT_CONCEPT.md`; инварианты AI/Zod/RU/snapshot соблюдены
+- [x] Spec + валидатор; авторские `.glb` для приоритетных SKU на `/gltf/{sku}.glb`
+- [x] Клиент: glTF или box-fallback; финиш по `facade`; pose без регрессии
+- [x] Journey 1–3 guided + free escape + persist
+- [x] Options с `thumbnailUrl` / PNG; без ghost в сцене
+- [x] Один словарь в `CONSULTANT_CONCEPT.md`; инварианты AI/Zod/RU/snapshot соблюдены

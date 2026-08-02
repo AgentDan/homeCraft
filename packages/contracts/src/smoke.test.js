@@ -113,13 +113,25 @@ describe('@homecraft/contracts smoke', () => {
     const options = createOptionsResponse({
       ...ids,
       prompt: 'Choose a finish.',
-      options: [{ id: 'oak', label: 'Oak' }]
+      options: [
+        { id: 'oak', label: 'Oak' },
+        {
+          id: 'base',
+          label: 'BASE-600',
+          thumbnailUrl: '/gltf/BASE-600.png'
+        }
+      ]
     });
     const confirm = createConfirmResponse({ ...ids, prompt: 'Confirm the changes?' });
 
     assert.equal(clarify.interaction.expects, 'free_text');
     assert.ok(options.interaction.options);
     assert.equal(options.interaction.options[0].id, 'oak');
+    assert.equal(options.interaction.options[0].thumbnailUrl, undefined);
+    assert.equal(
+      options.interaction.options[1].thumbnailUrl,
+      '/gltf/BASE-600.png'
+    );
     assert.equal(confirm.responseType, 'confirm');
   });
 });

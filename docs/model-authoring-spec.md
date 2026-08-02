@@ -80,12 +80,21 @@ npm run validate:gltf -- BASE-600
 Скрипт: `apps/server/scripts/validate-gltf.mjs`  
 Проверяет: размер файла, tris, slots `facade`/`carcass`, отсутствие camera/light, bbox ≈ catalog (±10 mm), origin = центр bbox, фасад в +Z half-space.
 
-Иммутабельность: не перезаписывать уже отданный `{sku}.glb` под тем же snapshot. Журнал приёма: `apps/server/gltf/CHANGELOG.md`.
+Иммутабельность: не перезаписывать уже отданный `{sku}.glb` / `{sku}.png` под тем же snapshot. Журнал приёма: `apps/server/gltf/CHANGELOG.md`.
+
+### Миниатюры (фаза 5)
+
+```bash
+npm run render:gltf-thumbs
+# или один SKU:
+npm run render:gltf-thumbs -- BASE-600
+```
+
+Скрипт: `apps/server/scripts/render-gltf-thumbnails.mjs` — three.js load + offscreen PNG; существующие файлы не перезаписывает.
 
 ---
 
 ## Вне скоупа этого документа
 
-- Клиентский `useGLTF` (фаза 3)
-- Изменения `ScenePreview`, `ModuleSchema`, `SceneResultSchema`
 - Живой codegen моделей в приложении
+- Изменения `ModuleSchema` / `SceneResultSchema` ради URI модели

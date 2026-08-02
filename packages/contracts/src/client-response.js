@@ -31,7 +31,9 @@ export const ViewSchema = z.object({
 export const InteractionOptionSchema = z.object({
   id: z.string(),
   label: z.string(),
-  speechLabel: z.string().optional()
+  speechLabel: z.string().optional(),
+  /** Static preview URL, e.g. `/gltf/{sku}.png` — optional; UI stays text-only without it. */
+  thumbnailUrl: z.string().min(1).optional()
 });
 
 export const InteractionSchema = z.object({

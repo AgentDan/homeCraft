@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "nodemon --config nodemon.json src/index.js",
     "start": "node src/index.js",
-    "test": "node --test src/smoke.test.js src/compatibility.test.js src/ai-services/replace-module.test.js src/ai-services/llm-intent.test.js src/pricing-engine/bom-cache.test.js src/storage/command-journal.test.js src/storage/idempotency.test.js src/storage/replay-journal.test.js src/storage/branches.test.js src/compatibility-engine/candidates.test.js src/policy/policy.test.js src/export/export.test.js src/core/orchestrator-journal.test.js src/core/output-builder.test.js src/core/decision-report.test.js src/validate-gltf.test.js src/core/dialog-router.test.js",
+    "test": "node --test src/smoke.test.js src/compatibility.test.js src/ai-services/replace-module.test.js src/ai-services/llm-intent.test.js src/pricing-engine/bom-cache.test.js src/storage/command-journal.test.js src/storage/idempotency.test.js src/storage/replay-journal.test.js src/storage/branches.test.js src/compatibility-engine/candidates.test.js src/policy/policy.test.js src/export/export.test.js src/core/orchestrator-journal.test.js src/core/output-builder.test.js src/core/decision-report.test.js src/validate-gltf.test.js src/core/dialog-router.test.js src/core/gltf-thumbnail.test.js",
     "catalog:index": "node src/knowledge-base/indexer-cli.js",
-    "validate:gltf": "node scripts/validate-gltf.mjs"
+    "validate:gltf": "node scripts/validate-gltf.mjs",
+    "render:gltf-thumbs": "node scripts/render-gltf-thumbnails.mjs"
   },
   "dependencies": {
     "@gltf-transform/core": "^4.4.2",
@@ -21,9 +22,11 @@
     "mongodb": "^6.17.0",
     "pdfkit": "^0.19.1",
     "redis": "^6.1.0",
+    "three": "^0.185.1",
     "zod": "^3.25.56"
   },
   "devDependencies": {
+    "@napi-rs/canvas": "^1.0.3",
     "nodemon": "^3.1.10"
   }
 }

@@ -104,7 +104,7 @@ npm run lint
 
 **Deferred:** analog ranking polish (2.8); wardrobe / Expo / auth / multi-tenant / customer memory.
 
-**Активно:** [Roadmap.md](Roadmap.md) — фазы 1–4 ✅; далее фаза 5 (превью кандидатов).
+**Активно:** [Roadmap.md](Roadmap.md) — фазы 1–5 ✅ (glTF + Journey 1–3 + option thumbnails). Backlog — этапы journey 4+.
 
 **Ещё нет в пайплайне:** полноценный Scene Graph как отдельная подсистема; домены wardrobe+; production package сверх PDF.
 
@@ -129,6 +129,7 @@ DoD фазы: acceptance criteria + `lint`/`test`/`build` + актуальные
 
 | Дата | Что изменили | Почему | Что устарело в паспорте |
 |---|---|---|---|
+| 2026-08-02 | Фаза 5: `thumbnailUrl` + PNG thumbs + options `<img>` | Превью кандидатов без ghost в сцене | §7, §11 |
 | 2026-08-02 | Фаза 4: Project Journey 1–3 (`dialog-router`, `RoomContext.journey`) | Guided intro→brief→survey без блокировки команд | §7, §11 |
 | 2026-08-02 | Фаза 3: `useGLTF` + box-fallback + tint `facade` в `ScenePreview` | 3D-каталог без смены pose-math | §3, §7 |
 | 2026-08-02 | Фаза 2: `validate:gltf` + 7 priority `.glb` в `apps/server/gltf/` | Приём моделей по spec без codegen в репо | §7, §11 |

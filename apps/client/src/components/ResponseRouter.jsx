@@ -85,15 +85,24 @@ export function ResponseRouter({ response, onCommand, disabled }) {
                 type="button"
                 disabled={disabled}
                 onClick={() => onCommand(option.label)}
-                className="hc-btn-accent rounded-[10px] px-3 py-1.5 text-xs"
+                className="hc-btn-accent flex max-w-[14rem] flex-col items-stretch gap-1.5 rounded-[10px] px-2.5 py-2 text-left text-xs"
               >
-                {option.label}
+                {option.thumbnailUrl ? (
+                  <img
+                    src={option.thumbnailUrl}
+                    alt=""
+                    width={96}
+                    height={72}
+                    className="h-[72px] w-full rounded-[6px] object-cover bg-black/30"
+                    loading="lazy"
+                  />
+                ) : null}
+                <span className="leading-snug">{option.label}</span>
               </button>
             ))}
           </div>
         </CompactPrompt>
-      );
-    case 'confirm':
+      );    case 'confirm':
       return (
         <CompactPrompt>
           <p className="mb-2 text-xs leading-snug text-[var(--hc-muted)]">

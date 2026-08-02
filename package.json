@@ -24,7 +24,8 @@
     "typecheck": "tsc --project jsconfig.json",
     "test": "npm run test --workspaces --if-present",
     "catalog:index": "npm run catalog:index --workspace @homecraft/server",
-    "validate:gltf": "npm run validate:gltf --workspace @homecraft/server"
+    "validate:gltf": "npm run validate:gltf --workspace @homecraft/server",
+    "render:gltf-thumbs": "npm run render:gltf-thumbs --workspace @homecraft/server"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
