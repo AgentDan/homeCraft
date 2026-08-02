@@ -104,7 +104,7 @@ npm run lint
 
 **Deferred:** analog ranking polish (2.8); wardrobe / Expo / auth / multi-tenant / customer memory.
 
-**Активно:** [Roadmap.md](Roadmap.md) — 3D-каталог (glTF) + Project Journey 1–3 + превью кандидатов (фазы 1–5, planned).
+**Активно:** [Roadmap.md](Roadmap.md) — 3D-каталог (glTF) + Project Journey 1–3 + превью кандидатов; фаза 1 ✅ ([model-authoring-spec.md](model-authoring-spec.md)).
 
 **Ещё нет в пайплайне:** полноценный Scene Graph как отдельная подсистема; домены wardrobe+; production package сверх PDF.
 
@@ -129,6 +129,7 @@ DoD фазы: acceptance criteria + `lint`/`test`/`build` + актуальные
 
 | Дата | Что изменили | Почему | Что устарело в паспорте |
 |---|---|---|---|
+| 2026-08-02 | Фаза 1 roadmap: `model-authoring-spec.md` (центр origin, +Z, slots, без `modelUri`) | Контракт для ручных `.glb` без смены pose-math | §11 |
 | 2026-08-02 | Docs: один `Roadmap.md` (glTF+journey); CONTRIBUTING влит в паспорт | Убрать дубли архива и двух contributing-доков | Разделы 6–7, 10 |
 | 2026-07-29 | Step 10 — Grounded explanation + TTS | Числа только из отчёта; озвучка не блокирует UI | Explanation ✅ |
 | 2026-07-29 | Step 9 — Voice STT | Голос = peer channel к `/api/commands` | Voice ✅ |
@@ -165,4 +166,5 @@ DoD фазы: acceptance criteria + `lint`/`test`/`build` + актуальные
 - [Roadmap.md](Roadmap.md) — активный roadmap (glTF + Project Journey)
 - Architecture Vision v1.0 (вне репозитория)
 
-Планируются: `CONSULTANT_CONCEPT.md`, `model-authoring-spec.md`.
+- [model-authoring-spec.md](model-authoring-spec.md) — контракт авторства glTF (фаза 1)
+- Планируется: `CONSULTANT_CONCEPT.md` (фаза 4)

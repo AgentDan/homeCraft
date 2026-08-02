@@ -1,6 +1,6 @@
 # HomeCraft — Roadmap: 3D-каталог + Project Journey
 
-Status: **planned** (не начато).  
+Status: **in progress** — фаза 1 done ([model-authoring-spec.md](model-authoring-spec.md)); далее 2→3.  
 Закрытый MVP (Steps 1–10) — в decision log паспорта. Порядок: `1 → 2 → 3`; фаза `5` после `2` (нужны `.glb`); фаза `4` параллельно после фиксации словаря journey (не зависит от glTF).
 
 Инварианты (не нарушать) — см. также [PROJECT_PASSPORT.md](PROJECT_PASSPORT.md):
@@ -39,7 +39,7 @@ Status: **planned** (не начато).
 
 ## Todo
 
-- [ ] **1. Контракт авторства 3D** — `docs/model-authoring-spec.md` (без контента `.glb`)
+- [x] **1. Контракт авторства 3D** — [model-authoring-spec.md](model-authoring-spec.md) (без контента `.glb`)
 - [ ] **2. Валидация + приём моделей** — скрипт/чеклист; файлы от автора в `apps/server/gltf/`
 - [ ] **3. Клиентский рендер** — `useGLTF('/gltf/{sku}.glb')` + box-fallback + material slots
 - [ ] **4. Project Journey 1–3** — state, dialog-router в `resolveRoutedCommand`, i18n-вопросы
@@ -55,7 +55,7 @@ Status: **planned** (не начато).
 
 ### Задачи
 
-- [ ] Создать `docs/model-authoring-spec.md` с необсуждаемыми параметрами:
+- [x] Создать [model-authoring-spec.md](model-authoring-spec.md) с необсуждаемыми параметрами:
   - формат `.glb`, один файл, текстуры встроены; имя = точный `sku`; ≤15k треугольников; ≤2 МБ
   - единицы — метры; Y-up; правая СК
   - **origin = геометрический центр bounding box** по X/Y/Z (как центр текущего `boxGeometry`)
@@ -63,20 +63,20 @@ Status: **planned** (не начато).
   - bbox геометрии = `dimensions` каталога (мм → м)
   - material slots: `facade`, `carcass`; metallic-roughness; `metalness ≈ 0`; `roughness ≈ 0.6–0.8`
   - без light/camera внутри `.glb`
-- [ ] Явно записать: **поле `modelUri` / аналог в контракты не добавляем**; наличие модели = наличие файла по `/gltf/{sku}.glb`
-- [ ] Зафиксировать в spec: модели делает человек вручную; codegen/asset-pack в репо не входят
-- [ ] **Сквозное:** в spec или комментарии к каталогу — место под авторство/дату модели (на будущее); отдельный трекинг лицензий не требуется для Homecraft-authored assets
+- [x] Явно записать: **поле `modelUri` / аналог в контракты не добавляем**; наличие модели = наличие файла по `/gltf/{sku}.glb`
+- [x] Зафиксировать в spec: модели делает человек вручную; codegen/asset-pack в репо не входят
+- [x] **Сквозное:** в spec — место под авторство/дату модели (на будущее); отдельный трекинг лицензий не требуется для Homecraft-authored assets
 
 ### Затрагиваемые файлы
 
-- `docs/model-authoring-spec.md` (новый)
-- этот roadmap (ссылка на spec)
+- [model-authoring-spec.md](model-authoring-spec.md) ✅
+- этот roadmap (ссылка на spec) ✅
 
 ### Критерий готовности
 
-1. Spec смержен и однозначен (origin center, +Z facade, бюджеты, slots).
-2. Контракты Zod **не** меняются ради URI.
-3. Документировано, что pose/`ModuleBox` math не пересматриваются под corner-origin.
+1. ✅ Spec однозначен (origin center, +Z facade, бюджеты, slots).
+2. ✅ Контракты Zod **не** меняются ради URI.
+3. ✅ Документировано, что pose/`ModuleBox` math не пересматриваются под corner-origin.
 
 ### Явно вне скоупа
 
