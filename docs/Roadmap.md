@@ -27,3 +27,4 @@ Phases 0–3 ✅. Pilot MVP = Step 4. Order: `1→2→3→4`, `5→6→7`, `8` p
 
 - [ ] Analog ranking polish (2.8)
 - [ ] Wardrobe domain / Expo / auth / multi-tenant / customer memory
+- [ ] **3D catalog + Project Journey** — [roadmap-catalog-journey.md](roadmap-catalog-journey.md) (фазы 1–4)
