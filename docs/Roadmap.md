@@ -1,6 +1,6 @@
 # HomeCraft — Roadmap: 3D-каталог + Project Journey
 
-Status: **in progress** — фазы 1–2 done; далее фаза 3 (`useGLTF`).  
+Status: **in progress** — фазы 1–3 done; далее фаза 5 (thumbnails) или 4 (journey) параллельно.  
 Закрытый MVP (Steps 1–10) — в decision log паспорта. Порядок: `1 → 2 → 3`; фаза `5` после `2` (нужны `.glb`); фаза `4` параллельно после фиксации словаря journey (не зависит от glTF).
 
 Инварианты (не нарушать) — см. также [PROJECT_PASSPORT.md](PROJECT_PASSPORT.md):
@@ -24,7 +24,7 @@ Status: **in progress** — фазы 1–2 done; далее фаза 3 (`useGLTF
 | `validate:gltf` | `apps/server/scripts/validate-gltf.mjs` — bbox/origin/slots/tris/size |
 | `catalog-store.js` | Один JSON; `getCatalogSnapshot` принимает только `kitchen-demo-v1` |
 | Demo-каталог | 18 SKU (`BASE-*`, `WALL-*`, `TALL-*`, `SINK-*`, `CORNER-900`, …) |
-| `ScenePreview.jsx` / `ModuleBox` | R3F: комната, свет, тени, камера, `OrbitControls`; модуль = `<boxGeometry>`; позиция = `position/1000 + size/2` (центр бокса); финиш = весь mesh через `FINISH_COLORS`; **`useGLTF` нигде нет** |
+| `ScenePreview.jsx` / `ModuleBox` | R3F: `useGLTF('/gltf/{sku}.glb')` + box-fallback; поза = `position/1000 + size/2`; финиш только slot `facade` |
 | `docs/CONSULTANT_CONCEPT.md` | **Файла нет** — создать в фазе 4 как единый словарь journey |
 | `required_slots` | **Имени в коде нет.** Прецедент обследования: `roomWidthMm` / `roomDepthMm` → `applyRoomDimensionSlots`; нехватка слотов → `clarify`; `RoomShape.openings` / `utilities` часто пустые |
 | `homecraft_architecture.pdf` | В репо отсутствует |
@@ -42,7 +42,7 @@ Status: **in progress** — фазы 1–2 done; далее фаза 3 (`useGLTF
 
 - [x] **1. Контракт авторства 3D** — [model-authoring-spec.md](model-authoring-spec.md) (без контента `.glb`)
 - [x] **2. Валидация + приём моделей** — `npm run validate:gltf`; приоритетные SKU в `apps/server/gltf/`
-- [ ] **3. Клиентский рендер** — `useGLTF('/gltf/{sku}.glb')` + box-fallback + material slots
+- [x] **3. Клиентский рендер** — `useGLTF` + box-fallback + `facade` tint; [gltf-visual-smoke.md](gltf-visual-smoke.md)
 - [ ] **4. Project Journey 1–3** — state, dialog-router в `resolveRoutedCommand`, i18n-вопросы
 - [ ] **5. Превью кандидатов** — `option.thumbnailUrl` + PNG у SKU + `<img>` в `ResponseRouter`
 
@@ -132,23 +132,25 @@ Status: **in progress** — фазы 1–2 done; далее фаза 3 (`useGLTF
 
 ### Задачи
 
-- [ ] В `ModuleBox`: условная загрузка через `useGLTF('/gltf/{sku}.glb')` (drei); нет файла / ошибка → текущий `<boxGeometry>`
-- [ ] Не менять формулу позиции (`position/1000 + size/2`) — она уже под center-origin
-- [ ] Финиш: красить material slot `facade` по `FINISH_COLORS` / `finishId`; `carcass` не перекрашивать целиком как сейчас бокс
-- [ ] `Room`, свет, камера, `OrbitControls` — не трогать
-- [ ] **Сквозное:** smoke визуальной регрессии (скриншот или чеклист): тот же угол/габарит, что у box-fallback для `BASE-600`
-- [ ] Ошибка загрузки — без молчаливого «успеха»; fallback заметен только геометрией, не ломает диалог
+- [x] В `ModuleBox`: `useGLTF('/gltf/{sku}.glb')` + Suspense/ErrorBoundary → `<boxGeometry>`
+- [x] Формула позиции (`position/1000 + size/2`) не менялась
+- [x] Финиш: только material slot `facade` по `FINISH_COLORS` / `finishId`
+- [x] `Room`, свет, камера, `OrbitControls` — не трогали
+- [x] Smoke-чеклист: [gltf-visual-smoke.md](gltf-visual-smoke.md); unit на `moduleCenterPosition`
+- [x] Ошибка загрузки: `console.warn` + box-fallback; диалог не ломается
+- [x] Vite proxy `/gltf` → server (dev)
 
 ### Затрагиваемые файлы
 
-- `apps/client/src/components/ScenePreview.jsx`
-- тест/доки smoke-регрессии (минимально)
+- `apps/client/src/components/ScenePreview.jsx` ✅
+- `apps/client/vite.config.js` ✅
+- [gltf-visual-smoke.md](gltf-visual-smoke.md) ✅
 
 ### Критерий готовности
 
-1. SKU с `.glb` рендерится мешем; без файла — бокс.
-2. Смена `finishId` затрагивает `facade`.
-3. Позиционирование совпадает с прежним боксом при тех же `position` / `dimensions`.
+1. ✅ SKU с `.glb` рендерится мешем; без файла / ошибка — бокс.
+2. ✅ Смена `finishId` затрагивает `facade`.
+3. ✅ Позиционирование совпадает с прежним боксом при тех же `position` / `dimensions`.
 
 ### Явно вне скоупа
 

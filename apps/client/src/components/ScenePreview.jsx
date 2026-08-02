@@ -1,16 +1,22 @@
 /* eslint-disable react/no-unknown-property -- React Three Fiber JSX props */
+import { Component, Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, useGLTF } from '@react-three/drei';
+import { Color } from 'three';
+import { moduleCenterPosition } from './modulePose.js';
+
 const FINISH_COLORS = {
   white: '#f5f5f4',
   oak: '#c08a4f'
 };
 
 const DEFAULT_ROOM = { widthMm: 3000, depthMm: 4000, heightMm: 2700 };
+const FALLBACK_FINISH = '#6d8f71';
 
 /**
  * @typedef {{
  *   instanceId: string,
+ *   sku: string,
  *   finishId?: string,
  *   rotationY: number,
  *   position: { x: number, y: number, z: number },
@@ -19,28 +25,119 @@ const DEFAULT_ROOM = { widthMm: 3000, depthMm: 4000, heightMm: 2700 };
  */
 
 /** @param {{ module: SceneModule }} props */
-function ModuleBox({ module }) {
+function BoxFallbackGeometry({ module }) {
   const width = module.dimensions.widthMm / 1000;
   const height = module.dimensions.heightMm / 1000;
   const depth = module.dimensions.depthMm / 1000;
-  const rotationY = (module.rotationY * Math.PI) / 180;
   return (
-    <mesh
-      position={[
-        module.position.x / 1000 + width / 2,
-        module.position.y / 1000 + height / 2,
-        module.position.z / 1000 + depth / 2
-      ]}
-      rotation={[0, rotationY, 0]}
-      castShadow
-      receiveShadow
-    >
+    <mesh castShadow receiveShadow>
       <boxGeometry args={[width, height, depth]} />
       <meshStandardMaterial
-        color={FINISH_COLORS[module.finishId] ?? '#6d8f71'}
+        color={FINISH_COLORS[module.finishId] ?? FALLBACK_FINISH}
         roughness={0.7}
       />
     </mesh>
+  );
+}
+
+/**
+ * Loaded glTF: tint only material slot `facade`; leave `carcass` as authored.
+ * @param {{ module: SceneModule }} props
+ */
+function ModuleGltfModel({ module }) {
+  const url = `/gltf/${encodeURIComponent(module.sku)}.glb`;
+  const { scene } = useGLTF(url);
+  const finishColor = FINISH_COLORS[module.finishId];
+
+  const root = useMemo(() => {
+    const cloned = scene.clone(true);
+    cloned.traverse((obj) => {
+      if (!('isMesh' in obj) || !obj.isMesh) return;
+      obj.castShadow = true;
+      obj.receiveShadow = true;
+
+      const sourceMaterials = Array.isArray(obj.material)
+        ? obj.material
+        : obj.material
+          ? [obj.material]
+          : [];
+      const clonedMaterials = sourceMaterials.map((mat) => {
+        const next = mat.clone();
+        if (next.name === 'facade' && finishColor) {
+          next.color = new Color(finishColor);
+        }
+        return next;
+      });
+
+      obj.material = Array.isArray(obj.material)
+        ? clonedMaterials
+        : (clonedMaterials[0] ?? obj.material);
+    });
+    return cloned;
+  }, [scene, finishColor]);
+
+  return <primitive object={root} />;
+}
+
+/**
+ * Catches failed `/gltf/{sku}.glb` loads and falls back to box geometry.
+ * Dialog / orchestrator are unaffected — only the mesh changes.
+ */
+class GltfErrorBoundary extends Component {
+  /** @param {{ resetKey: string, fallback: import('react').ReactNode, children: import('react').ReactNode }} props */
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  /** @returns {{ hasError: boolean }} */
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  /**
+   * @param {Error} error
+   */
+  componentDidCatch(error) {
+    console.warn(
+      '[ScenePreview] glTF load failed, using box fallback:',
+      error?.message ?? error
+    );
+  }
+
+  /**
+   * @param {{ resetKey: string }} prevProps
+   */
+  componentDidUpdate(prevProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
+
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
+
+/** @param {{ module: SceneModule }} props */
+function ModuleBox({ module }) {
+  const position = moduleCenterPosition(module);
+  const rotationY = (module.rotationY * Math.PI) / 180;
+  const box = <BoxFallbackGeometry module={module} />;
+
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      {module.sku ? (
+        <GltfErrorBoundary resetKey={module.sku} fallback={box}>
+          <Suspense fallback={box}>
+            <ModuleGltfModel module={module} />
+          </Suspense>
+        </GltfErrorBoundary>
+      ) : (
+        box
+      )}
+    </group>
   );
 }
 
@@ -184,3 +281,6 @@ export function ScenePreview({ sceneResult, roomShape }) {
     </div>
   );
 }
+
+export { FINISH_COLORS };
+export { moduleCenterPosition } from './modulePose.js';

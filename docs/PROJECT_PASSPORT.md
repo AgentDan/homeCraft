@@ -34,7 +34,7 @@ AI понимает клиента и переводит его слова в с
 | Knowledge / RAG Engine | `ai-services/catalog-rag-retriever.js`, `knowledge-base/*` | AI (retrieval) | ✅ file vector index |
 | Configuration Engine | `ai-services/configuration-plan-generator.js` | rule-based | ✅ |
 | Rules Engine | `compatibility-engine/assertCompatible.js` + `rules/*` + `analog-suggester.js` | детерминированный, **единственный rejector** | 🚧 5 правил + analog suggester |
-| Scene Graph / 3D Engine | `domain-modules/kitchen/pipeline.js` + client `ScenePreview.jsx` (R3F) | детерминированный | ✅ базовая версия (box); glTF — [Roadmap.md](Roadmap.md) |
+| Scene Graph / 3D Engine | `domain-modules/kitchen/pipeline.js` + client `ScenePreview.jsx` (R3F) | детерминированный | ✅ glTF + box-fallback; финиш по `facade` |
 | Calculation Engine | `pricing-engine/calculateBOM.js` + `bom-cache.js` | детерминированный | ✅ snapshot BOM + cache |
 | Production / ERP Integration | `export/*` + `GET /api/exports/:id` | детерминированный | ✅ PDF export |
 | Command journal | `storage/local-storage.js` + tree `PlanHistory` | детерминированный | ✅ branches |
@@ -104,7 +104,7 @@ npm run lint
 
 **Deferred:** analog ranking polish (2.8); wardrobe / Expo / auth / multi-tenant / customer memory.
 
-**Активно:** [Roadmap.md](Roadmap.md) — 3D-каталог (glTF) + Project Journey 1–3 + превью кандидатов; фазы 1–2 ✅; далее фаза 3.
+**Активно:** [Roadmap.md](Roadmap.md) — 3D-каталог (glTF) + Project Journey 1–3 + превью кандидатов; фазы 1–3 ✅; далее 4 или 5.
 
 **Ещё нет в пайплайне:** полноценный Scene Graph как отдельная подсистема; домены wardrobe+; production package сверх PDF.
 
@@ -129,6 +129,7 @@ DoD фазы: acceptance criteria + `lint`/`test`/`build` + актуальные
 
 | Дата | Что изменили | Почему | Что устарело в паспорте |
 |---|---|---|---|
+| 2026-08-02 | Фаза 3: `useGLTF` + box-fallback + tint `facade` в `ScenePreview` | 3D-каталог без смены pose-math | §3, §7 |
 | 2026-08-02 | Фаза 2: `validate:gltf` + 7 priority `.glb` в `apps/server/gltf/` | Приём моделей по spec без codegen в репо | §7, §11 |
 | 2026-08-02 | Фаза 1 roadmap: `model-authoring-spec.md` (центр origin, +Z, slots, без `modelUri`) | Контракт для ручных `.glb` без смены pose-math | §11 |
 | 2026-08-02 | Docs: один `Roadmap.md` (glTF+journey); CONTRIBUTING влит в паспорт | Убрать дубли архива и двух contributing-доков | Разделы 6–7, 10 |
