@@ -24,6 +24,13 @@ export {
 } from './room-context.js';
 
 export {
+  ProjectJourneyStateSchema,
+  ProjectJourneyStageSchema,
+  ProjectJourneyModeSchema,
+  createDefaultJourneyState
+} from './project-journey.js';
+
+export {
   ModuleSchema,
   RetrievedModuleSchema
 } from './module.js';

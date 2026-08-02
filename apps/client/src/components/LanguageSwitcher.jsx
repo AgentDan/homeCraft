@@ -1,8 +1,15 @@
 import { LOCALES } from '../i18n/strings.js';
 import { useLocale } from '../i18n/LocaleContext.jsx';
 
+/** @type {Record<import('../i18n/strings.js').Locale, string>} */
+const LOCALE_LABELS = {
+  en: 'ENG',
+  ru: 'RUS',
+  sr: 'SRB'
+};
+
 /**
- * Compact EN | RU | SR language switcher.
+ * Compact ENG | RUS | SRB language switcher.
  */
 export function LanguageSwitcher() {
   const { locale, setLocale, t } = useLocale();
@@ -27,7 +34,7 @@ export function LanguageSwitcher() {
                 : 'text-[var(--hc-muted)] hover:text-[var(--hc-text)]'
             }`}
           >
-            {code.toUpperCase()}
+            {LOCALE_LABELS[code]}
           </button>
         );
       })}

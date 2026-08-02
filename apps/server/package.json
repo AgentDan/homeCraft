@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --config nodemon.json src/index.js",
     "start": "node src/index.js",
-    "test": "node --test src/smoke.test.js src/compatibility.test.js src/ai-services/replace-module.test.js src/ai-services/llm-intent.test.js src/pricing-engine/bom-cache.test.js src/storage/command-journal.test.js src/storage/idempotency.test.js src/storage/replay-journal.test.js src/storage/branches.test.js src/compatibility-engine/candidates.test.js src/policy/policy.test.js src/export/export.test.js src/core/orchestrator-journal.test.js src/core/output-builder.test.js src/core/decision-report.test.js src/validate-gltf.test.js",
+    "test": "node --test src/smoke.test.js src/compatibility.test.js src/ai-services/replace-module.test.js src/ai-services/llm-intent.test.js src/pricing-engine/bom-cache.test.js src/storage/command-journal.test.js src/storage/idempotency.test.js src/storage/replay-journal.test.js src/storage/branches.test.js src/compatibility-engine/candidates.test.js src/policy/policy.test.js src/export/export.test.js src/core/orchestrator-journal.test.js src/core/output-builder.test.js src/core/decision-report.test.js src/validate-gltf.test.js src/core/dialog-router.test.js",
     "catalog:index": "node src/knowledge-base/indexer-cli.js",
     "validate:gltf": "node scripts/validate-gltf.mjs"
   },

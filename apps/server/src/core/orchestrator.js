@@ -24,6 +24,8 @@ import { normalizeLanguage, t } from '../i18n/messages.js';
 import { runDownstream } from './run-downstream.js';
 import { intentHandlers } from './intent-handlers/index.js';
 import { buildIntentMessage } from './intent-messages.js';
+import { routeJourneyDialog } from './dialog-router.js';
+import { ensureJourneyState } from './journey-table.js';
 
 const INTENT = IntentKindSchema.enum;
 const OUTCOME = CommandOutcomeKindSchema.enum;
@@ -165,9 +167,32 @@ async function runDefaultIntentPath(input) {
  * @param {import('./intent-handlers/types.js').RoomContext} context
  */
 async function resolveRoutedCommand(request, context) {
-  const { intent, plan, outcome } = await runAiPipeline(request, context);
-  let nextContext = applyRoomDimensionSlots(context, intent);
+  const withJourney = {
+    ...context,
+    journey: ensureJourneyState(context.journey)
+  };
+  const { intent, plan, outcome } = await runAiPipeline(request, withJourney);
+  let nextContext = applyRoomDimensionSlots(withJourney, intent);
   const language = normalizeLanguage(request.language ?? intent.language);
+
+  // Journey router before intent handlers: answer vs command (commands not blocked).
+  const journeyResult = await routeJourneyDialog({
+    request,
+    context: nextContext,
+    intent,
+    language
+  });
+  nextContext = journeyResult.context;
+  if (journeyResult.handled && journeyResult.response) {
+    return {
+      context: nextContext,
+      response: journeyResult.response,
+      intentKind: journeyResult.intentKind ?? intent.kind,
+      outcomeKind: journeyResult.outcomeKind ?? OUTCOME.clarify,
+      createdVersion: journeyResult.createdVersion ?? false
+    };
+  }
+
   // Pipeline returns a runtime-valid IntentResult; matchIntent kinds are untyped strings.
   /** @type {import('./intent-handlers/types.js').IntentHandlerInput} */
   const handlerInput = {

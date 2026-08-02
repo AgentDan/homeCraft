@@ -1,6 +1,6 @@
 # HomeCraft — Roadmap: 3D-каталог + Project Journey
 
-Status: **in progress** — фазы 1–3 done; далее фаза 5 (thumbnails) или 4 (journey) параллельно.  
+Status: **in progress** — фазы 1–4 done; далее фаза 5 (thumbnails).  
 Закрытый MVP (Steps 1–10) — в decision log паспорта. Порядок: `1 → 2 → 3`; фаза `5` после `2` (нужны `.glb`); фаза `4` параллельно после фиксации словаря journey (не зависит от glTF).
 
 Инварианты (не нарушать) — см. также [PROJECT_PASSPORT.md](PROJECT_PASSPORT.md):
@@ -25,7 +25,7 @@ Status: **in progress** — фазы 1–3 done; далее фаза 5 (thumbnai
 | `catalog-store.js` | Один JSON; `getCatalogSnapshot` принимает только `kitchen-demo-v1` |
 | Demo-каталог | 18 SKU (`BASE-*`, `WALL-*`, `TALL-*`, `SINK-*`, `CORNER-900`, …) |
 | `ScenePreview.jsx` / `ModuleBox` | R3F: `useGLTF('/gltf/{sku}.glb')` + box-fallback; поза = `position/1000 + size/2`; финиш только slot `facade` |
-| `docs/CONSULTANT_CONCEPT.md` | **Файла нет** — создать в фазе 4 как единый словарь journey |
+| `docs/CONSULTANT_CONCEPT.md` | Единый словарь journey (фаза 4) ✅ |
 | `required_slots` | **Имени в коде нет.** Прецедент обследования: `roomWidthMm` / `roomDepthMm` → `applyRoomDimensionSlots`; нехватка слотов → `clarify`; `RoomShape.openings` / `utilities` часто пустые |
 | `homecraft_architecture.pdf` | В репо отсутствует |
 | Персист | `persistRoomContext`: local + Mongo best-effort |
@@ -43,7 +43,7 @@ Status: **in progress** — фазы 1–3 done; далее фаза 5 (thumbnai
 - [x] **1. Контракт авторства 3D** — [model-authoring-spec.md](model-authoring-spec.md) (без контента `.glb`)
 - [x] **2. Валидация + приём моделей** — `npm run validate:gltf`; приоритетные SKU в `apps/server/gltf/`
 - [x] **3. Клиентский рендер** — `useGLTF` + box-fallback + `facade` tint; [gltf-visual-smoke.md](gltf-visual-smoke.md)
-- [ ] **4. Project Journey 1–3** — state, dialog-router в `resolveRoutedCommand`, i18n-вопросы
+- [x] **4. Project Journey 1–3** — [CONSULTANT_CONCEPT.md](CONSULTANT_CONCEPT.md), dialog-router, persist
 - [ ] **5. Превью кандидатов** — `option.thumbnailUrl` + PNG у SKU + `<img>` в `ResponseRouter`
 
 ---
@@ -166,34 +166,33 @@ Status: **in progress** — фазы 1–3 done; далее фаза 5 (thumbnai
 
 ### Задачи
 
-- [ ] Создать **один** `docs/CONSULTANT_CONCEPT.md`: словарь `ProjectJourney` / этапы / слоты; `KitchenBrief` = будущие слоты потребностей (этап 4+, вне этой фазы); `dialog-router` = модуль маршрутизации реплик — без второго параллельного жаргона
-- [ ] Zod `ProjectJourneyState` в `packages/contracts`: stage, mode (`guided` \| `free`), known / missing / deferred, история вопросов
-- [ ] Вложить state в `RoomContext`; dual-write как у остального контекста (local + Mongo best-effort)
-- [ ] Таблица «этап → недостающее поле → ключ i18n» в логике + `apps/server/src/i18n/messages.js` (RU-first)
-- [ ] Этап 3 на прецеденте обследования (слоты размеров, openings/utilities, clarify) — **не** выдумывать уже существующий модуль `required_slots`; при необходимости ввести явную таблицу required fields для journey stage 3
-- [ ] В `resolveRoutedCommand()` **до** `intentHandlers[intent.kind]`: роутер — ответ на journey-вопрос vs обычная команда. Команда не блокируется; вопрос этапа можно переспросить следующим ходом
-- [ ] Явный выход в `journey.mode = free` в любой момент
-- [ ] **Сквозное:** минимальная наблюдаемость — drop-off по stage, счётчик re-ask (journal / JSONL)
-- [ ] Discovery: прогон sandbox-сценариев до кодирования финальной таблицы вопросов
+- [x] Создать **один** [CONSULTANT_CONCEPT.md](CONSULTANT_CONCEPT.md)
+- [x] Zod `ProjectJourneyState` в `packages/contracts`; вложен в `RoomContext`
+- [x] Dual-write journey (local session + Mongo best-effort)
+- [x] Таблица этап → слот → i18n + `messages.js` (RU-first)
+- [x] Этап 3 на `roomWidthMm` / `roomDepthMm` (openings/utilities deferred)
+- [x] `routeJourneyDialog()` в `resolveRoutedCommand` **до** intent-handlers; команды не блокируются
+- [x] Выход `journey.mode = free` (escape-фразы)
+- [x] Observability: `journey-events.jsonl` (stage / re-ask / slot)
+- [x] Discovery-сценарии зафиксированы в concept doc
 
 ### Затрагиваемые файлы
 
-- `docs/CONSULTANT_CONCEPT.md` (новый)
-- `packages/contracts` — journey schema + `RoomContext`
-- `apps/server/src/core/orchestrator.js`
-- `apps/server/src/core/dialog-router.js` (новый)
-- `apps/server/src/core/room-context-builder.js`
-- `apps/server/src/storage/local-storage.js`, `mongo.js`
-- `apps/server/src/i18n/messages.js`
-- тесты router / orchestrator
+- [CONSULTANT_CONCEPT.md](CONSULTANT_CONCEPT.md) ✅
+- `packages/contracts` — journey schema + `RoomContext` ✅
+- `apps/server/src/core/orchestrator.js` / `dialog-router.js` / `journey-table.js` ✅
+- `apps/server/src/core/room-context-builder.js` ✅
+- `apps/server/src/storage/local-storage.js`, `journey-events.js` ✅
+- `apps/server/src/i18n/messages.js` ✅
+- `apps/server/src/core/dialog-router.test.js` ✅
 
 ### Критерий готовности
 
-1. Guided path проходит этапы 1→2→3 вопросами системы.
-2. Free mode и обычные команды работают параллельно политике роутера.
-3. Ответы на вопросы этапа детерминированно пишут слоты (без LLM-решений).
-4. State переживает reload сессии.
-5. Этапы 4–12 только в backlog concept doc.
+1. ✅ Guided path 1→2→3 вопросами системы.
+2. ✅ Free mode и обычные команды параллельно политике роутера.
+3. ✅ Ответы на вопросы этапа детерминированно пишут слоты.
+4. ✅ State в dual-write (session + project doc).
+5. ✅ Этапы 4–12 только в backlog concept doc.
 
 ### Явно вне скоупа
 

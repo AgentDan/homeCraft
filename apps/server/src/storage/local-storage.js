@@ -127,6 +127,9 @@ export async function saveRoomContextState(sessionId, context) {
       roomShape: structuredClone(context.roomShape),
       budgetEur: context.budgetEur,
       dialogTurns: structuredClone(context.dialogTurns),
+      journey: context.journey
+        ? structuredClone(context.journey)
+        : undefined,
       updatedAt: context.updatedAt
     }
   });

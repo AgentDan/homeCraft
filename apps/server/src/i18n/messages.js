@@ -73,7 +73,20 @@ const MESSAGES = {
     exportEmpty: 'Add modules before exporting a specification PDF.',
     exportReady:
       'Specification PDF ready (plan v{version}, catalog {catalog}).',
-    exportExplanation: 'Frozen export checksum {sha}… (reused: {reused}).'
+    exportExplanation: 'Frozen export checksum {sha}… (reused: {reused}).',
+    journeyAskClientName:
+      'Hello! I am your HomeCraft consultant. What is your name?',
+    journeyAskProjectGoal:
+      'Nice to meet you. What kitchen are we planning — for example a small galley or a full remodel?',
+    journeyAskRoomWidth:
+      'Let us survey the room. What is the room width? For example "3 m" or "3000 mm".',
+    journeyAskRoomDepth:
+      'What is the room depth? For example "4 m" or "4000 mm".',
+    journeyReask: 'I did not catch that. {question}',
+    journeyFreeMode:
+      'Switched to free mode. Ask me to add modules or change the plan anytime. Say hello again if you want guided questions.',
+    journeyComplete:
+      'Room survey is complete. You can add modules, set a budget, or ask for the price.'
   },
   ru: {
     commandProcessed: 'Команда обработана.',
@@ -134,7 +147,20 @@ const MESSAGES = {
     exportEmpty: 'Добавьте модули перед экспортом спецификации в PDF.',
     exportReady:
       'PDF спецификации готов (план v{version}, каталог {catalog}).',
-    exportExplanation: 'Замороженный экспорт, checksum {sha}… (повтор: {reused}).'
+    exportExplanation: 'Замороженный экспорт, checksum {sha}… (повтор: {reused}).',
+    journeyAskClientName:
+      'Здравствуйте! Я консультант HomeCraft. Как вас зовут?',
+    journeyAskProjectGoal:
+      'Приятно познакомиться. Какую кухню планируем — например небольшую линейную или полный ремонт?',
+    journeyAskRoomWidth:
+      'Давайте обследуем помещение. Какая ширина комнаты? Например «3 м» или «3000 мм».',
+    journeyAskRoomDepth:
+      'Какая глубина комнаты? Например «4 м» или «4000 мм».',
+    journeyReask: 'Не расслышал. {question}',
+    journeyFreeMode:
+      'Свободный режим. Можно сразу добавлять модули и менять план. Для guided-вопросов просто продолжите диалог с именем.',
+    journeyComplete:
+      'Обследование комнаты завершено. Можно добавлять модули, задать бюджет или спросить цену.'
   },
   sr: {
     commandProcessed: 'Komanda je obrađena.',
@@ -195,7 +221,20 @@ const MESSAGES = {
     exportEmpty: 'Dodajte module pre izvoza specifikacije u PDF.',
     exportReady:
       'PDF specifikacije je spreman (plan v{version}, katalog {catalog}).',
-    exportExplanation: 'Zamrznuti izvoz, checksum {sha}… (ponovo: {reused}).'
+    exportExplanation: 'Zamrznuti izvoz, checksum {sha}… (ponovo: {reused}).',
+    journeyAskClientName:
+      'Zdravo! Ja sam HomeCraft konsultant. Kako se zovete?',
+    journeyAskProjectGoal:
+      'Drago mi je. Kakvu kuhinju planiramo — na primer malu linijsku ili kompletan remont?',
+    journeyAskRoomWidth:
+      'Hajde da snimimo prostor. Koja je širina sobe? Na primer „3 m” ili „3000 mm”.',
+    journeyAskRoomDepth:
+      'Koja je dubina sobe? Na primer „4 m” ili „4000 mm”.',
+    journeyReask: 'Nisam razumeo. {question}',
+    journeyFreeMode:
+      'Slobodan režim. Možete odmah dodavati module i menjati plan.',
+    journeyComplete:
+      'Snimanje sobe je završeno. Možete dodavati module, postaviti budžet ili pitati za cenu.'
   }
 };
 

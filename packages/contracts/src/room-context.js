@@ -1,5 +1,9 @@
 import { z } from 'zod';
 import { PlanOperationSchema } from './configuration-plan.js';
+import {
+  ProjectJourneyStateSchema,
+  createDefaultJourneyState
+} from './project-journey.js';
 
 export const WallSchema = z.object({
   id: z.string(),
@@ -53,5 +57,6 @@ export const RoomContextSchema = z.object({
       at: z.string().datetime()
     })
   ),
+  journey: ProjectJourneyStateSchema.default(() => createDefaultJourneyState()),
   updatedAt: z.string().datetime()
 });

@@ -54,6 +54,7 @@ export async function buildRoomContext(userId, projectId, sessionId, inputChanne
     planOperations: currentPlan?.operations ?? mongoProject?.planOperations ?? [],
     planVersion: currentEntry?.version ?? mongoProject?.planVersion ?? 0,
     dialogTurns: persisted.dialogTurns ?? [],
+    journey: persisted.journey,
     updatedAt: new Date().toISOString()
   };
   return RoomContextSchema.parse(context);
@@ -111,7 +112,8 @@ export async function persistRoomContext(context) {
     budgetEur: validated.budgetEur,
     planOperations: validated.planOperations,
     planVersion: validated.planVersion,
-    dialogTurns: validated.dialogTurns
+    dialogTurns: validated.dialogTurns,
+    journey: validated.journey
   });
   return validated;
 }
