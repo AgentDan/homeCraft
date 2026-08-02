@@ -1,7 +1,9 @@
-# HomeCraft — Паспорт проекта
+# HomeCraft — Паспорт проекта и вклад в код
 
-> Живой документ. Обновляется при каждом архитектурном изменении вместе с кодом.
-> Источники: `Architecture Vision v1.0`, README/Roadmap.md/CONTRIBUTING.md ветки `phase-1/1.1-demo-catalog`.
+> Живой документ: архитектура, инварианты, чеклист ревью и статус.  
+> Обновляется при каждом архитектурном изменении вместе с кодом.  
+> Источники: `Architecture Vision v1.0`, ветка `phase-1/1.1-demo-catalog`.  
+> Активный backlog: [Roadmap.md](Roadmap.md).
 
 ---
 
@@ -17,84 +19,98 @@ AI понимает клиента и переводит его слова в с
 2. Диалог — единственный вход: одна команда → один `ConfigurationPlan` → один общий пайплайн ниже по цепочке.
 3. Проверку реализуемости делает только один модуль (rejector).
 4. Расчёт стоимости — чистый калькулятор, не блокирует план по бюджету.
-5. Никаких "мёртвых" AI-путей: если RAG подключён — он обязан использоваться генератором конфигурации.
+5. Никаких «мёртвых» AI-путей: если RAG подключён — он обязан использоваться генератором конфигурации.
 6. Контракты (Zod) на каждой границе API/хранилища.
 
 ---
 
 ## 3. Карта блоков: архитектура → код
 
-| Блок (из Architecture Vision) | Модуль в коде (`phase-1`) | Кто владелец логики | Статус |
+| Блок (из Architecture Vision) | Модуль в коде | Кто владелец логики | Статус |
 |---|---|---|---|
 | Conversation Engine | `core/orchestrator.js` (`orchestrator.route()`) | детерминированный | ✅ dialog-only |
 | AI Understanding Engine | `ai-services/intent-detector.js` | AI | ✅ rule-based EN/RU/SR; LLM intent ⚑ `HOMECRAFT_LLM_INTENT` |
 | Customer Context / Memory | `core/room-context-builder.js` | детерминированный | ✅ MongoDB + local fallback |
 | Knowledge / RAG Engine | `ai-services/catalog-rag-retriever.js`, `knowledge-base/*` | AI (retrieval) | ✅ file vector index |
 | Configuration Engine | `ai-services/configuration-plan-generator.js` | rule-based | ✅ |
-| Rules Engine | `compatibility-engine/assertCompatible.js` + `rules/*` + `analog-suggester.js` | детерминированный, **единственный rejector** | 🚧 5 правил (dimensions/mounting/overlap/utilities/clearances) + analog suggester |
-| Scene Graph / 3D Engine | `domain-modules/kitchen/pipeline.js` + client `ScenePreview.jsx` (R3F) | детерминированный | ✅ базовая версия |
-| Calculation Engine | `pricing-engine/calculateBOM.js` + `bom-cache.js` | детерминированный, чистый калькулятор + кэш | ✅ snapshot BOM + cache |
-| Production / ERP Integration | `export/*` + `GET /api/exports/:id` | детерминированный | ✅ PDF export (Step 4) |
-| Command journal | `storage/local-storage.js` (append-only JSONL) + tree `PlanHistory` | детерминированный | ✅ Step 5 branches |
-| Explanation (templates) | `decision-report.js` + `output-builder.js` + i18n | детерминированный | ✅ grounded report (Step 10); TTS client V6–V7 |
-| Voice input (STT) | client `useSpeechCommand` + `inputChannel: 'voice'` | клиент | ✅ Web Speech API (Step 9) |
-
-**Соответствие с исходным документом:** блоки почти полностью совпадают 1:1. Отличие — в документе RAG и 3D Engine описаны как отдельные крупные подсистемы, в коде они пока встроены как модули внутри общего пайплайна, без выделенных сервисов.
+| Rules Engine | `compatibility-engine/assertCompatible.js` + `rules/*` + `analog-suggester.js` | детерминированный, **единственный rejector** | 🚧 5 правил + analog suggester |
+| Scene Graph / 3D Engine | `domain-modules/kitchen/pipeline.js` + client `ScenePreview.jsx` (R3F) | детерминированный | ✅ базовая версия (box); glTF — [Roadmap.md](Roadmap.md) |
+| Calculation Engine | `pricing-engine/calculateBOM.js` + `bom-cache.js` | детерминированный | ✅ snapshot BOM + cache |
+| Production / ERP Integration | `export/*` + `GET /api/exports/:id` | детерминированный | ✅ PDF export |
+| Command journal | `storage/local-storage.js` + tree `PlanHistory` | детерминированный | ✅ branches |
+| Explanation (templates) | `decision-report.js` + `output-builder.js` + i18n | детерминированный | ✅ grounded report; TTS V6–V7 |
+| Voice input (STT) | client `useSpeechCommand` + `inputChannel: 'voice'` | клиент | ✅ Web Speech API |
 
 ---
 
 ## 4. Границы ответственности (что блок НЕ делает)
 
 - **AI Understanding Engine** не пишет напрямую в `ConfigurationPlan`, минуя генератор плана.
-- **Configuration Engine** не проверяет реализуемость — это не его зона, только сборка плана.
-- **Rules Engine (`assertCompatible`)** — единственный, кто может проставить `valid: false`; остальные стадии не отклоняют план.
-- **Calculation Engine (`calculateBOM`)** не блокирует по бюджету — это чистый расчёт, а не валидатор.
-- **Catalog snapshot** — BOM всегда читает замороженный `catalogSnapshotId`, а не живой каталог (иначе цены "плывут" между сессией и подтверждением).
+- **Configuration Engine** не проверяет реализуемость — только сборка плана.
+- **Rules Engine (`assertCompatible`)** — единственный, кто может проставить `valid: false`.
+- **Calculation Engine (`calculateBOM`)** не блокирует по бюджету.
+- **Catalog snapshot** — BOM всегда читает замороженный `catalogSnapshotId`, а не живой каталог.
 
 ---
 
-## 5. Инварианты и запреты (не нарушать без пересмотра архитектуры)
+## 5. Инварианты и запреты (non-negotiable)
 
-1. Диалог — единственный вход (ручной редактор конфигурации исключён на MVP).
-2. `assertCompatible()` — единственная точка отказа плана.
-3. `calculateBOM()` — pure function, не блокирует по бюджету.
-4. Intent detection — `en` / `ru` / `sr` (rule-based); без тихого fallback (используется `UnknownIntent`).
-5. `catalog-rag-retriever` обязательно подключён к `configuration-plan-generator`.
-6. BOM всегда читает `catalogSnapshotId`, а не live-каталог.
-7. Compatibility работает через spatial index (не O(n²) в горячем пути).
-8. Zod — на каждой сетевой/storage-границе.
-9. Клонирование — только через `structuredClone`, `JSON.parse(JSON.stringify())` запрещён линтером.
-10. UI-типографика: font-weight только 400/500, sentence case.
+1. **Dialog is the only input path:** каждая команда → один `ConfigurationPlan` в `orchestrator.route()` → общий downstream.
+2. **`assertCompatible()`** — единственная стадия, которая может отклонить план (`valid: false`).
+3. **`calculateBOM()`** — чистый калькулятор, не блокирует по бюджету.
+4. **Intent detection** — `en` / `ru` / `sr` (rule-based); без тихого fallback — `UnknownIntent`.
+5. **`catalog-rag-retriever`** обязан быть подключён к `configuration-plan-generator` (no dead AI paths).
+6. **Catalog snapshots** — BOM читает frozen `catalogSnapshotId`, не live-каталог.
+7. **Spatial index** для compatibility (не O(n²) в горячем пути).
+8. **Zod** на каждой сетевой/storage-границе (plain JS ESM, без TypeScript build step).
+9. **`structuredClone`** для клонирования — `JSON.parse(JSON.stringify(...))` запрещён (ESLint).
+10. **UI typography:** font-weight только 400/500; sentence case.
 
----
-
-## 6. Текущий статус vs целевая архитектура
-
-**Реализовано (Phase 0–1, ветка `phase-1/1.1-demo-catalog`):**
-- Монорепо (npm workspaces), контракты на Zod, сквозной пайплайн `POST /api/commands`.
-- Демо-каталог кухни (18 модулей) + MongoDB seed.
-- File-based vector RAG по каталогу и platform-rules.
-- Rule-based генератор конфигурации, 3 правила совместимости + spatial index.
-- Реальный BOM от frozen snapshot.
-- 3D-превью (R3F) и многоходовой диалог на клиенте.
-- CI: lint + test + build.
-
-**Не реализовано / отсутствует в текущем пайплайне:**
-- Полноценный Scene Graph как единый источник данных (сейчас 3D — модуль внутри kitchen-домена, не отдельная подсистема).
-- Production / ERP Integration (Phase 4 — not started).
-- LLM intent parser за флагом `HOMECRAFT_LLM_INTENT` (Step 8); plan generation по-прежнему rule-based.
-- Дополнительные домены (wardrobe, other-furniture) — Phase 6+.
-
-**Сделано в Phase 2 (закрыта, 2.8 отложен):**
-- `rules/*` + `assertCompatible`; utilities/clearances; analog suggester; ConflictPanel; `replace_module` swap flow (2.9).
-
-**Phase 3 закрыта:** snapshots API, BOM cache (memory+Redis), BomPanel/BudgetIndicator, `budgetEur`.
-
-**Следующий шаг по Roadmap:** backlog закрыт (1–10 ✅); дальше — Deferred (analog ranking, wardrobe / Expo / auth).
+Дополнительно к roadmap glTF: `.glb` по опубликованному пути снапшота не перезаписывать.
 
 ---
 
-## 7. Метрики / Definition of Done
+## 6. Contributing: ESLint, ревью, storage, workflow
+
+### ESLint
+
+Root `eslint.config.js` включает `no-restricted-syntax` против JSON-clone anti-pattern.
+
+```bash
+npm run lint
+```
+
+### Code review checklist
+
+- [ ] Инварианты 1–10 соблюдены
+- [ ] Новые API-поля имеют Zod-схемы в `@homecraft/contracts`
+- [ ] `npm run typecheck` и `npm run test` проходят
+- [ ] Нет бизнес-логики в compatibility/pricing, которой там не место
+
+### Storage
+
+- **MongoDB** — структурированные project/catalog данные (best-effort)
+- **Local FS** — `apps/server/data/` (или `SERVER_STORAGE_DIR`)
+
+### Phase workflow
+
+Следовать [Roadmap.md](Roadmap.md). Каждая фаза = focused PR с acceptance criteria из roadmap.
+
+---
+
+## 7. Текущий статус vs целевая архитектура
+
+**Закрыто (Phase 0–3 + Steps 1–10):** монорепо, демо-каталог, RAG, compatibility, BOM cache, export PDF, branches, candidates/policy, LLM intent ⚑, voice STT, grounded explanation + TTS.
+
+**Deferred:** analog ranking polish (2.8); wardrobe / Expo / auth / multi-tenant / customer memory.
+
+**Активно:** [Roadmap.md](Roadmap.md) — 3D-каталог (glTF) + Project Journey 1–3 + превью кандидатов (фазы 1–5, planned).
+
+**Ещё нет в пайплайне:** полноценный Scene Graph как отдельная подсистема; домены wardrobe+; production package сверх PDF.
+
+---
+
+## 8. Метрики / Definition of Done
 
 | Метрика | Цель | С какой фазы |
 |---|---|---|
@@ -103,52 +119,50 @@ AI понимает клиента и переводит его слова в с
 | Точность intent (EN corpus; RU/SR smoke) | ≥ 90% EN | Step 8 (LLM) / сейчас rule-based |
 | BOM cache hit-rate | ≥ 60% | Phase 3 |
 
-DoD каждой фазы: acceptance criteria выполнены + `lint`/`test`/`build` проходят + README/Roadmap актуальны + все 10 инвариантов сохранены.
+DoD фазы: acceptance criteria + `lint`/`test`/`build` + актуальные docs + 10 инвариантов.
 
 ---
 
-## 8. Журнал решений (Decision Log)
+## 9. Журнал решений (Decision Log)
 
-> Добавлять новую запись сверху при каждом значимом изменении.
+> Новая запись сверху при каждом значимом изменении.
 
 | Дата | Что изменили | Почему | Что устарело в паспорте |
 |---|---|---|---|
-| 2026-07-29 | Step 10 — Grounded explanation (`decision-report`) + TTS mute / speak-replies | Числа в explanation только из отчёта; озвучка не блокирует UI | Explanation ✅; next → Deferred |
-| 2026-07-29 | Step 9 — Voice STT: `useSpeechCommand`, interim в CommandInput, без `window.prompt` | Голос = peer channel к тому же `/api/commands` | Voice ✅; next → 10 |
-| 2026-07-29 | Step 5: PlanHistory as tree (`create_branch` / `switch_branch`, `branchId` in response) | Сравнивать варианты без потери соседних путей | Next step → 6 |
-| 2026-07-26 | Step 4: Production Export PDF (`export_project`, frozen by version+catalog) | Pilot MVP: клиент уносит спецификацию | Production блок ✅; next → 5 |
-| 2026-07-26 | Step 3: `replayJournal` + CI snapshot; детерминированный `planId` | Инвариант «истина в журнале» проверяется тестом | Next step → 4 |
-| 2026-07-26 | Step 2: `expectedVersion` + idempotency по `requestId` (409 `version_conflict`) | Защита от double-submit и гонок вкладок | Next step → 3; контракт ClientRequest |
-| 2026-07-29 | Step 8 — LLM intent parser (flag): `HOMECRAFT_LLM_INTENT`; OpenAI-compatible provider; Zod `IntentResultSchema`; sanitize SKU/instanceId; silent fallback to `matchIntent`; тест `llm-intent.test.js` | Поднять потолок формулировок без ломки детерминированного пайплайна | Roadmap Step 8 ✅ |
-| 2026-07-29 | Step 7 — Policy + confidence: `policy.yaml` веса price/ergonomics/style; `score-candidates` + `selectByConfidence`; auto-apply при gap ≥ порога, иначе `options` near-tie; i18n EN/RU/SR; тест `policy.test.js` | Менять приоритеты без правки кода; не выбирать молча при ничьей | Roadmap Step 7 ✅ |
-| 2026-07-29 | Step 6 — Candidates on conflict: `candidate-generator.js` строит до 3 валидных альтернатив с BOM при конфликте; `runDownstream` возвращает `options` response вместо hard reject; i18n near-tie/scored options EN/RU/SR; тест `candidates.test.js` | Вместо отказа предлагать пользователю выбор из проверенных вариантов | Roadmap Step 6 ✅ |
-| 2026-07-26 | Журнал команд (JSONL), `summarizeBOM`, i18n зафиксирован как 🟢 | Закрыть жёлтые блоки Event Log и explanation templates | Карта блоков; Roadmap Step 1 |
-| 2026-07-25 | Языки интентов и UI: `en` / `ru` / `sr` (`LanguageSchema`, матчеры в `intent-registry`, `LOCALES`, i18n) | Закрыть вопрос языка до консультанта; UI и детект на трёх локалях | Инвариант 4; статус AI Understanding; открытый вопрос про язык |
-| 2026-07-22 | Phase 3 (ветка `phase-3`): BOM cache (memory+Redis), `GET /api/catalog/snapshots`, клиентские BomPanel/BudgetIndicator, `budgetEur` в ClientResponse | Дать видимую смету/бюджет и ускорить повторный BOM | Раздел 6 (Phase 3 в работе); Redis в стеке |
-| 2026-07-19 | Phase 2 (ветка `phase-2`): рефактор Compatibility Engine в `rules/*`, добавлены правила `utilities`/`clearances`, `analog-suggester` (`suggestedSkus`), клиентский `ConflictPanel` | Расширить проверку реализуемости и дать пользователю понятные конфликты + предложения аналогов | Раздел 3 (Rules Engine 🚧), раздел 6 (Phase 2 в работе) |
-| 2026-07-19 | Финальная подготовка перед Phase 2: миграция валюты RUB→EUR по всем контрактам/каталогу/серверу, новый glass-HUD клиента (чат + командная строка + 3D-комната), чистка мёртвого кода в `intent-detector`, `jsconfig` `paths` для `@homecraft/*` | Стабилизировать базу Phase 1 и снять техдолг до старта Compatibility Engine | Валютные поля везде `*Eur`; `detectIntent` — тонкая обёртка над `matchIntent` |
-| 2026-07-19 | Ветка `phase-1/1.1-demo-catalog` помечена как Phase 1 complete | MVP-диалог + демо-каталог кухни готовы | Раздел 6 актуализирован под это состояние |
+| 2026-08-02 | Docs: один `Roadmap.md` (glTF+journey); CONTRIBUTING влит в паспорт | Убрать дубли архива и двух contributing-доков | Разделы 6–7, 10 |
+| 2026-07-29 | Step 10 — Grounded explanation + TTS | Числа только из отчёта; озвучка не блокирует UI | Explanation ✅ |
+| 2026-07-29 | Step 9 — Voice STT | Голос = peer channel к `/api/commands` | Voice ✅ |
+| 2026-07-29 | Step 8 — LLM intent ⚑ | Потолок формулировок без ломки пайплайна | Step 8 ✅ |
+| 2026-07-29 | Step 7 — Policy + confidence | Веса без правки кода; ask on near-tie | Step 7 ✅ |
+| 2026-07-29 | Step 6 — Candidates on conflict | Варианты вместо hard reject | Step 6 ✅ |
+| 2026-07-29 | Step 5 — PlanHistory tree | Ветки без потери путей | Step 5 ✅ |
+| 2026-07-26 | Step 4 — Production Export PDF | Pilot: спецификация клиенту | Production ✅ |
+| 2026-07-26 | Step 3 — replayJournal CI | Истина в журнале | Step 3 ✅ |
+| 2026-07-26 | Step 2 — idempotency + version lock | Double-submit / гонки | Step 2 ✅ |
+| 2026-07-26 | Step 1 — Command journal JSONL | Event log | Step 1 ✅ |
+| 2026-07-25 | Языки en/ru/sr | UI + intent на трёх локалях | Инвариант 4 |
+| 2026-07-22 | Phase 3 — BOM cache, snapshots API | Смета/бюджет | Phase 3 ✅ |
+| 2026-07-19 | Phase 2 — rules/*, analogs, ConflictPanel | Реализуемость + UX конфликтов | Rules Engine |
+| 2026-07-19 | Phase 1 complete | MVP-диалог + демо-каталог | Phase 1 ✅ |
 
 ---
 
-## 9. Открытые вопросы (из Roadmap, раздел "Open decisions")
+## 10. Открытые вопросы
 
 | # | Вопрос | Решение | Когда |
 |---|---|---|---|
 | — | Языки (intent + UI) | `en` / `ru` / `sr`, rule-based | ✅ 2026-07-25 |
-| 5 | LLM-провайдер | Feature flag `HOMECRAFT_LLM_INTENT`; intent JSON only; fallback rules | ✅ 2026-07-29 |
+| 5 | LLM-провайдер | `HOMECRAFT_LLM_INTENT`; intent JSON; fallback rules | ✅ 2026-07-29 |
 | 6 | Авторизация | JWT → OAuth2 | Deferred |
-| 8 | Модель ввода | Только диалог; голос — peer channel (Web Speech STT) | ✅ 2026-07-29 |
+| 8 | Модель ввода | Только диалог; голос — peer STT | ✅ 2026-07-29 |
 
-Актуальный backlog — см. `docs/Roadmap.md`.
+Актуальный backlog — [Roadmap.md](Roadmap.md).
 
 ---
 
-## 10. Связанные документы
+## 11. Связанные документы
 
-- `docs/Roadmap.md` — фазы разработки
-- `docs/voice-stt-plan.md` — Voice STT / TTS (Steps 9–10)
-- `docs/step0.md` — итоги Phase 0
-- `docs/dialog-flow.md` — диалоговый флоу и API
-- `CONTRIBUTING.md` — инварианты и код-ревью чеклист
-- Architecture Vision v1.0 (исходный документ, вне репозитория)
+- [Roadmap.md](Roadmap.md) — активный roadmap (glTF + Project Journey)
+- Architecture Vision v1.0 (вне репозитория)
+
+Планируются: `CONSULTANT_CONCEPT.md`, `model-authoring-spec.md`.

@@ -1,9 +1,9 @@
 # HomeCraft — Roadmap: 3D-каталог + Project Journey
 
 Status: **planned** (не начато).  
-Связан с закрытым MVP в [Roadmap.md](Roadmap.md). Порядок: `1 → 2 → 3`; фаза `4` может идти параллельно после фиксации словаря journey (не зависит от glTF).
+Закрытый MVP (Steps 1–10) — в decision log паспорта. Порядок: `1 → 2 → 3`; фаза `5` после `2` (нужны `.glb`); фаза `4` параллельно после фиксации словаря journey (не зависит от glTF).
 
-Инварианты (не нарушать):
+Инварианты (не нарушать) — см. также [PROJECT_PASSPORT.md](PROJECT_PASSPORT.md):
 
 - AI только распознаёт намерение; решения детерминированы
 - `catalogSnapshotId` неизменяем; `.glb` по опубликованному пути **не перезаписывать** (см. конвенцию путей ниже)
@@ -28,8 +28,10 @@ Status: **planned** (не начато).
 | `required_slots` | **Имени в коде нет.** Прецедент обследования: `roomWidthMm` / `roomDepthMm` → `applyRoomDimensionSlots`; нехватка слотов → `clarify`; `RoomShape.openings` / `utilities` часто пустые |
 | `homecraft_architecture.pdf` | В репо отсутствует |
 | Персист | `persistRoomContext`: local + Mongo best-effort |
+| Options UI (`ResponseRouter.jsx`) | `responseType: 'options'` — только текст `option.label`; картинок нет |
+| `InteractionOptionSchema` | `id`, `label`, `speechLabel` — **нет** `thumbnailUrl` |
 
-**Конвенция пути (зафиксировано):** клиент запрашивает `/gltf/{sku}.glb` (имя файла = точный `sku`). Отдельное поле в Zod/каталоге не требуется. Пока живёт один snapshot `kitchen-demo-v1`, путь без версии допустим **только если файл никогда не подменяют**. Смена геометрии/материалов = новый snapshot **и** новая схема путей (например `/gltf/{catalogVersion}/{sku}.glb`) — отдельное решение при втором snapshot, не в фазах 1–3.
+**Конвенция пути (зафиксировано):** клиент запрашивает `/gltf/{sku}.glb` (имя файла = точный `sku`). Отдельное поле модели в Zod/каталоге не требуется. Миниатюры: `/gltf/{sku}.png` рядом с `.glb` (та же иммутабельность). Пока живёт один snapshot `kitchen-demo-v1`, путь без версии допустим **только если файл никогда не подменяют**. Смена геометрии/материалов/превью = новый snapshot **и** новая схема путей — отдельное решение при втором snapshot, не в фазах 1–3.
 
 Связанный discovery-артефакт (вне репо): `journey-dialog-map.html` — 12 этапов. В коде фазы 4 — **только этапы 1–3**.
 
@@ -41,6 +43,7 @@ Status: **planned** (не начато).
 - [ ] **2. Валидация + приём моделей** — скрипт/чеклист; файлы от автора в `apps/server/gltf/`
 - [ ] **3. Клиентский рендер** — `useGLTF('/gltf/{sku}.glb')` + box-fallback + material slots
 - [ ] **4. Project Journey 1–3** — state, dialog-router в `resolveRoutedCommand`, i18n-вопросы
+- [ ] **5. Превью кандидатов** — `option.thumbnailUrl` + PNG у SKU + `<img>` в `ResponseRouter`
 
 ---
 
@@ -97,7 +100,8 @@ Status: **planned** (не начато).
   - нет light/camera в сцене файла
 - [ ] Приём моделей по мере готовности автора (приоритет demo-SKU: `BASE-400/600/800`, навесной, угловой, пенал, шкаф под мойку)
 - [ ] Класть файлы как `apps/server/gltf/{sku}.glb`; static route уже есть — не дублировать
-- [ ] Опционально: заметка в каталоге/CHANGELOG «SKU X: glTF added, author, date» — **не** URL-поле схемы
+- [ ] При приёме модели (или отдельным шагом фазы 5): заготовка под offscreen PNG `{sku}.png` рядом с `.glb`
+- [ ] Опционально: заметка в каталоге/CHANGELOG «SKU X: glTF added, author, date» — **не** URL-поле схемы модели
 - [ ] **Сквозное:** не перезаписывать уже отданный под snapshot файл; замена = новый snapshot + новая path-policy
 
 ### Затрагиваемые файлы
@@ -127,7 +131,7 @@ Status: **planned** (не начато).
 
 ### Задачи
 
-- [ ] В `ModuleBox`: `useGLTF(\`/gltf/${sku}.glb\`)` (drei); нет файла / ошибка → текущий `<boxGeometry>`
+- [ ] В `ModuleBox`: условная загрузка через `useGLTF('/gltf/{sku}.glb')` (drei); нет файла / ошибка → текущий `<boxGeometry>`
 - [ ] Не менять формулу позиции (`position/1000 + size/2`) — она уже под center-origin
 - [ ] Финиш: красить material slot `facade` по `FINISH_COLORS` / `finishId`; `carcass` не перекрашивать целиком как сейчас бокс
 - [ ] `Room`, свет, камера, `OrbitControls` — не трогать
@@ -190,27 +194,65 @@ Status: **planned** (не начато).
 
 ### Явно вне скоупа
 
-- Этапы 4–12, LLM-ведёт сценарий, отказ от intent-handlers / `runDownstream`.
+- Этапы 4–12 journey, LLM-ведёт сценарий, отказ от intent-handlers / `runDownstream`.
+
+---
+
+## Фаза 5 — Превью вариантов при выборе кандидата
+
+### Цель
+
+В `responseType: 'options'` показывать миниатюру SKU над текстом кнопки — без «призраков» кандидатов в 3D-сцене (сцена рендерит только текущую версию плана).
+
+### Задачи
+
+- [ ] Добавить необязательное `thumbnailUrl` в `InteractionOptionSchema` (`packages/contracts/src/client-response.js`)
+- [ ] Генерация миниатюры **один раз** при добавлении модели в каталог: offscreen-рендер `.glb` с фиксированного ракурса → PNG; движок тот же стек, что основная 3D-сцена (Three / R3F)
+- [ ] Класть файл рядом с моделью: `apps/server/gltf/{sku}.png` (URL `/gltf/{sku}.png`); не перезаписывать под тем же snapshot
+- [ ] В `buildCandidatesResponse()` (и местах сборки options) проставлять `thumbnailUrl`, если PNG для SKU кандидата есть
+- [ ] В `ResponseRouter.jsx` для `options`: `<img>` над `option.label` при наличии `thumbnailUrl`; без URL — как сейчас, только текст
+- [ ] **Сквозное:** PNG подчиняется той же иммутабельности, что `.glb`
+
+### Затрагиваемые файлы
+
+- `packages/contracts/src/client-response.js`
+- `apps/server/src/core/output-builder.js` (`buildCandidatesResponse`)
+- `apps/client/src/components/ResponseRouter.jsx`
+- `apps/server/gltf/{sku}.png`
+- скрипт offscreen-рендера (рядом с validate-gltf / `tools/`)
+
+### Критерий готовности
+
+1. Zod принимает options с/без `thumbnailUrl`.
+2. Хотя бы для приоритетных SKU с `.glb` есть `.png`, отдаётся static `/gltf`.
+3. В UI options видна картинка, если URL задан; без URL UI не ломается.
+4. Кандидаты **не** рисуются как полупрозрачные объекты в основной сцене.
+
+### Явно вне скоупа
+
+- Ghost/preview meshes в `ScenePreview`
+- Живой пересчёт thumbnail на каждый request
+- Отдельный CDN / внешний image host на MVP
 
 ---
 
 ## Сквозные пункты (матрица)
 
-| Пункт | Ф1 | Ф2 | Ф3 | Ф4 |
-|---|---|---|---|---|
-| Авторство / дата модели (метаданные) | spec | при приёме файлов | — | — |
-| Выход journey → free | — | — | — | да |
-| Observability drop-off / re-ask | — | — | — | минимальные счётчики |
-| `journeyState` dual-write | — | — | — | да |
-| Visual regression smoke | — | — | да | — |
-| Не перезаписывать `.glb` snapshot | зафиксировать | соблюдать | — | — |
+| Пункт | Ф1 | Ф2 | Ф3 | Ф4 | Ф5 |
+|---|---|---|---|---|---|
+| Авторство / дата модели (метаданные) | spec | при приёме файлов | — | — | — |
+| Выход journey → free | — | — | — | да | — |
+| Observability drop-off / re-ask | — | — | — | минимальные счётчики | — |
+| `journeyState` dual-write | — | — | — | да | — |
+| Visual regression smoke | — | — | да | — | опционально options UI |
+| Не перезаписывать `.glb` / `.png` snapshot | зафиксировать | соблюдать | — | — | соблюдать |
 
 ---
 
-## Backlog после фазы 4
+## Backlog после фазы 5
 
 - `tools/journey-sandbox/` (HTML + JSON сценарии)
-- Этапы 4–7 на существующем build-loop
+- Journey этапы 4–7 на существующем build-loop
 - Approval / freeze snapshot (этап 9)
 - Production package (этап 11)
 - Path-policy с `catalogVersion` при втором snapshot
@@ -223,4 +265,5 @@ Status: **planned** (не начато).
 - [ ] Spec + валидатор; авторские `.glb` для приоритетных SKU на `/gltf/{sku}.glb`
 - [ ] Клиент: glTF или box-fallback; финиш по `facade`; pose без регрессии
 - [ ] Journey 1–3 guided + free escape + persist
+- [ ] Options с `thumbnailUrl` / PNG; без ghost в сцене
 - [ ] Один словарь в `CONSULTANT_CONCEPT.md`; инварианты AI/Zod/RU/snapshot соблюдены
