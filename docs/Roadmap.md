@@ -10,7 +10,7 @@ No `discovery` / `edit_profile` / `build` / `history` / `meta` phases.
 | **Ф1** Typed questions | `JourneyQuestionSchema` + `validateAnswer`; migrate 4 slots; +5 (`hasKidsOrPets`…); `dependsOn` skip; Mongo `journey_questions` | ✅ Old 4 identical; facade skipped if kids/pets = no |
 | **Ф2** DecisionState v0 | Recalc DS from Observation (no ML); `post_survey` outside router when `stage===done`; minimal `ClientProfile` | ✅ `phase=post_survey` after done; `dialog-router` untouched |
 | **Ф3** DP4 rules → MVP | `recommendation-engine` → plan generator → assert → BOM; speech vs config separate; 3 mandatory rules | ✅ E2E: survey done → DP4 → check → variant+speech → Outcome |
-| **Ф4** Admin UI | Dropdown-only constructors for questions + rules | Cannot type arbitrary fields |
+| **Ф4** Admin UI | Dropdown-only constructors for questions + rules | ✅ `#/admin`; catalog fields only; API rejects free-text |
 | **Ф5** Utility model | Gate: enough held-out `clientOutcome` | Do not start earlier |
 
 **Never:** sentiment from text; Learning/DP4 reading past sessions (use `ClientProfile`); LLM choosing variant; new top-level dirs under `apps/server/src/` (put modules in `core/`).

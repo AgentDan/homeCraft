@@ -453,26 +453,6 @@ export function parseJourneyAnswer(questionId, text, intent) {
   });
 }
 
-/** @deprecated use validateAnswer — kept for older call sites/tests */
-export function parseClientName(text) {
-  const result = validateAnswer(
-    text,
-    null,
-    { type: 'text', minLength: 1, maxLength: 80, rejectIfNumeric: true }
-  );
-  return result.ok ? result.value : null;
-}
-
-/** @deprecated use validateAnswer */
-export function parseProjectGoal(text) {
-  const result = validateAnswer(
-    text,
-    null,
-    { type: 'text', minLength: 2, maxLength: 240 }
-  );
-  return result.ok ? result.value : null;
-}
-
 /**
  * @param {import('zod').infer<typeof ProjectJourneyStateSchema>} journey
  * @param {string} questionId

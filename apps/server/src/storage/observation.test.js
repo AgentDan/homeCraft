@@ -80,9 +80,11 @@ describe('observation timeline', () => {
     for (let i = 1; i < timeline.length; i += 1) {
       const prev = timeline[i - 1];
       const cur = timeline[i];
-      assert.ok(prev.ts <= cur.ts);
-      if (prev.ts === cur.ts) {
-        assert.ok(prev.seq < cur.seq);
+      const tsA = String(prev.ts ?? '');
+      const tsB = String(cur.ts ?? '');
+      assert.ok(tsA <= tsB);
+      if (tsA === tsB) {
+        assert.ok(Number(prev.seq) < Number(cur.seq));
       }
     }
 

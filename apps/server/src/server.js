@@ -3,6 +3,7 @@ import { warnProductionClientDistMissing } from './core/api/middleware.js';
 import { isProduction, runtimeConfig, runtimeLabel } from './config/runtime.js';
 import { ensureStorage } from './storage/local-storage.js';
 import { ensureJourneyQuestions } from './storage/mongo.js';
+import { ensureRecommendationRulesLoaded } from './storage/recommendation-rules-store.js';
 import {
   DEFAULT_JOURNEY_QUESTIONS,
   replaceJourneyQuestions
@@ -37,6 +38,14 @@ export async function startServer() {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn(`[journey] Mongo seed skipped; using in-memory table: ${msg}`);
+  }
+
+  try {
+    const rules = await ensureRecommendationRulesLoaded();
+    console.log(`[dp4] loaded ${rules.length} recommendation rules`);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[dp4] rules load skipped: ${msg}`);
   }
 
   const { port, host } = runtimeConfig;

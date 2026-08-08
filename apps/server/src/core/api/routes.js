@@ -4,11 +4,15 @@ import express from 'express';
 import {
   BehaviorSignalInputSchema,
   ClientOutcomeInputSchema,
-  ClientProfileSchema
+  ClientProfileSchema,
+  getAdminSchemaCatalog
 } from '@homecraft/contracts';
 import { route } from '../orchestrator.js';
 import { getStorageStatus } from '../../storage/local-storage.js';
-import { connectMongo } from '../../storage/mongo.js';
+import {
+  connectMongo,
+  replaceJourneyQuestionsInMongo
+} from '../../storage/mongo.js';
 import { connectRedis, redisConfigured } from '../../storage/redis.js';
 import { getBomCacheStats } from '../../pricing-engine/bom-cache.js';
 import { listCatalogSnapshots } from '../../knowledge-base/catalog-store.js';
@@ -24,6 +28,13 @@ import {
   saveClientProfile,
   createDefaultDecisionState
 } from '../decision-state.js';
+import { JOURNEY_QUESTIONS, replaceJourneyQuestions } from '../journey-table.js';
+import { getRecommendationRules } from '../recommendation-engine.js';
+import {
+  validateAdminJourneyQuestions,
+  validateAdminRecommendationRules
+} from '../admin-validate.js';
+import { saveRecommendationRulesToStore } from '../../storage/recommendation-rules-store.js';
 import { isProduction, runtimeLabel } from '../../config/runtime.js';
 import { sendJson } from '../../lib/send-json.js';
 import { synthesizeSpeech, ttsConfigured } from '../../ai-services/tts.js';
@@ -71,6 +82,11 @@ export function mountRoutes(app) {
         'GET /api/decision-state/:clientId',
         'GET /api/client-profiles/:clientId',
         'PUT /api/client-profiles/:clientId',
+        'GET /api/admin/schema-catalog',
+        'GET /api/admin/journey-questions',
+        'PUT /api/admin/journey-questions',
+        'GET /api/admin/recommendation-rules',
+        'PUT /api/admin/recommendation-rules',
         'GET /api/tts/status',
         'POST /api/tts'
       ]
@@ -221,6 +237,47 @@ export function mountRoutes(app) {
       });
       const saved = await saveClientProfile(profile);
       sendJson(res, 200, { status: 'ok', profile: saved });
+    })
+  );
+
+  app.get('/api/admin/schema-catalog', (_req, res) => {
+    sendJson(res, 200, { status: 'ok', catalog: getAdminSchemaCatalog() });
+  });
+
+  app.get('/api/admin/journey-questions', (_req, res) => {
+    sendJson(res, 200, {
+      status: 'ok',
+      questions: structuredClone(JOURNEY_QUESTIONS)
+    });
+  });
+
+  app.put(
+    '/api/admin/journey-questions',
+    wrapAsync(async (req, res) => {
+      const questions = validateAdminJourneyQuestions(req.body?.questions ?? req.body);
+      replaceJourneyQuestions(questions);
+      const mongoOk = await replaceJourneyQuestionsInMongo(questions);
+      sendJson(res, 200, {
+        status: 'ok',
+        questions: structuredClone(JOURNEY_QUESTIONS),
+        persisted: mongoOk ? 'mongo' : 'memory'
+      });
+    })
+  );
+
+  app.get('/api/admin/recommendation-rules', (_req, res) => {
+    sendJson(res, 200, {
+      status: 'ok',
+      rules: structuredClone(getRecommendationRules())
+    });
+  });
+
+  app.put(
+    '/api/admin/recommendation-rules',
+    wrapAsync(async (req, res) => {
+      const rules = validateAdminRecommendationRules(req.body?.rules ?? req.body);
+      const saved = await saveRecommendationRulesToStore(rules);
+      sendJson(res, 200, { status: 'ok', rules: saved, persisted: 'file' });
     })
   );
 

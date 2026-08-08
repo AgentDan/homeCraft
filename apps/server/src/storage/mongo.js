@@ -124,3 +124,42 @@ export async function loadJourneyQuestions() {
       )
     : null;
 }
+
+/**
+ * Replace the full journey_questions collection (admin save).
+ * @param {import('zod').infer<typeof import('@homecraft/contracts').JourneyQuestionSchema>[]} questions
+ * @returns {Promise<boolean>} true when Mongo wrote; false when offline
+ */
+export async function replaceJourneyQuestionsInMongo(questions) {
+  const database = await getMongoDb();
+  if (!database) {
+    return false;
+  }
+  const collection = database.collection('journey_questions');
+  await collection.createIndexes([
+    { key: { stage: 1, order: 1 }, name: 'stage_order' },
+    { key: { slot: 1 }, name: 'slot_unique', unique: true }
+  ]);
+  const slots = questions.map((q) => q.slot);
+  if (slots.length > 0) {
+    await collection.deleteMany({ slot: { $nin: slots } });
+  } else {
+    await collection.deleteMany({});
+  }
+  for (const question of questions) {
+    await collection.updateOne(
+      { slot: question.slot },
+      {
+        $set: {
+          ...structuredClone(question),
+          updatedAt: new Date().toISOString()
+        },
+        $setOnInsert: {
+          createdAt: new Date().toISOString()
+        }
+      },
+      { upsert: true }
+    );
+  }
+  return true;
+}

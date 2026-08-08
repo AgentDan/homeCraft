@@ -171,21 +171,6 @@ export function translate(locale, key, vars = {}) {
   return text;
 }
 
-/**
- * @param {Locale} locale
- * @param {string | undefined} instanceId
- * @param {string} sku
- */
-export function replaceSuggestionCommand(locale, instanceId, sku) {
-  if (locale === 'ru') {
-    return instanceId ? `замени ${instanceId} на ${sku}` : `замени на ${sku}`;
-  }
-  if (locale === 'sr') {
-    return instanceId ? `zameni ${instanceId} sa ${sku}` : `zameni sa ${sku}`;
-  }
-  return instanceId ? `replace ${instanceId} with ${sku}` : `replace with ${sku}`;
-}
-
 const STORAGE_KEY = 'hc-locale';
 
 /**

@@ -397,6 +397,12 @@ export function App() {
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[var(--hc-accent)] shadow-[0_0_10px_var(--hc-accent)]" />
             <span className="text-sm font-semibold tracking-wide text-white/90">HomeCraft</span>
+            <a
+              href="#/admin"
+              className="text-[11px] text-[var(--hc-muted)] hover:text-[var(--hc-accent)]"
+            >
+              Admin
+            </a>
           </div>
           <LanguageSwitcher />
         </div>

@@ -173,16 +173,16 @@ describe('recommendation-engine DP4', () => {
       sessionId,
       projectId,
       command: 'recommend a cabinet',
-      language: 'en',
+      language: /** @type {const} */ ('en'),
       expectedVersion: 0,
-      inputChannel: 'text',
+      inputChannel: /** @type {const} */ ('text'),
       clientState: { dp4: true }
     };
 
     const context = {
       projectId,
       sessionId,
-      inputChannel: 'text',
+      inputChannel: /** @type {const} */ ('text'),
       catalogSnapshotId: 'kitchen-demo-v1',
       roomShape: {
         dimensions: { widthMm: 3000, depthMm: 4000, heightMm: 2700 },
@@ -210,7 +210,7 @@ describe('recommendation-engine DP4', () => {
     assert.ok(result.response.speech);
     assert.match(result.response.message, /BASE-600/);
     assert.equal(result.response.compatibility?.valid, true);
-    assert.ok(result.response.bom?.totalEur > 0);
+    assert.ok((result.response.bom?.totalEur ?? 0) > 0);
     assert.equal(result.configurationIntent?.primarySku, 'BASE-600');
 
     // Outcome is written by orchestrator finalize; mirror Observation write for E2E criterion

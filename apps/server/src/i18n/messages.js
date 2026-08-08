@@ -101,8 +101,6 @@ const MESSAGES = {
       'Based on your answers, I recommend {sku}.',
     dp4BehaviorAlternative:
       'You also focused on {alts} — I am keeping that as an alternative only.',
-    dp4DefaultRecommendation:
-      'A solid starting point is {sku}.',
     dp4ConfigApplied:
       '{speech} Added {sku}. Project total €{totalEur}.',
     dp4ConfigRejected:
@@ -195,8 +193,6 @@ const MESSAGES = {
       'По вашим ответам рекомендую {sku}.',
     dp4BehaviorAlternative:
       'Вы также задерживались на {alts} — оставляю это только как альтернативу.',
-    dp4DefaultRecommendation:
-      'Хорошая отправная точка — {sku}.',
     dp4ConfigApplied:
       '{speech} Добавлен {sku}. Итого по проекту €{totalEur}.',
     dp4ConfigRejected:
@@ -289,8 +285,6 @@ const MESSAGES = {
       'Na osnovu odgovora preporučujem {sku}.',
     dp4BehaviorAlternative:
       'Zadržali ste se i na {alts} — to ostaje samo alternativa.',
-    dp4DefaultRecommendation:
-      'Dobra početna tačka je {sku}.',
     dp4ConfigApplied:
       '{speech} Dodat je {sku}. Ukupno €{totalEur}.',
     dp4ConfigRejected:

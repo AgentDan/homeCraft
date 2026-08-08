@@ -80,7 +80,7 @@ export async function appendJourneyEvent(event) {
     await updateDecisionStateFromEventSafe(clientId, written, {
       journey:
         event.type === 'mode_free'
-          ? { stage: event.stage, mode: 'free' }
+          ? { stage: event.stage != null ? String(event.stage) : undefined, mode: 'free' }
           : event.stage
             ? { stage: String(event.stage) }
             : undefined

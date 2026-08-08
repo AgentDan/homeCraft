@@ -80,18 +80,48 @@ export async function postBehaviorSignal(signal) {
   return data;
 }
 
-/**
- * @param {string} clientId
- */
-export async function getObservationTimeline(clientId) {
-  const response = await fetch(
-    `${API_BASE}/observation/${encodeURIComponent(clientId)}/timeline`
-  );
+async function adminFetch(path, options) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
   const data = await response.json();
   if (!response.ok) {
     throw createApiError(response.status, data);
   }
   return data;
+}
+
+export function getAdminSchemaCatalog() {
+  return adminFetch('/admin/schema-catalog');
+}
+
+export function getAdminJourneyQuestions() {
+  return adminFetch('/admin/journey-questions');
+}
+
+/**
+ * @param {unknown[]} questions
+ */
+export function putAdminJourneyQuestions(questions) {
+  return adminFetch('/admin/journey-questions', {
+    method: 'PUT',
+    body: JSON.stringify({ questions })
+  });
+}
+
+export function getAdminRecommendationRules() {
+  return adminFetch('/admin/recommendation-rules');
+}
+
+/**
+ * @param {unknown[]} rules
+ */
+export function putAdminRecommendationRules(rules) {
+  return adminFetch('/admin/recommendation-rules', {
+    method: 'PUT',
+    body: JSON.stringify({ rules })
+  });
 }
 
 /**
