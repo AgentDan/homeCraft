@@ -5,6 +5,7 @@ import { BudgetIndicator } from './components/BudgetIndicator.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { CommandInput } from './components/CommandInput.jsx';
 import { LanguageSwitcher } from './components/LanguageSwitcher.jsx';
+import { VariantOptions } from './components/VariantOptions.jsx';
 import { useSpeech } from './hooks/useSpeech.js';
 import { useSpeechCommand } from './hooks/useSpeechCommand.js';
 import { useLocale } from './i18n/LocaleContext.jsx';
@@ -242,6 +243,9 @@ export function App() {
     /** @type {number | null} */ (null)
   );
   const [planVersion, setPlanVersion] = useState(0);
+  const [variantOptions, setVariantOptions] = useState(
+    /** @type {Array<{ id: string, label: string, thumbnailUrl?: string }>} */ ([])
+  );
   const [interimTranscript, setInterimTranscript] = useState('');
   const {
     speak,
@@ -300,6 +304,15 @@ export function App() {
         }
         if (result.budgetEur !== undefined) {
           setBudgetEur(result.budgetEur);
+        }
+        if (
+          result.responseType === 'options'
+          && Array.isArray(result.interaction?.options)
+          && result.interaction.options.length > 0
+        ) {
+          setVariantOptions(result.interaction.options);
+        } else {
+          setVariantOptions([]);
         }
         setTurns((current) => [
           ...current,
@@ -393,6 +406,16 @@ export function App() {
       </div>
 
       <div className="pointer-events-auto absolute right-4 bottom-5 z-20 flex w-[min(100%-2rem,22rem)] flex-col gap-2">
+        {variantOptions.length > 0 ? (
+          <VariantOptions
+            clientId={projectId}
+            options={variantOptions}
+            onSelect={(option) => {
+              setVariantOptions([]);
+              void sendCommand(option.label);
+            }}
+          />
+        ) : null}
         <CommandInput
           onSubmit={sendCommand}
           disabled={loading}

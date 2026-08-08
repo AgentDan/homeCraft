@@ -8,7 +8,7 @@
     ".": "./src/index.js"
   },
   "scripts": {
-    "test": "node --test src/smoke.test.js"
+    "test": "node --test src/smoke.test.js src/observation.test.js"
   },
   "dependencies": {
     "zod": "^3.25.56"

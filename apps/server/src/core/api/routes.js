@@ -1,6 +1,10 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
+import {
+  BehaviorSignalInputSchema,
+  ClientOutcomeInputSchema
+} from '@homecraft/contracts';
 import { route } from '../orchestrator.js';
 import { getStorageStatus } from '../../storage/local-storage.js';
 import { connectMongo } from '../../storage/mongo.js';
@@ -8,6 +12,11 @@ import { connectRedis, redisConfigured } from '../../storage/redis.js';
 import { getBomCacheStats } from '../../pricing-engine/bom-cache.js';
 import { listCatalogSnapshots } from '../../knowledge-base/catalog-store.js';
 import { loadExportRecord } from '../../export/export-store.js';
+import {
+  appendBehaviorSignal,
+  appendOutcomeEvent,
+  loadObservationTimeline
+} from '../../storage/journey-events.js';
 import { isProduction, runtimeLabel } from '../../config/runtime.js';
 import { sendJson } from '../../lib/send-json.js';
 import { synthesizeSpeech, ttsConfigured } from '../../ai-services/tts.js';
@@ -49,6 +58,9 @@ export function mountRoutes(app) {
         'GET /api/catalog/snapshots',
         'GET /api/exports/:id',
         'POST /api/commands',
+        'POST /api/observation/signals',
+        'POST /api/observation/outcomes',
+        'GET /api/observation/:clientId/timeline',
         'GET /api/tts/status',
         'POST /api/tts'
       ]
@@ -124,6 +136,41 @@ export function mountRoutes(app) {
       const clientRequest = parseClientRequest(req.body);
       const result = await route(clientRequest);
       sendJson(res, result.statusCode, result.response);
+    })
+  );
+
+  app.post(
+    '/api/observation/signals',
+    wrapAsync(async (req, res) => {
+      const input = BehaviorSignalInputSchema.parse(req.body);
+      const recorded = await appendBehaviorSignal(input);
+      sendJson(res, 201, { status: 'ok', signal: recorded });
+    })
+  );
+
+  app.post(
+    '/api/observation/outcomes',
+    wrapAsync(async (req, res) => {
+      const input = ClientOutcomeInputSchema.parse(req.body);
+      const recorded = await appendOutcomeEvent({
+        clientId: input.clientId,
+        requestId: input.requestId,
+        executionResult: input.executionResult ?? {
+          status: 'success',
+          reason: null
+        },
+        clientOutcome: input.clientOutcome
+      });
+      sendJson(res, 201, { status: 'ok', outcome: recorded });
+    })
+  );
+
+  app.get(
+    '/api/observation/:clientId/timeline',
+    wrapAsync(async (req, res) => {
+      const clientId = String(req.params.clientId ?? '').trim();
+      const events = await loadObservationTimeline(clientId);
+      sendJson(res, 200, { clientId, events });
     })
   );
 

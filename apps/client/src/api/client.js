@@ -60,6 +60,41 @@ export async function postCommand(payload) {
 }
 
 /**
+ * @param {{
+ *   clientId: string,
+ *   eventType: 'click' | 'hover_long' | 'reject_variant' | 'compare',
+ *   targetId: string,
+ *   durationMs: number
+ * }} signal
+ */
+export async function postBehaviorSignal(signal) {
+  const response = await fetch(`${API_BASE}/observation/signals`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(signal)
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw createApiError(response.status, data);
+  }
+  return data;
+}
+
+/**
+ * @param {string} clientId
+ */
+export async function getObservationTimeline(clientId) {
+  const response = await fetch(
+    `${API_BASE}/observation/${encodeURIComponent(clientId)}/timeline`
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw createApiError(response.status, data);
+  }
+  return data;
+}
+
+/**
  * @param {number} [attempts]
  * @param {number} [delayMs]
  */

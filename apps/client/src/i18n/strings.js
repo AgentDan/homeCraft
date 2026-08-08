@@ -55,7 +55,11 @@ const STRINGS = {
     voiceEngineAiUnavailable: 'AI TTS unavailable — using browser voice',
     language: 'Language',
     versionConflict: 'Version conflict (server is at {current}). Retry the command.',
-    downloadSpec: 'Download specification PDF'
+    downloadSpec: 'Download specification PDF',
+    variants: 'Variants',
+    rejectVariant: 'Reject',
+    compareVariant: 'Compare',
+    compareSelected: 'Comparing'
   },
   ru: {
     command: 'Команда',
@@ -93,7 +97,11 @@ const STRINGS = {
     voiceEngineAiUnavailable: 'AI TTS недоступен — голос браузера',
     language: 'Язык',
     versionConflict: 'Конфликт версий (на сервере {current}). Повторите команду.',
-    downloadSpec: 'Скачать спецификацию PDF'
+    downloadSpec: 'Скачать спецификацию PDF',
+    variants: 'Варианты',
+    rejectVariant: 'Отклонить',
+    compareVariant: 'Сравнить',
+    compareSelected: 'В сравнении'
   },
   sr: {
     command: 'Komanda',
@@ -131,7 +139,11 @@ const STRINGS = {
     voiceEngineAiUnavailable: 'AI TTS nije dostupan — glas pregledača',
     language: 'Jezik',
     versionConflict: 'Konflikt verzija (server je na {current}). Ponovite komandu.',
-    downloadSpec: 'Preuzmi specifikaciju PDF'
+    downloadSpec: 'Preuzmi specifikaciju PDF',
+    variants: 'Varijante',
+    rejectVariant: 'Odbaci',
+    compareVariant: 'Uporedi',
+    compareSelected: 'U poređenju'
   }
 };
 

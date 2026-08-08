@@ -20,6 +20,10 @@ import {
   isVersionConflictError,
   withSessionLock
 } from '../storage/local-storage.js';
+import {
+  appendDialogTurnEvent,
+  appendOutcomeEventSafe
+} from '../storage/journey-events.js';
 import { normalizeLanguage, t } from '../i18n/messages.js';
 import { runDownstream } from './run-downstream.js';
 import { intentHandlers } from './intent-handlers/index.js';
@@ -53,6 +57,23 @@ function buildVersionConflictResult(request, currentVersion) {
   };
 }
 
+/**
+ * @param {string} outcomeKind
+ * @param {{ compatibility?: { valid?: boolean, conflicts?: Array<{ message?: string }> } | null }} response
+ */
+function executionResultFrom(outcomeKind, response) {
+  const rejectedByCompat =
+    response.compatibility != null && response.compatibility.valid === false;
+  const rejected = outcomeKind === OUTCOME.rejected || rejectedByCompat;
+  if (!rejected) {
+    return { status: /** @type {const} */ ('success'), reason: null };
+  }
+  const reason =
+    response.compatibility?.conflicts?.[0]?.message
+    ?? (typeof outcomeKind === 'string' ? outcomeKind : 'rejected');
+  return { status: /** @type {const} */ ('rejected'), reason };
+}
+
 async function finalizeResponse({
   request,
   context,
@@ -75,6 +96,25 @@ async function finalizeResponse({
 
   const compatibilityValid =
     response.compatibility == null ? null : Boolean(response.compatibility.valid);
+
+  // Observation timeline (best-effort; never blocks the command response).
+  const clientId = request.projectId;
+  await appendDialogTurnEvent({
+    clientId,
+    speaker: 'client',
+    text: request.command
+  });
+  await appendDialogTurnEvent({
+    clientId,
+    speaker: 'agent',
+    text: response.message
+  });
+  await appendOutcomeEventSafe({
+    clientId,
+    requestId: request.requestId,
+    executionResult: executionResultFrom(outcomeKind, response),
+    clientOutcome: null
+  });
 
   await appendCommandRecord({
     requestId: request.requestId,

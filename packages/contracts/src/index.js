@@ -53,3 +53,15 @@ export {
 } from './command.js';
 
 export { ExportRecordSchema } from './export.js';
+
+export {
+  DialogTurnSchema,
+  BehaviorSignalSchema,
+  BehaviorSignalInputSchema,
+  ExecutionResultSchema,
+  ClientOutcomeSchema,
+  ClientOutcomeInputSchema,
+  OutcomeSchema,
+  JourneyObservationTypeSchema,
+  ObservationKindSchema
+} from './observation.js';
