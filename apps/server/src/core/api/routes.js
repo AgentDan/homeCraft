@@ -3,7 +3,8 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import {
   BehaviorSignalInputSchema,
-  ClientOutcomeInputSchema
+  ClientOutcomeInputSchema,
+  ClientProfileSchema
 } from '@homecraft/contracts';
 import { route } from '../orchestrator.js';
 import { getStorageStatus } from '../../storage/local-storage.js';
@@ -17,6 +18,12 @@ import {
   appendOutcomeEvent,
   loadObservationTimeline
 } from '../../storage/journey-events.js';
+import {
+  loadClientProfile,
+  loadDecisionState,
+  saveClientProfile,
+  createDefaultDecisionState
+} from '../decision-state.js';
 import { isProduction, runtimeLabel } from '../../config/runtime.js';
 import { sendJson } from '../../lib/send-json.js';
 import { synthesizeSpeech, ttsConfigured } from '../../ai-services/tts.js';
@@ -61,6 +68,9 @@ export function mountRoutes(app) {
         'POST /api/observation/signals',
         'POST /api/observation/outcomes',
         'GET /api/observation/:clientId/timeline',
+        'GET /api/decision-state/:clientId',
+        'GET /api/client-profiles/:clientId',
+        'PUT /api/client-profiles/:clientId',
         'GET /api/tts/status',
         'POST /api/tts'
       ]
@@ -171,6 +181,46 @@ export function mountRoutes(app) {
       const clientId = String(req.params.clientId ?? '').trim();
       const events = await loadObservationTimeline(clientId);
       sendJson(res, 200, { clientId, events });
+    })
+  );
+
+  app.get(
+    '/api/decision-state/:clientId',
+    wrapAsync(async (req, res) => {
+      const clientId = String(req.params.clientId ?? '').trim();
+      const state =
+        (await loadDecisionState(clientId)) ?? createDefaultDecisionState(clientId);
+      sendJson(res, 200, { status: 'ok', decisionState: state });
+    })
+  );
+
+  app.get(
+    '/api/client-profiles/:clientId',
+    wrapAsync(async (req, res) => {
+      const clientId = String(req.params.clientId ?? '').trim();
+      const profile = await loadClientProfile(clientId);
+      if (!profile) {
+        sendJson(res, 404, {
+          status: 'error',
+          message: 'ClientProfile not found.',
+          errors: [`Unknown clientId: ${clientId}`]
+        });
+        return;
+      }
+      sendJson(res, 200, { status: 'ok', profile });
+    })
+  );
+
+  app.put(
+    '/api/client-profiles/:clientId',
+    wrapAsync(async (req, res) => {
+      const clientId = String(req.params.clientId ?? '').trim();
+      const profile = ClientProfileSchema.parse({
+        ...req.body,
+        clientId
+      });
+      const saved = await saveClientProfile(profile);
+      sendJson(res, 200, { status: 'ok', profile: saved });
     })
   );
 

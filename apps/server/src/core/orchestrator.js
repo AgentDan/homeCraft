@@ -24,6 +24,7 @@ import {
   appendDialogTurnEvent,
   appendOutcomeEventSafe
 } from '../storage/journey-events.js';
+import { updateDecisionStateFromEventSafe } from './decision-state.js';
 import { normalizeLanguage, t } from '../i18n/messages.js';
 import { runDownstream } from './run-downstream.js';
 import { intentHandlers } from './intent-handlers/index.js';
@@ -114,6 +115,16 @@ async function finalizeResponse({
     requestId: request.requestId,
     executionResult: executionResultFrom(outcomeKind, response),
     clientOutcome: null
+  });
+
+  // DecisionState outside dialog-router: journey.stage === 'done' → post_survey.
+  await updateDecisionStateFromEventSafe(clientId, null, {
+    journey: nextContext.journey
+      ? {
+          stage: nextContext.journey.stage,
+          mode: nextContext.journey.mode
+        }
+      : undefined
   });
 
   await appendCommandRecord({

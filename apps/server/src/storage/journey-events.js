@@ -13,6 +13,7 @@ import {
   DialogTurnSchema,
   OutcomeSchema
 } from '@homecraft/contracts';
+import { updateDecisionStateFromEventSafe } from '../core/decision-state.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const defaultDir = path.resolve(__dirname, '../../data');
@@ -75,7 +76,16 @@ export async function appendJourneyEvent(event) {
       reAskTotal: event.reAskTotal,
       at: ts
     };
-    return await appendRecord(record);
+    const written = await appendRecord(record);
+    await updateDecisionStateFromEventSafe(clientId, written, {
+      journey:
+        event.type === 'mode_free'
+          ? { stage: event.stage, mode: 'free' }
+          : event.stage
+            ? { stage: String(event.stage) }
+            : undefined
+    });
+    return written;
   } catch {
     return null;
   }
@@ -101,7 +111,9 @@ export async function appendDialogTurnEvent(input) {
       speaker: input.speaker,
       text: input.text
     });
-    return await appendRecord({ kind: 'dialog_turn', ...turn });
+    const written = await appendRecord({ kind: 'dialog_turn', ...turn });
+    await updateDecisionStateFromEventSafe(clientId, written);
+    return written;
   } catch {
     return null;
   }
@@ -133,7 +145,9 @@ export async function appendBehaviorSignal(input) {
     ts,
     seq
   });
-  return appendRecord({ kind: 'behavior_signal', ...signal });
+  const written = await appendRecord({ kind: 'behavior_signal', ...signal });
+  await updateDecisionStateFromEventSafe(clientId, written);
+  return written;
 }
 
 /**
@@ -162,7 +176,9 @@ export async function appendOutcomeEvent(input) {
     executionResult: input.executionResult,
     clientOutcome: input.clientOutcome ?? null
   });
-  return appendRecord({ kind: 'outcome', ...outcome });
+  const written = await appendRecord({ kind: 'outcome', ...outcome });
+  await updateDecisionStateFromEventSafe(clientId, written);
+  return written;
 }
 
 /**

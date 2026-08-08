@@ -73,3 +73,10 @@ export {
   JourneyObservationTypeSchema,
   ObservationKindSchema
 } from './observation.js';
+
+export {
+  DecisionStateSchema,
+  DecisionPhaseSchema,
+  DecisionRejectedIdSchema,
+  ClientProfileSchema
+} from './decision-state.js';
