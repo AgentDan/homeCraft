@@ -7,7 +7,8 @@ import {
   nextQuestion,
   parseJourneyAnswer,
   parseRoomDimensionMm,
-  ensureJourneyState
+  ensureJourneyState,
+  validateAnswer
 } from './journey-table.js';
 import { routeJourneyDialog } from './dialog-router.js';
 import { createDefaultJourneyState } from '@homecraft/contracts';
@@ -44,6 +45,19 @@ function baseContext(journey) {
   };
 }
 
+/**
+ * Fill the original four slots so later tests start at the new survey questions.
+ * @param {ReturnType<typeof ensureJourneyState>} journey
+ */
+function fillLegacyFour(journey) {
+  let next = journey;
+  next = applyJourneyAnswer(markQuestionAsked(next, 'clientName'), 'clientName', 'A');
+  next = applyJourneyAnswer(next, 'projectGoal', 'goal');
+  next = applyJourneyAnswer(next, 'roomWidthMm', 3000);
+  next = applyJourneyAnswer(next, 'roomDepthMm', 4000);
+  return next;
+}
+
 describe('journey-table parsers', () => {
   it('parses room dimensions in m and mm', () => {
     assert.equal(parseRoomDimensionMm('3 m'), 3000);
@@ -59,7 +73,7 @@ describe('journey-table parsers', () => {
     assert.equal(isFreeModeEscape('add base 600'), false);
   });
 
-  it('advances stages 1→2→3→done', () => {
+  it('advances stages through legacy four then new survey slots', () => {
     let journey = ensureJourneyState();
     const q1 = nextQuestion(journey);
     assert.equal(q1?.id, 'clientName');
@@ -76,8 +90,8 @@ describe('journey-table parsers', () => {
     journey = applyJourneyAnswer(journey, 'roomWidthMm', 3000);
     journey = markQuestionAsked(journey, 'roomDepthMm');
     journey = applyJourneyAnswer(journey, 'roomDepthMm', 4000);
-    assert.equal(journey.stage, 'done');
-    assert.equal(nextQuestion(journey), null);
+    assert.equal(nextQuestion(journey)?.id, 'hasKidsOrPets');
+    assert.notEqual(journey.stage, 'done');
   });
 
   it('parseJourneyAnswer reads width from intent slots', () => {
@@ -85,6 +99,63 @@ describe('journey-table parsers', () => {
       slots: { roomWidthMm: 3200 }
     });
     assert.deepEqual(parsed, { ok: true, value: 3200 });
+  });
+
+  it('validateAnswer dispatches by validation.type', () => {
+    assert.deepEqual(
+      validateAnswer('Maria', null, {
+        type: 'text',
+        minLength: 1,
+        maxLength: 80,
+        rejectIfNumeric: true
+      }),
+      { ok: true, value: 'Maria' }
+    );
+    assert.equal(
+      validateAnswer('3000', null, {
+        type: 'text',
+        minLength: 1,
+        maxLength: 80,
+        rejectIfNumeric: true
+      }).ok,
+      false
+    );
+    assert.deepEqual(
+      validateAnswer('15000', null, {
+        type: 'number',
+        min: 100,
+        max: 1_000_000,
+        integer: true
+      }),
+      { ok: true, value: 15000 }
+    );
+    assert.deepEqual(
+      validateAnswer('да', null, { type: 'enum', options: ['yes', 'no'] }),
+      { ok: true, value: 'yes' }
+    );
+  });
+
+  it('skips facadeMaterialPreference when hasKidsOrPets is no', () => {
+    let journey = fillLegacyFour(ensureJourneyState());
+    assert.equal(nextQuestion(journey)?.id, 'hasKidsOrPets');
+    journey = applyJourneyAnswer(
+      markQuestionAsked(journey, 'hasKidsOrPets'),
+      'hasKidsOrPets',
+      'no'
+    );
+    assert.equal(nextQuestion(journey)?.id, 'shoppingHabit');
+    assert.equal(journey.known.facadeMaterialPreference, undefined);
+    assert.ok(!journey.missing.includes('facadeMaterialPreference'));
+  });
+
+  it('asks facadeMaterialPreference when hasKidsOrPets is yes', () => {
+    let journey = fillLegacyFour(ensureJourneyState());
+    journey = applyJourneyAnswer(
+      markQuestionAsked(journey, 'hasKidsOrPets'),
+      'hasKidsOrPets',
+      'yes'
+    );
+    assert.equal(nextQuestion(journey)?.id, 'facadeMaterialPreference');
   });
 });
 
@@ -141,7 +212,7 @@ describe('dialog-router', () => {
     assert.match(result.response.message, /kitchen/i);
   });
 
-  it('writes room depth into roomShape on survey answer', async () => {
+  it('writes room depth into roomShape and continues survey', async () => {
     let journey = ensureJourneyState();
     journey = applyJourneyAnswer(
       applyJourneyAnswer(
@@ -164,6 +235,8 @@ describe('dialog-router', () => {
       language: 'en'
     });
     assert.equal(result.context.roomShape.dimensions.depthMm, 4000);
-    assert.equal(result.context.journey.stage, 'done');
+    assert.equal(result.context.journey.known.roomDepthMm, 4000);
+    assert.equal(result.context.journey.pendingQuestionId, 'hasKidsOrPets');
+    assert.notEqual(result.context.journey.stage, 'done');
   });
 });

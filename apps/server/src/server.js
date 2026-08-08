@@ -2,6 +2,11 @@ import { createApp } from './app.js';
 import { warnProductionClientDistMissing } from './core/api/middleware.js';
 import { isProduction, runtimeConfig, runtimeLabel } from './config/runtime.js';
 import { ensureStorage } from './storage/local-storage.js';
+import { ensureJourneyQuestions } from './storage/mongo.js';
+import {
+  DEFAULT_JOURNEY_QUESTIONS,
+  replaceJourneyQuestions
+} from './core/journey-table.js';
 
 export async function startServer() {
   if (isProduction) {
@@ -17,6 +22,21 @@ export async function startServer() {
     console.error(
       '[storage] Check permissions for apps/server/data or set SERVER_STORAGE_DIR.'
     );
+  }
+
+  try {
+    const fromMongo = await ensureJourneyQuestions(DEFAULT_JOURNEY_QUESTIONS);
+    if (fromMongo?.length) {
+      replaceJourneyQuestions(fromMongo);
+      console.log(`[journey] loaded ${fromMongo.length} questions from MongoDB`);
+    } else {
+      console.log(
+        `[journey] using in-memory seed (${DEFAULT_JOURNEY_QUESTIONS.length} questions)`
+      );
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[journey] Mongo seed skipped; using in-memory table: ${msg}`);
   }
 
   const { port, host } = runtimeConfig;

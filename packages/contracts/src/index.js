@@ -31,6 +31,14 @@ export {
 } from './project-journey.js';
 
 export {
+  JourneyQuestionSchema,
+  JourneyQuestionTableSchema,
+  JourneyQuestionStageSchema,
+  ValidationSchema,
+  DependsOnSchema
+} from './journey-question.js';
+
+export {
   ModuleSchema,
   RetrievedModuleSchema
 } from './module.js';

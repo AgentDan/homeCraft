@@ -82,6 +82,16 @@ const MESSAGES = {
       'Let us survey the room. What is the room width? For example "3 m" or "3000 mm".',
     journeyAskRoomDepth:
       'What is the room depth? For example "4 m" or "4000 mm".',
+    journeyAskHasKidsOrPets:
+      'Do you have kids or pets at home? Answer "yes" or "no".',
+    journeyAskFacadeMaterial:
+      'For a home with kids or pets, which facade feel do you prefer: durable, soft, or mixed?',
+    journeyAskShoppingHabit:
+      'How do you usually shop for furniture: browse, decide_fast, or research?',
+    journeyAskSocialStyle:
+      'What social style fits this kitchen: private, hosting, or family?',
+    journeyAskBudgetEur:
+      'What budget in euro should we aim for? For example "15000".',
     journeyReask: 'I did not catch that. {question}',
     journeyFreeMode:
       'Switched to free mode. Ask me to add modules or change the plan anytime. Say hello again if you want guided questions.',
@@ -156,6 +166,16 @@ const MESSAGES = {
       'Давайте обследуем помещение. Какая ширина комнаты? Например «3 м» или «3000 мм».',
     journeyAskRoomDepth:
       'Какая глубина комнаты? Например «4 м» или «4000 мм».',
+    journeyAskHasKidsOrPets:
+      'Дома есть дети или питомцы? Ответьте «да» или «нет».',
+    journeyAskFacadeMaterial:
+      'Для дома с детьми или питомцами какой фасад предпочитаете: durable, soft или mixed?',
+    journeyAskShoppingHabit:
+      'Как обычно выбираете мебель: browse, decide_fast или research?',
+    journeyAskSocialStyle:
+      'Какой социальный стиль кухни: private, hosting или family?',
+    journeyAskBudgetEur:
+      'Какой бюджет в евро закладываем? Например «15000».',
     journeyReask: 'Не расслышал. {question}',
     journeyFreeMode:
       'Свободный режим. Можно сразу добавлять модули и менять план. Для guided-вопросов просто продолжите диалог с именем.',
@@ -230,6 +250,16 @@ const MESSAGES = {
       'Hajde da snimimo prostor. Koja je širina sobe? Na primer „3 m” ili „3000 mm”.',
     journeyAskRoomDepth:
       'Koja je dubina sobe? Na primer „4 m” ili „4000 mm”.',
+    journeyAskHasKidsOrPets:
+      'Imate li decu ili kućne ljubimce? Odgovorite „da” ili „ne”.',
+    journeyAskFacadeMaterial:
+      'Za dom sa decom ili ljubimcima koji fasad preferirate: durable, soft ili mixed?',
+    journeyAskShoppingHabit:
+      'Kako obično birate nameštaj: browse, decide_fast ili research?',
+    journeyAskSocialStyle:
+      'Koji društveni stil odgovara kuhinji: private, hosting ili family?',
+    journeyAskBudgetEur:
+      'Koji budžet u eurima ciljamo? Na primer „15000”.',
     journeyReask: 'Nisam razumeo. {question}',
     journeyFreeMode:
       'Slobodan režim. Možete odmah dodavati module i menjati plan.',

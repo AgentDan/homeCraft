@@ -65,3 +65,62 @@ export async function loadProjectDocument(projectId) {
     { projection: { _id: 0 } }
   );
 }
+
+/**
+ * Ensure `journey_questions` collection, indexes, and seed rows.
+ * @param {import('zod').infer<typeof import('@homecraft/contracts').JourneyQuestionSchema>[]} seed
+ * @returns {Promise<import('zod').infer<typeof import('@homecraft/contracts').JourneyQuestionSchema>[] | null>}
+ */
+export async function ensureJourneyQuestions(seed) {
+  const database = await getMongoDb();
+  if (!database) {
+    return null;
+  }
+  const collection = database.collection('journey_questions');
+  await collection.createIndexes([
+    { key: { stage: 1, order: 1 }, name: 'stage_order' },
+    { key: { slot: 1 }, name: 'slot_unique', unique: true }
+  ]);
+
+  for (const question of seed) {
+    await collection.updateOne(
+      { slot: question.slot },
+      {
+        $set: {
+          ...structuredClone(question),
+          updatedAt: new Date().toISOString()
+        },
+        $setOnInsert: {
+          createdAt: new Date().toISOString()
+        }
+      },
+      { upsert: true }
+    );
+  }
+
+  const rows = await collection
+    .find({}, { projection: { _id: 0, createdAt: 0, updatedAt: 0 } })
+    .sort({ order: 1 })
+    .toArray();
+  return /** @type {typeof seed} */ (rows);
+}
+
+/**
+ * @returns {Promise<import('zod').infer<typeof import('@homecraft/contracts').JourneyQuestionSchema>[] | null>}
+ */
+export async function loadJourneyQuestions() {
+  const database = await getMongoDb();
+  if (!database) {
+    return null;
+  }
+  const rows = await database
+    .collection('journey_questions')
+    .find({}, { projection: { _id: 0, createdAt: 0, updatedAt: 0 } })
+    .sort({ order: 1 })
+    .toArray();
+  return rows.length > 0
+    ? /** @type {import('zod').infer<typeof import('@homecraft/contracts').JourneyQuestionSchema>[]} */ (
+        rows
+      )
+    : null;
+}

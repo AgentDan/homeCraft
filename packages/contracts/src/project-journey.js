@@ -50,7 +50,17 @@ export function createDefaultJourneyState() {
     stage: 'intro',
     mode: 'guided',
     known: {},
-    missing: ['clientName', 'projectGoal', 'roomWidthMm', 'roomDepthMm'],
+    // Active slots without unmet dependsOn at start (facade skipped until kids/pets=yes).
+    missing: [
+      'clientName',
+      'projectGoal',
+      'roomWidthMm',
+      'roomDepthMm',
+      'hasKidsOrPets',
+      'shoppingHabit',
+      'socialStyle',
+      'budgetEur'
+    ],
     deferred: ['openings', 'utilities'],
     pendingQuestionId: null,
     questionHistory: [],
