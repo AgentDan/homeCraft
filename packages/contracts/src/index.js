@@ -80,3 +80,12 @@ export {
   DecisionRejectedIdSchema,
   ClientProfileSchema
 } from './decision-state.js';
+
+export {
+  AtomicConditionSchema,
+  ConditionSchema,
+  RecommendationActionSchema,
+  RecommendationRuleSchema,
+  RecommendationRuleTableSchema,
+  ConfigurationIntentSchema
+} from './recommendation.js';

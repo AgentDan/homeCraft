@@ -31,6 +31,10 @@ import { intentHandlers } from './intent-handlers/index.js';
 import { buildIntentMessage } from './intent-messages.js';
 import { routeJourneyDialog } from './dialog-router.js';
 import { ensureJourneyState } from './journey-table.js';
+import {
+  runDp4Recommendation,
+  shouldTriggerDp4
+} from './recommendation-engine.js';
 
 const INTENT = IntentKindSchema.enum;
 const OUTCOME = CommandOutcomeKindSchema.enum;
@@ -241,6 +245,22 @@ async function resolveRoutedCommand(request, context) {
       intentKind: journeyResult.intentKind ?? intent.kind,
       outcomeKind: journeyResult.outcomeKind ?? OUTCOME.clarify,
       createdVersion: journeyResult.createdVersion ?? false
+    };
+  }
+
+  // DP4 (beside dialog-router): post-survey recommendation → plan → assert → BOM.
+  if (shouldTriggerDp4(request, intent, nextContext.journey)) {
+    const dp4 = await runDp4Recommendation({
+      request,
+      context: nextContext,
+      language
+    });
+    return {
+      context: dp4.context ?? nextContext,
+      response: dp4.response,
+      intentKind: 'add_module',
+      outcomeKind: dp4.outcomeKind,
+      createdVersion: dp4.createdVersion ?? false
     };
   }
 

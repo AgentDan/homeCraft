@@ -96,7 +96,17 @@ const MESSAGES = {
     journeyFreeMode:
       'Switched to free mode. Ask me to add modules or change the plan anytime. Say hello again if you want guided questions.',
     journeyComplete:
-      'Room survey is complete. You can add modules, set a budget, or ask for the price.'
+      'Room survey is complete. You can add modules, set a budget, or ask for the price.',
+    dp4PrimaryRecommendation:
+      'Based on your answers, I recommend {sku}.',
+    dp4BehaviorAlternative:
+      'You also focused on {alts} — I am keeping that as an alternative only.',
+    dp4DefaultRecommendation:
+      'A solid starting point is {sku}.',
+    dp4ConfigApplied:
+      '{speech} Added {sku}. Project total €{totalEur}.',
+    dp4ConfigRejected:
+      '{speech} I could not apply that configuration yet: {reason}'
   },
   ru: {
     commandProcessed: 'Команда обработана.',
@@ -180,7 +190,17 @@ const MESSAGES = {
     journeyFreeMode:
       'Свободный режим. Можно сразу добавлять модули и менять план. Для guided-вопросов просто продолжите диалог с именем.',
     journeyComplete:
-      'Обследование комнаты завершено. Можно добавлять модули, задать бюджет или спросить цену.'
+      'Обследование комнаты завершено. Можно добавлять модули, задать бюджет или спросить цену.',
+    dp4PrimaryRecommendation:
+      'По вашим ответам рекомендую {sku}.',
+    dp4BehaviorAlternative:
+      'Вы также задерживались на {alts} — оставляю это только как альтернативу.',
+    dp4DefaultRecommendation:
+      'Хорошая отправная точка — {sku}.',
+    dp4ConfigApplied:
+      '{speech} Добавлен {sku}. Итого по проекту €{totalEur}.',
+    dp4ConfigRejected:
+      '{speech} Пока не удалось применить конфигурацию: {reason}'
   },
   sr: {
     commandProcessed: 'Komanda je obrađena.',
@@ -264,7 +284,17 @@ const MESSAGES = {
     journeyFreeMode:
       'Slobodan režim. Možete odmah dodavati module i menjati plan.',
     journeyComplete:
-      'Snimanje sobe je završeno. Možete dodavati module, postaviti budžet ili pitati za cenu.'
+      'Snimanje sobe je završeno. Možete dodavati module, postaviti budžet ili pitati za cenu.',
+    dp4PrimaryRecommendation:
+      'Na osnovu odgovora preporučujem {sku}.',
+    dp4BehaviorAlternative:
+      'Zadržali ste se i na {alts} — to ostaje samo alternativa.',
+    dp4DefaultRecommendation:
+      'Dobra početna tačka je {sku}.',
+    dp4ConfigApplied:
+      '{speech} Dodat je {sku}. Ukupno €{totalEur}.',
+    dp4ConfigRejected:
+      '{speech} Još ne mogu da primenim konfiguraciju: {reason}'
   }
 };
 
