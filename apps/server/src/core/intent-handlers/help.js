@@ -1,19 +1,20 @@
 import { CommandOutcomeKindSchema } from '@homecraft/contracts';
 import { buildHelpResponse } from '../output-builder.js';
-import { getHelpMessage } from '../help-service.js';
+import { getHelpOrCatalogMessage } from '../help-service.js';
 
 const OUTCOME = CommandOutcomeKindSchema.enum;
 const RESPOND = /** @type {const} */ ('respond');
 
 /**
- * Builds a localized help ClientResponse without mutating plan or context.
+ * Builds a compact command list (or catalog) ClientResponse.
  *
  * @param {import('./types.js').IntentHandlerInput} input
  * @returns {Promise<import('./types.js').IntentHandlerResult>}
  */
 export async function handleHelp(input) {
   const { request, context, language } = input;
-  const message = await getHelpMessage(
+  const message = await getHelpOrCatalogMessage(
+    request.command,
     language,
     context.catalogSnapshotId ?? 'kitchen-demo-v1'
   );

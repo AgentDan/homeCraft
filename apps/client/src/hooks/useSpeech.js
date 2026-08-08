@@ -71,6 +71,27 @@ function languageFromBcp47(langBcp47) {
 }
 
 /**
+ * @param {number} attempts
+ * @param {number} delayMs
+ */
+async function fetchTtsStatus(attempts = 10, delayMs = 500) {
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      const response = await fetch('/api/tts/status');
+      if (response.ok) {
+        return /** @type {{ available?: boolean }} */ (await response.json());
+      }
+    } catch {
+      // server may still be booting
+    }
+    if (i < attempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  return null;
+}
+
+/**
  * Browser TTS and optional AI TTS (`POST /api/tts`).
  * Fire-and-forget: never blocks UI. Honours mute + speak-replies prefs.
  */
@@ -102,16 +123,10 @@ export function useSpeech() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/tts/status')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled && data?.available) {
-          setAiTtsAvailable(true);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setAiTtsAvailable(false);
-      });
+    fetchTtsStatus().then((data) => {
+      if (cancelled) return;
+      setAiTtsAvailable(Boolean(data?.available));
+    });
     return () => {
       cancelled = true;
     };
@@ -134,9 +149,13 @@ export function useSpeech() {
     /** @param {VoiceEngine | ((prev: VoiceEngine) => VoiceEngine)} next */
     (next) => {
       setVoiceEngineState((prev) => {
-        const value = typeof next === 'function' ? next(prev) : next;
-        if (value === 'ai' && !aiTtsAvailable) return 'browser';
-        return value === 'ai' ? 'ai' : 'browser';
+        const requested = typeof next === 'function' ? next(prev) : next;
+        if (requested === 'ai' && !aiTtsAvailable) return prev;
+        const resolved = requested === 'ai' ? 'ai' : 'browser';
+        if (resolved === 'ai' && prev !== 'ai') {
+          queueMicrotask(() => setSpeakRepliesState(true));
+        }
+        return resolved;
       });
     },
     [aiTtsAvailable]
@@ -192,7 +211,7 @@ export function useSpeech() {
           objectUrlRef.current = url;
           const audio = new Audio(url);
           audioRef.current = audio;
-          audio.play().catch(() => {
+          await audio.play().catch(() => {
             speakBrowser(text, lang);
           });
         } catch {

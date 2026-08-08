@@ -103,9 +103,35 @@ export function parseClientName(text) {
   const trimmed = text.trim().replace(/^[,.\-–—]+/, '').trim();
   if (trimmed.length < 1 || trimmed.length > 80) return null;
   if (isFreeModeEscape(trimmed)) return null;
+  if (isHelpOrCatalogPhrase(trimmed)) return null;
   // Reject pure numbers / dimension-looking replies
   if (/^\d+([.,]\d+)?\s*(м|m|мм|mm)?$/i.test(trimmed)) return null;
   return trimmed.slice(0, 80);
+}
+
+/**
+ * @param {string} text
+ */
+export function isCatalogPhrase(text) {
+  const normalized = text.trim().toLowerCase();
+  return (
+    /\bcatalog\b|\bkatalog\b/i.test(normalized)
+    || /каталог|список\s+модул/i.test(normalized)
+    || /katalog|lista\s+modul/i.test(normalized)
+  );
+}
+
+/**
+ * @param {string} text
+ */
+export function isHelpOrCatalogPhrase(text) {
+  const normalized = text.trim().toLowerCase();
+  return (
+    isCatalogPhrase(normalized)
+    || /\bhelp\b|what can you do|commands?/i.test(normalized)
+    || /помощ|справк|команд/i.test(normalized)
+    || /pomo[cć]|komand|šta\s+možeš|sta\s+mozes/i.test(normalized)
+  );
 }
 
 /**
@@ -116,6 +142,7 @@ export function parseProjectGoal(text) {
   const trimmed = text.trim();
   if (trimmed.length < 2 || trimmed.length > 240) return null;
   if (isFreeModeEscape(trimmed)) return null;
+  if (isHelpOrCatalogPhrase(trimmed)) return null;
   return trimmed.slice(0, 240);
 }
 

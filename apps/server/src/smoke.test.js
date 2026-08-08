@@ -211,7 +211,9 @@ describe('@homecraft/server smoke', () => {
 
       const help = await postCommand('help', 'req-help');
       assert.equal(help.responseType, 'help');
-      assert.match(help.message, /Example commands/);
+      assert.match(help.message, /^add\nremove\nreplace/m);
+      assert.ok(help.message.includes('catalog'));
+      assert.equal(help.speech, 'Commands');
 
       const undo = await postCommand('undo', 'req-undo');
       assert.equal(undo.responseType, 'scene');

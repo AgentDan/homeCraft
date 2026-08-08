@@ -1,6 +1,35 @@
 import { useEffect, useRef } from 'react';
 import { useLocale } from '../i18n/LocaleContext.jsx';
 
+const URL_PATTERN = /(https?:\/\/[^\s]+|\/(?:api|exports|gltf)\/[^\s]+)/g;
+
+/**
+ * @param {string} text
+ */
+function ChatText({ text }) {
+  const parts = text.split(URL_PATTERN);
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (!part) return null;
+        if (/^(https?:\/\/|\/(?:api|exports|gltf)\/)/.test(part)) {
+          return (
+            <a
+              key={`link-${index}`}
+              href={part}
+              className="cursor-pointer text-[var(--hc-accent)] underline-offset-2 hover:underline"
+              download={part.includes('/exports/') || part.endsWith('.pdf')}
+            >
+              {part}
+            </a>
+          );
+        }
+        return <span key={`text-${index}`}>{part}</span>;
+      })}
+    </>
+  );
+}
+
 /**
  * @param {{
  *   turns: Array<{ id: string, role: 'user' | 'assistant', text: string }>,
@@ -46,11 +75,11 @@ export function ChatPanel({ turns, loading = false, online = true, tools = null 
             key={turn.id}
             className={
               turn.role === 'user'
-                ? 'ml-6 rounded-[12px] bg-[var(--hc-accent)]/15 px-3 py-2 text-sm text-[var(--hc-text)]'
-                : 'mr-4 rounded-[12px] border border-[var(--hc-border)] bg-black/35 px-3 py-2 text-sm text-[var(--hc-muted)]'
+                ? 'ml-6 whitespace-pre-line rounded-[12px] bg-[var(--hc-accent)]/15 px-3 py-2 text-sm text-[var(--hc-text)]'
+                : 'mr-4 whitespace-pre-line rounded-[12px] border border-[var(--hc-border)] bg-black/35 px-3 py-2 text-sm leading-snug text-[var(--hc-muted)]'
             }
           >
-            {turn.text}
+            <ChatText text={turn.text} />
           </div>
         ))}
 

@@ -225,11 +225,13 @@ const RULES = [
       },
       {
         language: 'en',
-        patterns: [/\b(?:show\s+)?(?:the\s+)?catalog\b/i]
+        patterns: [/\b(?:show\s+)?(?:the\s+)?catalog\b|\bkatalog\b/i]
       },
       {
         language: 'en',
-        patterns: [/\b(?:list|show)\s+commands?\b|\bavailable\s+commands?\b/i]
+        patterns: [
+          /\b(?:list|show)\s+commands?\b|\bavailable\s+commands?\b|\bwhat\s+commands\b/i
+        ]
       },
       {
         language: 'ru',

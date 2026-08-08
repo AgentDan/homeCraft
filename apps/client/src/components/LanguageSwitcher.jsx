@@ -28,7 +28,7 @@ export function LanguageSwitcher() {
             type="button"
             aria-pressed={active}
             onClick={() => setLocale(code)}
-            className={`rounded-[8px] px-2.5 py-1 text-[11px] font-semibold tracking-wide transition-colors ${
+            className={`cursor-pointer rounded-[8px] px-2.5 py-1 text-[11px] font-semibold tracking-wide transition-colors ${
               active
                 ? 'bg-[var(--hc-accent)] text-[#04140a]'
                 : 'text-[var(--hc-muted)] hover:text-[var(--hc-text)]'

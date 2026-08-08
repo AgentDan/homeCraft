@@ -19,12 +19,10 @@ const MESSAGES = {
     commandCompleted: 'Command completed.',
     unknownIntent: 'The command was not understood. Please rephrase it.',
     unknownExplanation: 'Intent detection returned unknown.',
-    helpFallback: 'Describe the kitchen by text or voice.',
-    helpIntro: 'I can help you assemble a kitchen from the demo catalog.',
-    helpExamplesPrefix: 'Example commands',
-    helpExplanation: 'Available commands and catalog were provided by the Help service.',
-    catalogIntro: 'Catalog {version} ({count} modules)',
-    catalogUnavailable: 'Catalog listing is temporarily unavailable.',
+    helpFallback: 'Commands',
+    helpExplanation: '',
+    catalogIntro: 'Catalog {version} ({count})',
+    catalogUnavailable: 'Catalog unavailable.',
     nothingToUndo: 'There is nothing to undo. Describe what you want to change.',
     nothingToRedo: 'There is nothing to redo. Undo a change first.',
     undone: 'The last change was undone.',
@@ -95,12 +93,10 @@ const MESSAGES = {
     commandCompleted: 'Команда выполнена.',
     unknownIntent: 'Команда не распознана. Переформулируйте запрос.',
     unknownExplanation: 'Распознавание намерения вернуло unknown.',
-    helpFallback: 'Опишите кухню текстом или голосом.',
-    helpIntro: 'Я помогу собрать кухню из демо-каталога.',
-    helpExamplesPrefix: 'Примеры команд',
-    helpExplanation: 'Список команд и каталог предоставлены сервисом помощи.',
-    catalogIntro: 'Каталог {version} ({count} модулей)',
-    catalogUnavailable: 'Список каталога временно недоступен.',
+    helpFallback: 'Команды',
+    helpExplanation: '',
+    catalogIntro: 'Каталог {version} ({count})',
+    catalogUnavailable: 'Каталог недоступен.',
     nothingToUndo: 'Нечего отменять. Опишите, что хотите изменить.',
     nothingToRedo: 'Нечего повторить. Сначала отмените изменение.',
     undone: 'Последнее изменение отменено.',
@@ -171,12 +167,10 @@ const MESSAGES = {
     commandCompleted: 'Komanda je izvršena.',
     unknownIntent: 'Komanda nije prepoznata. Preformulirajte zahtev.',
     unknownExplanation: 'Prepoznavanje namere vratilo je unknown.',
-    helpFallback: 'Opisite kuhinju tekstom ili glasom.',
-    helpIntro: 'Mogu da pomognem da sastavite kuhinju iz demo kataloga.',
-    helpExamplesPrefix: 'Primeri komandi',
-    helpExplanation: 'Lista komandi i katalog dobijeni su od Help servisa.',
-    catalogIntro: 'Katalog {version} ({count} modula)',
-    catalogUnavailable: 'Lista kataloga privremeno nije dostupna.',
+    helpFallback: 'Komande',
+    helpExplanation: '',
+    catalogIntro: 'Katalog {version} ({count})',
+    catalogUnavailable: 'Katalog nije dostupan.',
     nothingToUndo: 'Nema šta da se poništi. Opisite šta želite da promenite.',
     nothingToRedo: 'Nema šta da se ponovi. Prvo poništite izmenu.',
     undone: 'Poslednja izmena je poništena.',
@@ -258,61 +252,57 @@ export function t(language, key, vars = {}) {
   return text;
 }
 
-const HELP_EXAMPLES = {
+/** Short command titles shown by `help` / `commands` (one per line). */
+const COMMAND_LIST = {
   en: [
-    '"replace module-1 with BASE-400"',
-    '"add base cabinet 600"',
-    '"add sink cabinet 800"',
-    '"change the last cabinet to oak"',
-    '"remove the last module"',
-    '"show price"',
-    '"export pdf"',
-    '"budget up to 150000"',
-    '"add kitchen cabinet 3x4"',
-    '"create branch alt"',
-    '"switch branch main"',
-    '"undo" or "redo"',
-    '"catalog" or "help"'
+    'add',
+    'remove',
+    'replace',
+    'finish',
+    'budget',
+    'price',
+    'export',
+    'undo',
+    'redo',
+    'branch',
+    'kitchen',
+    'catalog'
   ],
   ru: [
-    '«замени module-1 на BASE-400»',
-    '«добавь шкаф 600»',
-    '«добавь мойку 800»',
-    '«сделай фасад дуб»',
-    '«удали последний модуль»',
-    '«покажи цену»',
-    '«экспорт pdf»',
-    '«бюджет до 150000»',
-    '«кухня 3x4»',
-    '«создай ветку alt»',
-    '«переключи ветку main»',
-    '«отмена» или «повтор»',
-    '«каталог» или «помощь»'
+    'добавь',
+    'удали',
+    'замени',
+    'фасад',
+    'бюджет',
+    'цена',
+    'экспорт',
+    'отмена',
+    'повтор',
+    'ветка',
+    'кухня',
+    'каталог'
   ],
   sr: [
-    '„zameni module-1 sa BASE-400”',
-    '„dodaj ormar 600”',
-    '„dodaj sudoper 800”',
-    '„uradi fasadu hrast”',
-    '„ukloni poslednji modul”',
-    '„pokaži cenu”',
-    '„izvoz pdf”',
-    '„budžet do 150000”',
-    '„kuhinja 3x4”',
-    '„kreiraj granu alt”',
-    '„prebaci granu main”',
-    '„poništi” ili „ponovi”',
-    '„katalog” ili „pomoć”'
+    'dodaj',
+    'ukloni',
+    'zameni',
+    'fasada',
+    'budžet',
+    'cena',
+    'izvoz',
+    'poništi',
+    'ponovi',
+    'grana',
+    'kuhinja',
+    'katalog'
   ]
 };
 
 /**
+ * Compact column of available command titles.
  * @param {unknown} language
  */
-export function getLocalizedHelpMessage(language) {
+export function getLocalizedCommandList(language) {
   const lang = normalizeLanguage(language);
-  return [
-    t(lang, 'helpIntro'),
-    `${t(lang, 'helpExamplesPrefix')}: ${HELP_EXAMPLES[lang].join('; ')}.`
-  ].join(' ');
+  return (COMMAND_LIST[lang] ?? COMMAND_LIST.en).join('\n');
 }

@@ -10,6 +10,7 @@ import {
   applyJourneyAnswer,
   ensureJourneyState,
   isFreeModeEscape,
+  isHelpOrCatalogPhrase,
   isPassthroughCommandIntent,
   markQuestionAsked,
   nextQuestion,
@@ -112,6 +113,11 @@ export async function routeJourneyDialog({
 
   // Kitchen commands pass through; journey question stays for a later turn.
   if (isPassthroughCommandIntent(intent.kind)) {
+    return { handled: false, context: nextContext };
+  }
+
+  // Help/catalog phrases must reach the help handler even if still "unknown".
+  if (isHelpOrCatalogPhrase(request.command)) {
     return { handled: false, context: nextContext };
   }
 

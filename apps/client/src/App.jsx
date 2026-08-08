@@ -4,13 +4,10 @@ import { BomPanel } from './components/BomPanel.jsx';
 import { BudgetIndicator } from './components/BudgetIndicator.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { CommandInput } from './components/CommandInput.jsx';
-import { ConflictPanel } from './components/ConflictPanel.jsx';
 import { LanguageSwitcher } from './components/LanguageSwitcher.jsx';
-import { ResponseRouter } from './components/ResponseRouter.jsx';
 import { useSpeech } from './hooks/useSpeech.js';
 import { useSpeechCommand } from './hooks/useSpeechCommand.js';
 import { useLocale } from './i18n/LocaleContext.jsx';
-import { replaceSuggestionCommand } from './i18n/strings.js';
 
 const ScenePreview = lazy(() =>
   import('./components/ScenePreview.jsx').then((module) => ({
@@ -21,6 +18,51 @@ const ScenePreview = lazy(() =>
 /** @param {string} prefix */
 function newId(prefix) {
   return `${prefix}-${crypto.randomUUID()}`;
+}
+
+/**
+ * Chat text for an API response. Extra panels were removed — everything lives
+ * in chat; the user replies via the top command field.
+ * @param {{
+ *   message?: string,
+ *   responseType?: string,
+ *   downloadUrl?: string,
+ *   interaction?: { options?: Array<{ label: string }> },
+ *   compatibility?: {
+ *     conflicts?: Array<{ message?: string, suggestedSkus?: string[], instanceIds?: string[] }>
+ *   }
+ * }} result
+ * @param {string} fallback
+ */
+function assistantMessageFromResponse(result, fallback) {
+  /** @type {string[]} */
+  const parts = [result.message?.trim() || fallback];
+
+  if (result.responseType === 'options') {
+    for (const option of result.interaction?.options ?? []) {
+      if (option.label) parts.push(option.label);
+    }
+  }
+
+  const conflicts = result.compatibility?.conflicts ?? [];
+  for (const conflict of conflicts) {
+    if (conflict.message) parts.push(conflict.message);
+    const skus = conflict.suggestedSkus ?? [];
+    if (skus.length > 0) {
+      const instanceId = conflict.instanceIds?.[0];
+      parts.push(
+        instanceId
+          ? `→ ${skus.map((sku) => `replace ${instanceId} with ${sku}`).join(' | ')}`
+          : `→ ${skus.join(' | ')}`
+      );
+    }
+  }
+
+  if (result.downloadUrl) {
+    parts.push(result.downloadUrl);
+  }
+
+  return parts.join('\n');
 }
 
 /** @param {number} mm */
@@ -174,9 +216,6 @@ export function App() {
   const { locale, t, speechLang } = useLocale();
   const [sessionId] = useState(() => newId('sess'));
   const [projectId] = useState(() => newId('proj'));
-  const [response, setResponse] = useState(
-    /** @type {{ requestId: string, message?: string, [key: string]: unknown } | null} */ (null)
-  );
   const [online, setOnline] = useState(false);
   const [loading, setLoading] = useState(false);
   const [turns, setTurns] = useState(
@@ -244,7 +283,6 @@ export function App() {
           expectedVersion: planVersion,
           clientState: {}
         });
-        setResponse(result);
         if (typeof result.planVersion === 'number') {
           setPlanVersion(result.planVersion);
         }
@@ -268,7 +306,7 @@ export function App() {
           {
             id: newId('turn'),
             role: 'assistant',
-            text: result.message ?? t('done')
+            text: assistantMessageFromResponse(result, t('done'))
           }
         ]);
       } catch (err) {
@@ -360,21 +398,6 @@ export function App() {
           disabled={loading}
           interimTranscript={interimTranscript}
         />
-        <ResponseRouter
-          key={response?.requestId}
-          response={response}
-          onCommand={sendCommand}
-          disabled={loading}
-        />
-        {response?.responseType === 'conflict' && (
-          <ConflictPanel
-            compatibility={/** @type {any} */ (response.compatibility)}
-            disabled={loading}
-            onSuggestion={({ sku, instanceId }) =>
-              sendCommand(replaceSuggestionCommand(locale, instanceId, sku))
-            }
-          />
-        )}
         <ChatPanel
           turns={turns}
           loading={loading}

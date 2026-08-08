@@ -7,6 +7,9 @@ import { parseIntentWithLlm } from './llm-intent-parser.js';
  * Step 8: when HOMECRAFT_LLM_INTENT is on (and configured), try LLM → Zod.
  * Any failure falls back silently to rule-based matchIntent.
  *
+ * Deterministic help/catalog phrases always prefer rules so journey/LLM
+ * cannot swallow "catalog" / "help" / "какие команды".
+ *
  * @param {string} text - User command
  * @param {'en' | 'ru' | 'sr'} [language]
  * @param {{
@@ -16,6 +19,11 @@ import { parseIntentWithLlm } from './llm-intent-parser.js';
  */
 export async function detectIntent(text, language, options = {}) {
   const { matchIntent } = await import('@homecraft/ai');
+  const ruleIntent = matchIntent(text, { language });
+  if (ruleIntent.kind === 'help') {
+    return ruleIntent;
+  }
+
   const injected = Object.hasOwn(options, 'llmProvider');
   const provider = injected
     ? options.llmProvider
@@ -24,6 +32,13 @@ export async function detectIntent(text, language, options = {}) {
   if (provider) {
     try {
       const llmIntent = await parseIntentWithLlm(text, language, { provider });
+      if (llmIntent && llmIntent.kind !== 'unknown') {
+        return llmIntent;
+      }
+      // LLM "unknown" → still try rules (other short commands).
+      if (ruleIntent.kind !== 'unknown') {
+        return ruleIntent;
+      }
       if (llmIntent) return llmIntent;
     } catch (error) {
       console.warn(
@@ -33,5 +48,5 @@ export async function detectIntent(text, language, options = {}) {
     }
   }
 
-  return matchIntent(text, { language });
+  return ruleIntent;
 }
