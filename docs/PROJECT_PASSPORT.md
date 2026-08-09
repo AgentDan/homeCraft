@@ -104,7 +104,9 @@ npm run lint
 
 **Deferred:** analog ranking polish (2.8); wardrobe / Expo / auth / multi-tenant / customer memory.
 
-**Активно:** [Roadmap.md](Roadmap.md) — фазы 1–5 ✅ (glTF + Journey 1–3 + option thumbnails). Backlog — этапы journey 4+.
+**Активно (Mind):** [Roadmap.md](Roadmap.md) — **Ф0–Ф4** ✅ (Observation → Typed questions → DecisionState → DP4 → **Admin UI**); **Ф5** Utility model — не начинать без held-out `clientOutcome`.
+
+**Ранее закрыто (glTF/UI):** фазы 1–5 (glTF + Journey 1–3 + option thumbnails).
 
 **Ещё нет в пайплайне:** полноценный Scene Graph как отдельная подсистема; домены wardrobe+; production package сверх PDF.
 
