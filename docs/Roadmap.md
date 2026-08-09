@@ -16,3 +16,5 @@ No `discovery` / `edit_profile` / `build` / `history` / `meta` phases.
 **Never:** sentiment from text; Learning/DP4 reading past sessions (use `ClientProfile`); LLM choosing variant; new top-level dirs under `apps/server/src/` (put modules in `core/`).
 
 Each phase = own branch/PR + one `CHANGELOG.md` line.
+
+**Admin / DP4 glossary:** [admin-glossary.md](./admin-glossary.md) (Field, Operator, slots, DecisionState, ClientProfile — facts from code).
