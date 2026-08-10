@@ -10,7 +10,8 @@
     "apps/server",
     "packages/ai",
     "packages/catalog-schema",
-    "packages/contracts"
+    "packages/contracts",
+    "packages/manifests"
   ],
   "scripts": {
     "build": "npm run build --workspace @homecraft/client",
