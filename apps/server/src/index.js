@@ -2,21 +2,24 @@ import './config/load-env.js';
 
 import { registry } from '@homecraft/contracts';
 import { kitchenManifest } from '@homecraft/manifests/kitchen';
+import { deskManifest } from '@homecraft/manifests/desk';
 import { replaceJourneyQuestions } from './core/journey-table.js';
 import { replaceRecommendationRules } from './core/recommendation-engine.js';
 import { startServer } from './server.js';
 
-// 1. Регистрация манифеста
+// Регистрация всех доменов
 registry.register(kitchenManifest);
+registry.register(deskManifest);
 
-// 2. Инициализация домена из манифеста
+// Активный домен при старте — kitchen
 registry.initDomain('kitchen', {
   onJourneyQuestions: replaceJourneyQuestions,
   onDp4Rules: replaceRecommendationRules
 });
 
+console.log(`[HomeCraft] Registered domains: ${registry.registeredTypes().join(', ')}`);
 console.log(
-  `[HomeCraft] Manifest registered: ${kitchenManifest.productType} v${kitchenManifest.version}`,
+  `[HomeCraft] Active domain: kitchen`,
   `| questions: ${kitchenManifest.journeyQuestions.length}`,
   `| dp4Rules: ${kitchenManifest.dp4Rules.length}`
 );

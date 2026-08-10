@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./kitchen": "./kitchen/manifest.js"
+    "./kitchen": "./kitchen/manifest.js",
+    "./desk": "./desk/manifest.js"
   }
 }
