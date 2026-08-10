@@ -61,4 +61,39 @@ describe('ProductManifest contracts', () => {
       /No manifest registered for productType: unknown/
     );
   });
+
+  it('initDomain invokes journey and DP4 callbacks from the manifest', () => {
+    const questions = [{ id: 'q1' }];
+    const rules = [{ ruleId: 'r1' }];
+    const manifest = ProductManifestSchema.parse({
+      productType: 'init-domain-test',
+      version: '1.0.0',
+      slotsSchema: z.object({}),
+      assertCompatible: (_plan) => ({ valid: true }),
+      calculateBOM: (_plan) => ({ lines: [] }),
+      journeyQuestions: questions,
+      dp4Rules: rules,
+      starterPlan: () => ({})
+    });
+
+    registry.register(manifest);
+
+    /** @type {object[] | undefined} */
+    let gotQuestions;
+    /** @type {object[] | undefined} */
+    let gotRules;
+    registry.initDomain('init-domain-test', {
+      onJourneyQuestions: (qs) => {
+        gotQuestions = qs;
+      },
+      onDp4Rules: (rs) => {
+        gotRules = rs;
+      }
+    });
+
+    assert.deepEqual(gotQuestions, questions);
+    assert.deepEqual(gotRules, rules);
+    assert.equal(gotQuestions, manifest.journeyQuestions);
+    assert.equal(gotRules, manifest.dp4Rules);
+  });
 });

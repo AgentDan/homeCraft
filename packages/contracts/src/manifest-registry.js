@@ -36,6 +36,22 @@ class ManifestRegistry {
   registeredTypes() {
     return [...this.#manifests.keys()];
   }
+
+  /**
+   * Runs domain-specific initialisation after registration.
+   * Keeps the registry itself free of server-side imports.
+   *
+   * @param {string} productType
+   * @param {{
+   *   onJourneyQuestions?: (questions: object[]) => void,
+   *   onDp4Rules?: (rules: object[]) => void
+   * }} [callbacks]
+   */
+  initDomain(productType, { onJourneyQuestions, onDp4Rules } = {}) {
+    const manifest = this.get(productType);
+    if (onJourneyQuestions) onJourneyQuestions(manifest.journeyQuestions);
+    if (onDp4Rules) onDp4Rules(manifest.dp4Rules);
+  }
 }
 
 export const registry = new ManifestRegistry();
