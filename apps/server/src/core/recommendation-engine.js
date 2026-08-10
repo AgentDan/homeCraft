@@ -6,11 +6,10 @@
 import {
   ConfigurationIntentSchema,
   RecommendationRuleTableSchema,
-  CommandOutcomeKindSchema
+  CommandOutcomeKindSchema,
+  registry
 } from '@homecraft/contracts';
 import { generatePlan } from '../ai-services/configuration-plan-generator.js';
-import { assertCompatible } from '../compatibility-engine/assertCompatible.js';
-import { calculateBOM } from '../pricing-engine/calculateBOM.js';
 import { runPipeline as runKitchenPipeline } from '../domain-modules/kitchen/pipeline.js';
 import { getCatalogSnapshot } from '../knowledge-base/catalog-store.js';
 import {
@@ -456,7 +455,8 @@ export async function runDp4Recommendation({ request, context, language }) {
   }
 
   // Configuration Action — only after positive assertCompatible.
-  const compatibility = await assertCompatible(plan, context);
+  const manifest = registry.get(plan.productType ?? 'kitchen');
+  const compatibility = await manifest.assertCompatible(plan, context);
   if (!compatibility.valid) {
     const reason =
       compatibility.conflicts?.[0]?.message ?? 'compatibility_rejected';
@@ -478,7 +478,7 @@ export async function runDp4Recommendation({ request, context, language }) {
     };
   }
 
-  const bom = await calculateBOM(plan, plan.catalogSnapshotId);
+  const bom = await manifest.calculateBOM(plan, plan.catalogSnapshotId);
   const scene = await runKitchenPipeline(plan, context);
   const versionEntry = await appendPlanVersion(
     request.sessionId,

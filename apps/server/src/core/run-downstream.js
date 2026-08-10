@@ -1,4 +1,4 @@
-import { assertCompatible } from '../compatibility-engine/assertCompatible.js';
+import { registry } from '@homecraft/contracts';
 import { generateCandidates } from '../compatibility-engine/candidate-generator.js';
 import { decideCandidates } from '../policy/decide-candidates.js';
 import { buildOutput, buildCandidatesResponse } from './output-builder.js';
@@ -37,7 +37,8 @@ export async function runDownstream({
   view
 }) {
   const language = normalizeLanguage(request.language);
-  const compatibility = await assertCompatible(plan, context);
+  const manifest = registry.get(plan.productType ?? 'kitchen');
+  const compatibility = await manifest.assertCompatible(plan, context);
   const scene = await runKitchenPipeline(plan, context);
   const bom = await getCachedBOM(plan, plan.catalogSnapshotId);
   if (!compatibility.valid) {
@@ -72,7 +73,7 @@ export async function runDownstream({
             request.expectedVersion
           );
         }
-        const appliedCompat = await assertCompatible(appliedPlan, context);
+        const appliedCompat = await manifest.assertCompatible(appliedPlan, context);
         const appliedMessage = t(language, 'policyApplied', {
           sku: winner.candidate.replacedWithSku,
           instanceId: winner.candidate.replacedInstanceId,

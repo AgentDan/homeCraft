@@ -12,7 +12,8 @@ import {
   shouldTriggerDp4,
   replaceRecommendationRules
 } from './recommendation-engine.js';
-import { createDefaultJourneyState } from '@homecraft/contracts';
+import { createDefaultJourneyState, registry } from '@homecraft/contracts';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import { ensureStorage } from '../storage/local-storage.js';
 import { loadObservationTimeline } from '../storage/journey-events.js';
 import { updateDecisionStateFromEvent } from './decision-state.js';
@@ -26,6 +27,9 @@ describe('recommendation-engine DP4', () => {
     process.env.SERVER_STORAGE_DIR = storageRoot;
     await ensureStorage();
     replaceRecommendationRules(MANDATORY_RECOMMENDATION_RULES);
+    if (!registry.registeredTypes().includes('kitchen')) {
+      registry.register(kitchenManifest);
+    }
   });
 
   after(async () => {
