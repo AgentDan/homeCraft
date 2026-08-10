@@ -19,6 +19,13 @@ export {
 } from './configuration-plan.js';
 
 export {
+  ProductTypeSchema,
+  ProductManifestSchema
+} from './product-manifest.js';
+
+export { registry } from './manifest-registry.js';
+
+export {
   RoomContextSchema,
   RoomShapeSchema
 } from './room-context.js';

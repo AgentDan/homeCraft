@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+export const ProductTypeSchema = z.enum(['kitchen', 'desk', 'wardrobe']);
+
 export const PlanOperationSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('add_module'),
@@ -32,6 +34,7 @@ export const PlanOperationSchema = z.discriminatedUnion('type', [
 export const ConfigurationPlanSchema = z.object({
   planId: z.string().min(1),
   projectId: z.string().min(1),
+  productType: ProductTypeSchema.default('kitchen'),
   catalogSnapshotId: z.string().min(1),
   operations: z.array(PlanOperationSchema),
   createdAt: z.string().datetime()
