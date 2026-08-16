@@ -91,6 +91,7 @@ function migratePlanHistory(raw) {
   const legacyEntries = /** @type {Array<Record<string, unknown>>} */ (
     history.entries
   );
+  /** @type {Array<Record<string, unknown>>} */
   const entries = legacyEntries.map((entry, index) => ({
     ...entry,
     branchId: typeof entry.branchId === 'string' ? entry.branchId : 'main',
