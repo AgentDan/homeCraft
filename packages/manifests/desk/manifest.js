@@ -2,6 +2,14 @@ import { z } from 'zod';
 import { createEmptyPlan } from '@homecraft/contracts';
 import { assertCompatible } from '../../../apps/server/src/compatibility-engine/assertCompatible.js';
 import { calculateBOM } from '../../../apps/server/src/pricing-engine/calculateBOM.js';
+import { check as dimensionsRule } from '../../../apps/server/src/compatibility-engine/rules/dimensions.js';
+import { check as overlapRule } from '../../../apps/server/src/compatibility-engine/rules/overlap.js';
+
+/** Desk catalog has no mounting/utilities/clearances fields — only spatial rules. */
+const compatibilityRules = [
+  dimensionsRule,
+  overlapRule
+];
 
 /**
  * Stub desk journey questions.
@@ -48,8 +56,11 @@ export const deskManifest = {
   // Desk пока использует базовый ConfigurationPlanSchema без расширений.
   slotsSchema: z.object({}),
 
+  compatibilityRules,
+
   // assertCompatible и calculateBOM универсальны — работают через catalog SKU.
-  assertCompatible: (plan, context) => assertCompatible(plan, context),
+  assertCompatible: (plan, context) =>
+    assertCompatible(plan, context, { compatibilityRules }),
   calculateBOM: (plan, catalogSnapshotId) => calculateBOM(plan, catalogSnapshotId),
 
   journeyQuestions: DESK_JOURNEY_QUESTIONS,

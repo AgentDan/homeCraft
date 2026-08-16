@@ -9,8 +9,8 @@ import { check as checkOverlap } from './rules/overlap.js';
 import { check as checkUtilities } from './rules/utilities.js';
 import { check as checkClearances } from './rules/clearances.js';
 
-/** Ordered compatibility rules. Each maps a placed layout to a list of conflicts. */
-const RULES = [
+/** Ordered compatibility rules — fallback when manifest.compatibilityRules is unset. */
+const DEFAULT_RULES = [
   checkDimensions,
   checkMounting,
   checkOverlap,
@@ -19,7 +19,7 @@ const RULES = [
 ];
 
 /** Compatibility firewall — the only stage allowed to reject a plan. */
-export async function assertCompatible(plan, context) {
+export async function assertCompatible(plan, context, options = {}) {
   let modules;
   try {
     modules = await materializePlan(plan);
@@ -41,8 +41,9 @@ export async function assertCompatible(plan, context) {
   const index = buildSpatialIndex(modules);
   const ruleContext = { modules, context, index };
 
+  const rules = options.compatibilityRules ?? DEFAULT_RULES;
   const conflicts = [];
-  for (const rule of RULES) {
+  for (const rule of rules) {
     conflicts.push(...rule(ruleContext));
   }
 

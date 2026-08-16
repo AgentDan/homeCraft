@@ -34,6 +34,15 @@ export const ProductManifestSchema = z.object({
     .args(z.record(z.unknown()))
     .returns(z.unknown()),
 
+  // Набор правил compatibility-engine для этого домена.
+  // Каждое правило: check({ modules, context, index }) → Conflict[].
+  // Порядок массива определяет порядок conflicts в отчёте.
+  compatibilityRules: z.array(
+    z.function()
+      .args(z.record(z.unknown()))
+      .returns(z.array(z.record(z.unknown())))
+  ).optional(),
+
   // Вопросы Discovery-фазы (Journey).
   journeyQuestions: z.array(z.record(z.unknown())),
 
