@@ -15,7 +15,8 @@ const MAX_CANDIDATES = 3;
  * @param {{
  *   plan: import('zod').infer<typeof ConfigurationPlanSchema>,
  *   compatibility: { conflicts: Array<{ kind: string, instanceIds: string[], suggestedSkus: string[] }> },
- *   context: object
+ *   context: object,
+ *   compatibilityRules?: Array<(ctx: object) => Array<object>>
  * }} input
  * @returns {Promise<Array<{
  *   label: string,
@@ -25,7 +26,7 @@ const MAX_CANDIDATES = 3;
  *   replacedWithSku: string
  * }>>}
  */
-export async function generateCandidates({ plan, compatibility, context }) {
+export async function generateCandidates({ plan, compatibility, context, compatibilityRules }) {
   const seenSkus = new Set();
   const candidatePlans = [];
 
@@ -49,7 +50,7 @@ export async function generateCandidates({ plan, compatibility, context }) {
         operations: altOperations
       });
 
-      const report = await assertCompatible(altPlan, context);
+      const report = await assertCompatible(altPlan, context, { compatibilityRules });
       if (!report.valid) continue;
 
       const bom = await getCachedBOM(altPlan, plan.catalogSnapshotId);

@@ -45,7 +45,8 @@ export async function runDownstream({
     const candidates = await generateCandidates({
       plan,
       compatibility,
-      context
+      context,
+      compatibilityRules: manifest.compatibilityRules
     });
     const branchMeta = await getActiveBranchMeta(
       request.sessionId,

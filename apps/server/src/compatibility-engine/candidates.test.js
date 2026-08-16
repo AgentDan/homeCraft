@@ -1,6 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { ConfigurationPlanSchema } from '@homecraft/contracts';
+import { deskManifest } from '@homecraft/manifests/desk';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import { assertCompatible } from './assertCompatible.js';
 import { generateCandidates } from './candidate-generator.js';
 
@@ -49,7 +51,8 @@ describe('candidate-generator', () => {
     const candidates = await generateCandidates({
       plan,
       compatibility,
-      context
+      context,
+      compatibilityRules: kitchenManifest.compatibilityRules
     });
 
     assert.ok(candidates.length >= 1, 'at least 1 candidate expected');
@@ -86,5 +89,37 @@ describe('candidate-generator', () => {
       context: roomContext()
     });
     assert.equal(candidates.length, 0);
+  });
+
+  it('desk domain re-checks alternatives with desk rules only, not kitchen defaults', async () => {
+    const plan = planWith([
+      add('BASE-800', { x: 0, y: 100, z: 0 }),
+      add('BASE-400', { x: 700, y: 100, z: 0 })
+    ]);
+    const context = roomContext();
+    const compatibility = await assertCompatible(plan, context, {
+      compatibilityRules: deskManifest.compatibilityRules
+    });
+    assert.equal(compatibility.valid, false);
+    assert.ok(compatibility.conflicts.some((c) => c.kind === 'overlap'));
+
+    const withDeskRules = await generateCandidates({
+      plan,
+      compatibility,
+      context,
+      compatibilityRules: deskManifest.compatibilityRules
+    });
+    assert.ok(withDeskRules.length >= 1, 'desk rules accept alt without mounting check');
+
+    const withKitchenDefaults = await generateCandidates({
+      plan,
+      compatibility,
+      context
+    });
+    assert.equal(
+      withKitchenDefaults.length,
+      0,
+      'default kitchen rules reject alt due to mounting_mismatch at y=100'
+    );
   });
 });
