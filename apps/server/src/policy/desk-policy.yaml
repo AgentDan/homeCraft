@@ -1,0 +1,15 @@
+# HomeCraft desk candidate selection policy (draft — tune weights later).
+# Weights are relative; they are normalized at load time.
+#
+# Draft rationale: desk has a weaker ergonomics signal than kitchen — "wider SKU
+# = more ergonomic" is less meaningful for a desk than for a storage cabinet, so
+# ergonomics weight is lower while price and style are higher.
+
+version: "1"
+
+weights:
+  price: 0.6
+  ergonomics: 0.15
+  style: 0.25
+
+minGapToSecond: 0.08

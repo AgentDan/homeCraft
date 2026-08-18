@@ -43,6 +43,10 @@ export const ProductManifestSchema = z.object({
       .returns(z.array(z.record(z.unknown())))
   ).optional(),
 
+  // Путь к policy.yaml для скоринга кандидатов при конфликте.
+  // Если не задан — используется дефолтный apps/server/src/policy/policy.yaml.
+  policyPath: z.string().optional(),
+
   // Вопросы Discovery-фазы (Journey).
   journeyQuestions: z.array(z.record(z.unknown())),
 

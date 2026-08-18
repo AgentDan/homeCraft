@@ -4,6 +4,7 @@ import { writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { ConfigurationPlanSchema } from '@homecraft/contracts';
+import { deskManifest } from '@homecraft/manifests/desk';
 import {
   loadPolicy,
   parsePolicyYaml,
@@ -193,5 +194,63 @@ minGapToSecond: 0.99
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('desk domain policy', () => {
+  beforeEach(() => {
+    resetPolicyCacheForTests();
+  });
+
+  it('loads desk weights from manifest policyPath', async () => {
+    const deskPolicy = await loadPolicy({
+      path: deskManifest.policyPath,
+      reload: true
+    });
+    assert.ok(Math.abs(deskPolicy.weights.price - 0.6) < 1e-9);
+    assert.ok(Math.abs(deskPolicy.weights.ergonomics - 0.15) < 1e-9);
+    assert.ok(Math.abs(deskPolicy.weights.style - 0.25) < 1e-9);
+  });
+
+  it('ranks desk candidates differently from kitchen default policy', async () => {
+    const rejectedPlan = planWith([
+      { type: 'add_module', sku: 'BASE-800', position: { x: 0, y: 0, z: 0 }, rotationY: 0 },
+      { type: 'add_module', sku: 'BASE-400', position: { x: 700, y: 0, z: 0 }, rotationY: 0 }
+    ]);
+    const candidates = [
+      candidate('BASE-400', 100),
+      candidate('BASE-600', 150)
+    ];
+    const context = { catalogSnapshotId: SNAPSHOT, rejectedPlan };
+
+    const kitchenPolicy = await loadPolicy({ reload: true });
+    const deskPolicy = await loadPolicy({
+      path: deskManifest.policyPath,
+      reload: true
+    });
+
+    const kitchenDecision = await decideCandidates(candidates, context, {
+      policy: kitchenPolicy
+    });
+    const deskDecision = await decideCandidates(candidates, context, {
+      policy: deskPolicy
+    });
+
+    assert.equal(
+      kitchenDecision.ranked[0].candidate.replacedWithSku,
+      'BASE-400'
+    );
+    assert.equal(
+      deskDecision.ranked[0].candidate.replacedWithSku,
+      'BASE-400'
+    );
+    assert.notEqual(
+      kitchenDecision.ranked[0].score,
+      deskDecision.ranked[0].score
+    );
+    assert.equal(kitchenDecision.decision, 'ask_user');
+    assert.equal(kitchenDecision.gap, 0);
+    assert.equal(deskDecision.decision, 'auto_apply');
+    assert.ok(deskDecision.gap >= deskPolicy.minGapToSecond);
   });
 });

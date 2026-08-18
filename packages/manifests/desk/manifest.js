@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createEmptyPlan } from '@homecraft/contracts';
 import { assertCompatible } from '../../../apps/server/src/compatibility-engine/assertCompatible.js';
 import { calculateBOM } from '../../../apps/server/src/pricing-engine/calculateBOM.js';
@@ -10,6 +12,11 @@ const compatibilityRules = [
   dimensionsRule,
   overlapRule
 ];
+
+const policyPath = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../../apps/server/src/policy/desk-policy.yaml'
+);
 
 /**
  * Stub desk journey questions.
@@ -57,6 +64,8 @@ export const deskManifest = {
   slotsSchema: z.object({}),
 
   compatibilityRules,
+
+  policyPath,
 
   // assertCompatible и calculateBOM универсальны — работают через catalog SKU.
   assertCompatible: (plan, context) =>

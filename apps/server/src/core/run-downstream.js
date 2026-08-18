@@ -1,6 +1,7 @@
 import { registry } from '@homecraft/contracts';
 import { generateCandidates } from '../compatibility-engine/candidate-generator.js';
 import { decideCandidates } from '../policy/decide-candidates.js';
+import { loadPolicy } from '../policy/load-policy.js';
 import { buildOutput, buildCandidatesResponse } from './output-builder.js';
 import { runPipeline as runKitchenPipeline } from '../domain-modules/kitchen/pipeline.js';
 import { getCachedBOM } from '../pricing-engine/bom-cache.js';
@@ -53,10 +54,11 @@ export async function runDownstream({
       request.projectId
     );
     if (candidates.length > 0) {
+      const policy = await loadPolicy({ path: manifest.policyPath });
       const decision = await decideCandidates(candidates, {
         catalogSnapshotId: plan.catalogSnapshotId,
         rejectedPlan: plan
-      });
+      }, { policy });
 
       if (decision.decision === 'auto_apply' && decision.winner) {
         const winner = decision.winner;
