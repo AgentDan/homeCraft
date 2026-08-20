@@ -4,8 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { createEmptyPlan } from '@homecraft/contracts';
 import { assertCompatible } from '../../../apps/server/src/compatibility-engine/assertCompatible.js';
 import { calculateBOM } from '../../../apps/server/src/pricing-engine/calculateBOM.js';
-import { check as dimensionsRule } from '../../../apps/server/src/compatibility-engine/rules/dimensions.js';
-import { check as overlapRule } from '../../../apps/server/src/compatibility-engine/rules/overlap.js';
+import { check as dimensionsRule } from './compatibility-rules/dimensions.js';
+import { check as overlapRule } from './compatibility-rules/overlap.js';
 import { deskIntentRules } from './intent-rules.js';
 
 /** Desk catalog has no mounting/utilities/clearances fields — only spatial rules. */

@@ -3,11 +3,11 @@ import { materializePlan } from '../domain-modules/kitchen/materialize-plan.js';
 import { getCatalogSnapshot } from '../knowledge-base/catalog-store.js';
 import { buildSpatialIndex } from './spatial-index.js';
 import { suggestAnalogs } from './analog-suggester.js';
-import { check as checkDimensions } from './rules/dimensions.js';
-import { check as checkMounting } from './rules/mounting.js';
-import { check as checkOverlap } from './rules/overlap.js';
-import { check as checkUtilities } from './rules/utilities.js';
-import { check as checkClearances } from './rules/clearances.js';
+import { check as checkDimensions } from '../../../../packages/manifests/kitchen/compatibility-rules/dimensions.js';
+import { check as checkMounting } from '../../../../packages/manifests/kitchen/compatibility-rules/mounting.js';
+import { check as checkOverlap } from '../../../../packages/manifests/kitchen/compatibility-rules/overlap.js';
+import { check as checkUtilities } from '../../../../packages/manifests/kitchen/compatibility-rules/utilities.js';
+import { check as checkClearances } from '../../../../packages/manifests/kitchen/compatibility-rules/clearances.js';
 
 /** Ordered compatibility rules — fallback when manifest.compatibilityRules is unset. */
 const DEFAULT_RULES = [

@@ -1,10 +1,10 @@
-import { footprint } from './geometry.js';
+import { footprint } from '../../../../apps/server/src/compatibility-engine/rules/geometry.js';
 
 /** Room-bounds rule: a module must stay inside the room shell. */
 
 /**
- * @param {import('./types.js').RuleContext} ctx
- * @returns {import('./types.js').Conflict[]}
+ * @param {import('../../../../apps/server/src/compatibility-engine/rules/types.js').RuleContext} ctx
+ * @returns {import('../../../../apps/server/src/compatibility-engine/rules/types.js').Conflict[]}
  */
 export function check({ modules, context }) {
   const conflicts = [];

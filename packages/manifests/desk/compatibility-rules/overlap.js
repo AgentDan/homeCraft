@@ -1,10 +1,10 @@
-import { boundingBox, boxesOverlap } from './geometry.js';
+import { boundingBox, boxesOverlap } from '../../../../apps/server/src/compatibility-engine/rules/geometry.js';
 
 /** Overlap rule: two modules must not occupy the same volume (broad-phase via spatial index). */
 
 /**
- * @param {import('./types.js').RuleContext} ctx
- * @returns {import('./types.js').Conflict[]}
+ * @param {import('../../../../apps/server/src/compatibility-engine/rules/types.js').RuleContext} ctx
+ * @returns {import('../../../../apps/server/src/compatibility-engine/rules/types.js').Conflict[]}
  */
 export function check({ modules, index }) {
   const conflicts = [];

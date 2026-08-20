@@ -1,4 +1,4 @@
-import { footprint } from './geometry.js';
+import { footprint } from '../../../../apps/server/src/compatibility-engine/rules/geometry.js';
 
 /**
  * Clearance rule: appliances that need breathing room must keep a side gap from
@@ -12,8 +12,8 @@ import { footprint } from './geometry.js';
 const MIN_ENFORCED_CLEARANCE_MM = 20;
 
 /**
- * @param {import('./types.js').RuleContext} ctx
- * @returns {import('./types.js').Conflict[]}
+ * @param {import('../../../../apps/server/src/compatibility-engine/rules/types.js').RuleContext} ctx
+ * @returns {import('../../../../apps/server/src/compatibility-engine/rules/types.js').Conflict[]}
  */
 export function check({ modules }) {
   const conflicts = [];

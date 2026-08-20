@@ -1,4 +1,4 @@
-import { centerXZ } from './geometry.js';
+import { centerXZ } from '../../../../apps/server/src/compatibility-engine/rules/geometry.js';
 
 /**
  * Utilities rule: a module that needs a connection (water, gas, electric, drain)
@@ -11,8 +11,8 @@ import { centerXZ } from './geometry.js';
 const MAX_UTILITY_DISTANCE_MM = 900;
 
 /**
- * @param {import('./types.js').RuleContext} ctx
- * @returns {import('./types.js').Conflict[]}
+ * @param {import('../../../../apps/server/src/compatibility-engine/rules/types.js').RuleContext} ctx
+ * @returns {import('../../../../apps/server/src/compatibility-engine/rules/types.js').Conflict[]}
  */
 export function check({ modules, context }) {
   const conflicts = [];
