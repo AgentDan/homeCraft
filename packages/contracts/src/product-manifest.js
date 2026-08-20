@@ -47,6 +47,10 @@ export const ProductManifestSchema = z.object({
   // Если не задан — используется дефолтный apps/server/src/policy/policy.yaml.
   policyPath: z.string().optional(),
 
+  // Intent-matching rules for this domain (kind + language matchers).
+  // matchIntent() requires this table; missing/empty throws at the call site.
+  intentRules: z.array(z.record(z.unknown())).optional(),
+
   // Вопросы Discovery-фазы (Journey).
   journeyQuestions: z.array(z.record(z.unknown())),
 

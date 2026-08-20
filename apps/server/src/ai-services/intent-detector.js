@@ -1,3 +1,4 @@
+import { registry } from '@homecraft/contracts';
 import { createHttpLlmProvider } from './llm-provider.js';
 import { parseIntentWithLlm } from './llm-intent-parser.js';
 
@@ -13,13 +14,16 @@ import { parseIntentWithLlm } from './llm-intent-parser.js';
  * @param {string} text - User command
  * @param {'en' | 'ru' | 'sr'} [language]
  * @param {{
- *   llmProvider?: { complete: (prompt: string) => Promise<string> } | null
+ *   llmProvider?: { complete: (prompt: string) => Promise<string> } | null,
+ *   productType?: string
  * }} [options] - tests may inject a mock provider
  * @returns {Promise<import('zod').infer<typeof import('@homecraft/contracts').IntentResultSchema>>}
  */
 export async function detectIntent(text, language, options = {}) {
   const { matchIntent } = await import('@homecraft/ai');
-  const ruleIntent = matchIntent(text, { language });
+  const productType = options.productType ?? 'kitchen';
+  const rules = registry.get(productType).intentRules;
+  const ruleIntent = matchIntent(text, rules, { language });
   if (ruleIntent.kind === 'help') {
     return ruleIntent;
   }

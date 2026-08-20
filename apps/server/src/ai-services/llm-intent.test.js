@@ -1,5 +1,7 @@
-import { describe, it } from 'node:test';
+import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
+import { registry } from '@homecraft/contracts';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import { detectIntent } from './intent-detector.js';
 import {
   extractJsonObject,
@@ -77,6 +79,11 @@ describe('parseIntentWithLlm', () => {
 });
 
 describe('detectIntent LLM flag path', () => {
+  before(() => {
+    if (!registry.registeredTypes().includes('kitchen')) {
+      registry.register(kitchenManifest);
+    }
+  });
   it('uses rule-based matchIntent when no LLM provider is injected', async () => {
     const intent = await detectIntent('help', 'en', { llmProvider: null });
     assert.equal(intent.kind, 'help');

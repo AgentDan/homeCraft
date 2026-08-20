@@ -11,6 +11,7 @@ import { check as mountingRule } from '../../../apps/server/src/compatibility-en
 import { check as overlapRule } from '../../../apps/server/src/compatibility-engine/rules/overlap.js';
 import { check as utilitiesRule } from '../../../apps/server/src/compatibility-engine/rules/utilities.js';
 import { check as clearancesRule } from '../../../apps/server/src/compatibility-engine/rules/clearances.js';
+import { kitchenIntentRules } from './intent-rules.js';
 
 const compatibilityRules = [
   dimensionsRule,
@@ -38,6 +39,8 @@ export const kitchenManifest = {
     assertCompatible(plan, args[0], { compatibilityRules }),
   calculateBOM: (plan, ...args) =>
     calculateBOM(plan, /** @type {string} */ (args[0])),
+
+  intentRules: kitchenIntentRules,
 
   journeyQuestions: DEFAULT_JOURNEY_QUESTIONS,
   dp4Rules: MANDATORY_RECOMMENDATION_RULES,

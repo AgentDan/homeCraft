@@ -1,79 +1,110 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { matchIntent } from './index.js';
+import { kitchenIntentRules } from '../../manifests/kitchen/intent-rules.js';
+import { deskIntentRules } from '../../manifests/desk/intent-rules.js';
+
+/**
+ * @param {string} text
+ * @param {{ language?: 'en' | 'ru' | 'sr' }} [options]
+ */
+function match(text, options = {}) {
+  return matchIntent(text, kitchenIntentRules, options);
+}
 
 describe('@homecraft/ai smoke', () => {
+  it('throws when rules are missing or empty', () => {
+    assert.throws(() => matchIntent('help'), /matchIntent: rules is required/);
+    assert.throws(
+      () => matchIntent('help', /** @type {never} */ (null)),
+      /matchIntent: rules is required/
+    );
+    assert.throws(() => matchIntent('help', []), /matchIntent: rules is required/);
+    assert.throws(
+      () => matchIntent('help', /** @type {never} */ ({})),
+      /matchIntent: rules is required/
+    );
+  });
+
   it('returns unknown for unmatched text', () => {
-    const result = matchIntent('random text without an intent');
+    const result = match('random text without an intent');
     assert.equal(result.kind, 'unknown');
     assert.equal(result.language, 'en');
   });
 
   it('detects help intent in English', () => {
-    const result = matchIntent('what can you do');
+    const result = match('what can you do');
     assert.equal(result.kind, 'help');
     assert.equal(result.language, 'en');
   });
 
   it('detects catalog / commands as help', () => {
-    assert.equal(matchIntent('show catalog', { language: 'en' }).kind, 'help');
-    assert.equal(matchIntent('каталог', { language: 'ru' }).kind, 'help');
-    assert.equal(matchIntent('какие команды', { language: 'ru' }).kind, 'help');
-    assert.equal(matchIntent('katalog', { language: 'sr' }).kind, 'help');
+    assert.equal(match('show catalog', { language: 'en' }).kind, 'help');
+    assert.equal(match('каталог', { language: 'ru' }).kind, 'help');
+    assert.equal(match('какие команды', { language: 'ru' }).kind, 'help');
+    assert.equal(match('katalog', { language: 'sr' }).kind, 'help');
   });
 
   it('detects Russian help and add_module intents', () => {
-    assert.equal(matchIntent('помощь', { language: 'ru' }).kind, 'help');
-    const add = matchIntent('добавь шкаф 600', { language: 'ru' });
+    assert.equal(match('помощь', { language: 'ru' }).kind, 'help');
+    const add = match('добавь шкаф 600', { language: 'ru' });
     assert.equal(add.kind, 'add_module');
     assert.equal(add.language, 'ru');
     assert.equal(/** @type {{ slots?: { widthMm?: number } }} */ (add).slots?.widthMm, 600);
   });
 
   it('detects Serbian help and add_module intents', () => {
-    assert.equal(matchIntent('pomoć', { language: 'sr' }).kind, 'help');
-    const add = matchIntent('dodaj ormar 600', { language: 'sr' });
+    assert.equal(match('pomoć', { language: 'sr' }).kind, 'help');
+    const add = match('dodaj ormar 600', { language: 'sr' });
     assert.equal(add.kind, 'add_module');
     assert.equal(add.language, 'sr');
     assert.equal(/** @type {{ slots?: { widthMm?: number } }} */ (add).slots?.widthMm, 600);
   });
 
   it('infers sr from Serbian Cyrillic when language is omitted', () => {
-    const result = matchIntent('додај ормар 600');
+    const result = match('додај ормар 600');
     assert.equal(result.kind, 'add_module');
     assert.equal(result.language, 'sr');
   });
 
   it('detects export_project intent', () => {
-    assert.equal(matchIntent('export pdf', { language: 'en' }).kind, 'export_project');
-    assert.equal(matchIntent('экспорт pdf', { language: 'ru' }).kind, 'export_project');
+    assert.equal(match('export pdf', { language: 'en' }).kind, 'export_project');
+    assert.equal(match('экспорт pdf', { language: 'ru' }).kind, 'export_project');
   });
 
   it('detects create_branch and switch_branch', () => {
-    const created = matchIntent('create branch alt');
+    const created = match('create branch alt');
     assert.equal(created.kind, 'create_branch');
     assert.equal(created.slots?.branchName, 'alt');
     assert.equal(
-      matchIntent('создай ветку option-b', { language: 'ru' }).kind,
+      match('создай ветку option-b', { language: 'ru' }).kind,
       'create_branch'
     );
-    const switched = matchIntent('switch branch main');
+    const switched = match('switch branch main');
     assert.equal(switched.kind, 'switch_branch');
     assert.equal(switched.slots?.branchName, 'main');
   });
 
   it('detects undo and redo without ambiguous fallback', () => {
-    assert.equal(matchIntent('revert the last change').kind, 'undo');
-    assert.equal(matchIntent('repeat').kind, 'redo');
+    assert.equal(match('revert the last change').kind, 'undo');
+    assert.equal(match('repeat').kind, 'redo');
   });
 
   it('detects replace_module for conflict resolution commands', () => {
     const result = /** @type {{ kind: string, slots?: { instanceId?: string, sku?: string } }} */ (
-      matchIntent('replace module-2 with BASE-400')
+      match('replace module-2 with BASE-400')
     );
     assert.equal(result.kind, 'replace_module');
     assert.equal(result.slots?.instanceId, 'module-2');
     assert.equal(result.slots?.sku, 'BASE-400');
+  });
+
+  it('deskIntentRules classifies a desk phrase independently from kitchen', () => {
+    const phrase = 'add a desk';
+    assert.equal(matchIntent(phrase, deskIntentRules).kind, 'add_module');
+    assert.equal(matchIntent(phrase, kitchenIntentRules).kind, 'unknown');
+    assert.equal(matchIntent('add a cabinet', kitchenIntentRules).kind, 'add_module');
+    assert.equal(matchIntent('add a cabinet', deskIntentRules).kind, 'unknown');
   });
 
   it('reaches at least 85% accuracy on the Phase 1 English corpus', () => {
@@ -132,7 +163,7 @@ describe('@homecraft/ai smoke', () => {
       ['redo', 'redo']
     ];
     const correct = corpus.filter(
-      ([phrase, expected]) => matchIntent(phrase).kind === expected
+      ([phrase, expected]) => match(phrase).kind === expected
     ).length;
     assert.ok(
       correct / corpus.length >= 0.85,

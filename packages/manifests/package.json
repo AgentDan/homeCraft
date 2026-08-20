@@ -5,6 +5,8 @@
   "type": "module",
   "exports": {
     "./kitchen": "./kitchen/manifest.js",
-    "./desk": "./desk/manifest.js"
+    "./kitchen/intent-rules": "./kitchen/intent-rules.js",
+    "./desk": "./desk/manifest.js",
+    "./desk/intent-rules": "./desk/intent-rules.js"
   }
 }
