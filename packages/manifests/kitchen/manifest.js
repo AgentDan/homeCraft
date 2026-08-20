@@ -2,16 +2,14 @@ import { z } from 'zod';
 import { createEmptyPlan } from '@homecraft/contracts';
 import { assertCompatible } from '../../../apps/server/src/compatibility-engine/assertCompatible.js';
 import { calculateBOM } from '../../../apps/server/src/pricing-engine/calculateBOM.js';
-import { DEFAULT_JOURNEY_QUESTIONS } from '../../../apps/server/src/core/journey-table.js';
-import {
-  MANDATORY_RECOMMENDATION_RULES
-} from '../../../apps/server/src/core/recommendation-engine.js';
 import { check as dimensionsRule } from '../../../apps/server/src/compatibility-engine/rules/dimensions.js';
 import { check as mountingRule } from '../../../apps/server/src/compatibility-engine/rules/mounting.js';
 import { check as overlapRule } from '../../../apps/server/src/compatibility-engine/rules/overlap.js';
 import { check as utilitiesRule } from '../../../apps/server/src/compatibility-engine/rules/utilities.js';
 import { check as clearancesRule } from '../../../apps/server/src/compatibility-engine/rules/clearances.js';
 import { kitchenIntentRules } from './intent-rules.js';
+import { kitchenJourneyQuestions } from './journey-questions.js';
+import { kitchenDp4Rules } from './dp4-rules.js';
 
 const compatibilityRules = [
   dimensionsRule,
@@ -42,8 +40,8 @@ export const kitchenManifest = {
 
   intentRules: kitchenIntentRules,
 
-  journeyQuestions: DEFAULT_JOURNEY_QUESTIONS,
-  dp4Rules: MANDATORY_RECOMMENDATION_RULES,
+  journeyQuestions: kitchenJourneyQuestions,
+  dp4Rules: kitchenDp4Rules,
 
   starterPlan: () => createEmptyPlan({
     planId: crypto.randomUUID(),

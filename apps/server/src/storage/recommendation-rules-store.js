@@ -5,10 +5,11 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { RecommendationRuleTableSchema } from '@homecraft/contracts';
-import {
-  MANDATORY_RECOMMENDATION_RULES,
-  replaceRecommendationRules
-} from '../core/recommendation-engine.js';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
+import { replaceRecommendationRules } from '../core/recommendation-engine.js';
+
+// Kitchen is the initial active domain (see index.js registry.initDomain('kitchen', ...)).
+const MANDATORY_RECOMMENDATION_RULES = kitchenManifest.dp4Rules;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const defaultDir = path.resolve(__dirname, '../../data');

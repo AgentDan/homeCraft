@@ -1,5 +1,6 @@
-import { describe, it } from 'node:test';
+import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import {
   applyJourneyAnswer,
   isFreeModeEscape,
@@ -8,10 +9,15 @@ import {
   parseJourneyAnswer,
   parseRoomDimensionMm,
   ensureJourneyState,
-  validateAnswer
+  validateAnswer,
+  replaceJourneyQuestions
 } from './journey-table.js';
 import { routeJourneyDialog } from './dialog-router.js';
 import { createDefaultJourneyState } from '@homecraft/contracts';
+
+before(() => {
+  replaceJourneyQuestions(kitchenManifest.journeyQuestions);
+});
 
 function baseRequest(command, language = 'en') {
   return {

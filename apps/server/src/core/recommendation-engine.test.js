@@ -4,7 +4,6 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
-  MANDATORY_RECOMMENDATION_RULES,
   evaluateRecommendationRules,
   matchCondition,
   buildConfigurationIntent,
@@ -26,7 +25,7 @@ describe('recommendation-engine DP4', () => {
     storageRoot = await mkdtemp(path.join(tmpdir(), 'homecraft-dp4-'));
     process.env.SERVER_STORAGE_DIR = storageRoot;
     await ensureStorage();
-    replaceRecommendationRules(MANDATORY_RECOMMENDATION_RULES);
+    replaceRecommendationRules(kitchenManifest.dp4Rules);
     if (!registry.registeredTypes().includes('kitchen')) {
       registry.register(kitchenManifest);
     }

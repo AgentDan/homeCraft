@@ -31,71 +31,11 @@ import { t } from '../i18n/messages.js';
 
 const OUTCOME = CommandOutcomeKindSchema.enum;
 
-/**
- * Mandatory rules — ship before any custom rules.
- * @type {import('zod').infer<typeof import('@homecraft/contracts').RecommendationRuleSchema>[]}
- */
-export const MANDATORY_RECOMMENDATION_RULES = RecommendationRuleTableSchema.parse([
-  {
-    ruleId: 'explicit_answer_wins_over_behavior',
-    priority: 1,
-    condition: {
-      anyOf: [
-        {
-          field: 'known.facadeMaterialPreference',
-          operator: 'exists',
-          value: true
-        },
-        { field: 'known.budgetEur', operator: 'exists', value: true },
-        { field: 'known.socialStyle', operator: 'exists', value: true }
-      ]
-    },
-    action: {
-      type: 'filterCatalog',
-      filters: { preferFrom: 'known', category: 'base_cabinet' }
-    },
-    active: true
-  },
-  {
-    ruleId: 'conflicting_behavior_becomes_alternative',
-    priority: 2,
-    condition: {
-      allOf: [
-        {
-          field: 'decisionState.focusVariantIds',
-          operator: 'exists',
-          value: true
-        },
-        {
-          field: 'known.facadeMaterialPreference',
-          operator: 'exists',
-          value: true
-        }
-      ]
-    },
-    action: {
-      type: 'triggerDialogueAction',
-      topic: 'behavior_as_alternative'
-    },
-    active: true
-  },
-  {
-    ruleId: 'default_no_special_conditions',
-    priority: 999,
-    condition: { always: true },
-    action: {
-      type: 'filterCatalog',
-      filters: { sku: 'BASE-600', category: 'base_cabinet' }
-    },
-    active: true
-  }
-]);
-
-/** @type {typeof MANDATORY_RECOMMENDATION_RULES} */
-let activeRules = [...MANDATORY_RECOMMENDATION_RULES];
+/** @type {import('zod').infer<typeof import('@homecraft/contracts').RecommendationRuleSchema>[]} */
+let activeRules = [];
 
 /**
- * @param {typeof MANDATORY_RECOMMENDATION_RULES} rules
+ * @param {import('zod').infer<typeof import('@homecraft/contracts').RecommendationRuleSchema>[]} rules
  */
 export function replaceRecommendationRules(rules) {
   activeRules = RecommendationRuleTableSchema.parse(rules);
@@ -174,7 +114,7 @@ export function matchCondition(condition, ctx) {
 }
 
 /**
- * @param {typeof MANDATORY_RECOMMENDATION_RULES} [rules]
+ * @param {import('zod').infer<typeof import('@homecraft/contracts').RecommendationRuleSchema>[]} [rules]
  * @param {Record<string, unknown>} ctx
  */
 export function evaluateRecommendationRules(ctx, rules = activeRules) {

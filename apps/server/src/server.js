@@ -4,10 +4,11 @@ import { isProduction, runtimeConfig, runtimeLabel } from './config/runtime.js';
 import { ensureStorage } from './storage/local-storage.js';
 import { ensureJourneyQuestions } from './storage/mongo.js';
 import { ensureRecommendationRulesLoaded } from './storage/recommendation-rules-store.js';
-import {
-  DEFAULT_JOURNEY_QUESTIONS,
-  replaceJourneyQuestions
-} from './core/journey-table.js';
+import { replaceJourneyQuestions } from './core/journey-table.js';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
+
+// Kitchen is the initial active domain (see index.js registry.initDomain('kitchen', ...)).
+const DEFAULT_JOURNEY_QUESTIONS = kitchenManifest.journeyQuestions;
 
 export async function startServer() {
   if (isProduction) {

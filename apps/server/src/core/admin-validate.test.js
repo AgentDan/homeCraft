@@ -1,11 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  DEFAULT_JOURNEY_QUESTIONS
-} from './journey-table.js';
-import {
-  MANDATORY_RECOMMENDATION_RULES
-} from './recommendation-engine.js';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import {
   validateAdminJourneyQuestions,
   validateAdminRecommendationRules
@@ -14,9 +9,9 @@ import { getAdminSchemaCatalog } from '@homecraft/contracts';
 
 describe('admin-validate', () => {
   it('accepts seeded journey questions and mandatory rules', () => {
-    const questions = validateAdminJourneyQuestions(DEFAULT_JOURNEY_QUESTIONS);
-    assert.equal(questions.length, DEFAULT_JOURNEY_QUESTIONS.length);
-    const rules = validateAdminRecommendationRules(MANDATORY_RECOMMENDATION_RULES);
+    const questions = validateAdminJourneyQuestions(kitchenManifest.journeyQuestions);
+    assert.equal(questions.length, kitchenManifest.journeyQuestions.length);
+    const rules = validateAdminRecommendationRules(kitchenManifest.dp4Rules);
     assert.equal(rules.length, 3);
   });
 
