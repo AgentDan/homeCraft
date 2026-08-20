@@ -11,6 +11,7 @@ import {
 import { assertCompatible } from './compatibility-engine/assertCompatible.js';
 import { closeMongo } from './storage/mongo.js';
 import { retrieve } from './ai-services/catalog-rag-retriever.js';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
 
 describe('@homecraft/server smoke', () => {
   it('retrieves grounded modules from the demo catalog', async () => {
@@ -41,7 +42,7 @@ describe('@homecraft/server smoke', () => {
       },
       dialogTurns: [],
       updatedAt: new Date().toISOString()
-    });
+    }, { compatibilityRules: kitchenManifest.compatibilityRules });
     assert.equal(report.valid, true);
   });
 
@@ -78,7 +79,7 @@ describe('@homecraft/server smoke', () => {
       },
       dialogTurns: [],
       updatedAt: new Date().toISOString()
-    });
+    }, { compatibilityRules: kitchenManifest.compatibilityRules });
     assert.equal(report.valid, false);
     assert.ok(report.conflicts.some((conflict) => conflict.kind === 'overlap'));
     assert.ok(

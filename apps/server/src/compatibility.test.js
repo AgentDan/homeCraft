@@ -1,9 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { ConfigurationPlanSchema } from '@homecraft/contracts';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import { assertCompatible } from './compatibility-engine/assertCompatible.js';
 
 const SNAPSHOT = 'kitchen-demo-v1';
+const kitchenRules = { compatibilityRules: kitchenManifest.compatibilityRules };
 
 /**
  * @param {Array<Record<string, unknown>>} operations
@@ -43,6 +45,24 @@ function add(sku, position) {
 }
 
 describe('@homecraft/server compatibility rules', () => {
+  it('throws when compatibilityRules are missing or empty', async () => {
+    const plan = planWith([]);
+    const context = roomContext();
+    await assert.rejects(
+      () => assertCompatible(plan, context),
+      /assertCompatible: options.compatibilityRules is required/
+    );
+    await assert.rejects(
+      () => assertCompatible(plan, context, {
+        compatibilityRules: /** @type {never} */ (null)
+      }),
+      /assertCompatible: options.compatibilityRules is required/
+    );
+    await assert.rejects(
+      () => assertCompatible(plan, context, { compatibilityRules: [] }),
+      /assertCompatible: options.compatibilityRules is required/
+    );
+  });
   it('flags a sink placed far from its water and drain connections', async () => {
     const plan = planWith([add('SINK-600', { x: 0, y: 0, z: 0 })]);
     const context = roomContext({
@@ -52,7 +72,7 @@ describe('@homecraft/server compatibility rules', () => {
       ]
     });
 
-    const report = await assertCompatible(plan, context);
+    const report = await assertCompatible(plan, context, kitchenRules);
     assert.equal(report.valid, false);
     assert.ok(report.conflicts.some((conflict) => conflict.kind === 'utility_conflict'));
   });
@@ -66,13 +86,13 @@ describe('@homecraft/server compatibility rules', () => {
       ]
     });
 
-    const report = await assertCompatible(plan, context);
+    const report = await assertCompatible(plan, context, kitchenRules);
     assert.equal(report.valid, true);
   });
 
   it('skips utility checks when the room models no utility points', async () => {
     const plan = planWith([add('SINK-600', { x: 0, y: 0, z: 0 })]);
-    const report = await assertCompatible(plan, roomContext());
+    const report = await assertCompatible(plan, roomContext(), kitchenRules);
     assert.equal(report.valid, true);
   });
 
@@ -81,7 +101,7 @@ describe('@homecraft/server compatibility rules', () => {
       add('HOB-600', { x: 0, y: 0, z: 0 }),
       add('OVEN-600', { x: 600, y: 0, z: 0 })
     ]);
-    const report = await assertCompatible(plan, roomContext());
+    const report = await assertCompatible(plan, roomContext(), kitchenRules);
     assert.equal(report.valid, false);
     assert.ok(report.conflicts.some((conflict) => conflict.kind === 'clearance_violation'));
   });
@@ -91,7 +111,7 @@ describe('@homecraft/server compatibility rules', () => {
       add('BASE-600', { x: 0, y: 0, z: 0 }),
       add('BASE-400', { x: 600, y: 0, z: 0 })
     ]);
-    const report = await assertCompatible(plan, roomContext());
+    const report = await assertCompatible(plan, roomContext(), kitchenRules);
     assert.equal(report.valid, true);
   });
 
@@ -100,7 +120,7 @@ describe('@homecraft/server compatibility rules', () => {
       add('BASE-600', { x: 0, y: 0, z: 0 }),
       add('BASE-400', { x: 100, y: 0, z: 0 })
     ]);
-    const report = await assertCompatible(plan, roomContext());
+    const report = await assertCompatible(plan, roomContext(), kitchenRules);
     assert.equal(report.valid, false);
     const overlap = report.conflicts.find((conflict) => conflict.kind === 'overlap');
     assert.ok(overlap);
@@ -112,7 +132,7 @@ describe('@homecraft/server compatibility rules', () => {
       add('BASE-800', { x: 0, y: 0, z: 0 }),
       add('BASE-400', { x: 700, y: 0, z: 0 })
     ]);
-    const before = await assertCompatible(conflicting, roomContext());
+    const before = await assertCompatible(conflicting, roomContext(), kitchenRules);
     assert.equal(before.valid, false);
     assert.ok(before.conflicts.some((conflict) => conflict.kind === 'overlap'));
 
@@ -121,7 +141,7 @@ describe('@homecraft/server compatibility rules', () => {
       add('BASE-400', { x: 700, y: 0, z: 0 }),
       { type: 'replace_module', instanceId: 'module-1', sku: 'BASE-600' }
     ]);
-    const after = await assertCompatible(resolved, roomContext());
+    const after = await assertCompatible(resolved, roomContext(), kitchenRules);
     assert.equal(after.valid, true);
 
     const { materializePlan } = await import('./domain-modules/kitchen/materialize-plan.js');

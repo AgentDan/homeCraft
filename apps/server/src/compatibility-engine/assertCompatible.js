@@ -3,20 +3,6 @@ import { materializePlan } from '../domain-modules/kitchen/materialize-plan.js';
 import { getCatalogSnapshot } from '../knowledge-base/catalog-store.js';
 import { buildSpatialIndex } from './spatial-index.js';
 import { suggestAnalogs } from './analog-suggester.js';
-import { check as checkDimensions } from '../../../../packages/manifests/kitchen/compatibility-rules/dimensions.js';
-import { check as checkMounting } from '../../../../packages/manifests/kitchen/compatibility-rules/mounting.js';
-import { check as checkOverlap } from '../../../../packages/manifests/kitchen/compatibility-rules/overlap.js';
-import { check as checkUtilities } from '../../../../packages/manifests/kitchen/compatibility-rules/utilities.js';
-import { check as checkClearances } from '../../../../packages/manifests/kitchen/compatibility-rules/clearances.js';
-
-/** Ordered compatibility rules — fallback when manifest.compatibilityRules is unset. */
-const DEFAULT_RULES = [
-  checkDimensions,
-  checkMounting,
-  checkOverlap,
-  checkUtilities,
-  checkClearances
-];
 
 /** Compatibility firewall — the only stage allowed to reject a plan. */
 export async function assertCompatible(plan, context, options = {}) {
@@ -41,7 +27,10 @@ export async function assertCompatible(plan, context, options = {}) {
   const index = buildSpatialIndex(modules);
   const ruleContext = { modules, context, index };
 
-  const rules = options.compatibilityRules ?? DEFAULT_RULES;
+  const rules = options.compatibilityRules;
+  if (!Array.isArray(rules) || rules.length === 0) {
+    throw new Error('assertCompatible: options.compatibilityRules is required');
+  }
   const conflicts = [];
   for (const rule of rules) {
     conflicts.push(...rule(ruleContext));

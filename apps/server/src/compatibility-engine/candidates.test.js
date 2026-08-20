@@ -45,7 +45,9 @@ describe('candidate-generator', () => {
       add('BASE-400', { x: 700, y: 0, z: 0 })
     ]);
     const context = roomContext();
-    const compatibility = await assertCompatible(plan, context);
+    const compatibility = await assertCompatible(plan, context, {
+      compatibilityRules: kitchenManifest.compatibilityRules
+    });
     assert.equal(compatibility.valid, false, 'plan should be rejected');
 
     const candidates = await generateCandidates({
@@ -64,7 +66,9 @@ describe('candidate-generator', () => {
       assert.ok(typeof candidate.bom.totalEur === 'number', 'BOM total is a number');
       assert.ok(candidate.replacedWithSku, 'has replacedWithSku');
 
-      const recheck = await assertCompatible(candidate.plan, context);
+      const recheck = await assertCompatible(candidate.plan, context, {
+        compatibilityRules: kitchenManifest.compatibilityRules
+      });
       assert.equal(recheck.valid, true, `candidate "${candidate.label}" must be valid`);
     }
   });
@@ -114,7 +118,8 @@ describe('candidate-generator', () => {
     const withKitchenDefaults = await generateCandidates({
       plan,
       compatibility,
-      context
+      context,
+      compatibilityRules: kitchenManifest.compatibilityRules
     });
     assert.equal(
       withKitchenDefaults.length,
