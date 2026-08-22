@@ -28,7 +28,7 @@ const DESK_ADMIN_RULE = {
   ruleId: 'desk_admin_only',
   priority: 1,
   condition: { always: true },
-  action: { type: 'filterCatalog', filters: { sku: 'BASE-400' } },
+  action: { type: 'filterCatalog', filters: { sku: 'DESK-1200' } },
   active: true
 };
 
@@ -145,5 +145,41 @@ describe('admin per-domain journey-questions + recommendation-rules', () => {
     const body = await response.json();
     assert.equal(body.status, 'ok');
     assert.ok(body.questions.some((q) => q.slot === 'hasKidsOrPets'));
+  });
+
+  it('GET schema-catalog key names match the pre-domain kitchen contract', async () => {
+    const response = await fetch(`${origin}/api/admin/schema-catalog`);
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.status, 'ok');
+    assert.deepEqual(Object.keys(body.catalog), [
+      'journeyStages',
+      'validationTypes',
+      'dependsOnOperators',
+      'knownSlots',
+      'i18nKeys',
+      'dimensionUnits',
+      'enumOptionsBySlot',
+      'conditionKinds',
+      'conditionFields',
+      'conditionOperators',
+      'actionTypes',
+      'filterKeys',
+      'filterSkus',
+      'filterCategories',
+      'filterPreferFrom',
+      'finishIds',
+      'dialogueTopics'
+    ]);
+    assert.ok(body.catalog.filterSkus.includes('BASE-600'));
+    assert.ok(!body.catalog.filterSkus.includes('DESK-1200'));
+
+    const deskResponse = await fetch(
+      `${origin}/api/admin/schema-catalog?productType=desk`
+    );
+    const deskBody = await deskResponse.json();
+    assert.deepEqual(Object.keys(deskBody.catalog), Object.keys(body.catalog));
+    assert.ok(deskBody.catalog.filterSkus.includes('DESK-1200'));
+    assert.ok(!deskBody.catalog.filterSkus.includes('BASE-600'));
   });
 });

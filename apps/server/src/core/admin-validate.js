@@ -3,34 +3,34 @@
  */
 import {
   ADMIN_ACTION_TYPES,
-  ADMIN_CONDITION_FIELDS,
   ADMIN_CONDITION_OPERATORS,
   ADMIN_DEPENDS_ON_OPERATORS,
   ADMIN_DIALOGUE_TOPICS,
   ADMIN_DIMENSION_UNITS,
-  ADMIN_FILTER_CATEGORIES,
   ADMIN_FILTER_KEYS,
   ADMIN_FILTER_PREFER_FROM,
-  ADMIN_FILTER_SKUS,
-  ADMIN_FINISH_IDS,
   ADMIN_I18N_KEYS,
   ADMIN_JOURNEY_STAGES,
-  ADMIN_KNOWN_SLOTS,
   ADMIN_VALIDATION_TYPES,
   JourneyQuestionTableSchema,
-  RecommendationRuleTableSchema
+  RecommendationRuleTableSchema,
+  getAdminConditionFields,
+  getAdminKnownSlots
 } from '@homecraft/contracts';
+import { getAdminCatalogFields } from './admin-catalog-live.js';
 
 /**
  * @param {unknown[]} questions
+ * @param {string} [productType]
  */
-export function validateAdminJourneyQuestions(questions) {
+export function validateAdminJourneyQuestions(questions, productType = 'kitchen') {
+  const knownSlots = getAdminKnownSlots(productType);
   const parsed = JourneyQuestionTableSchema.parse(questions);
   for (const question of parsed) {
-    if (!ADMIN_KNOWN_SLOTS.includes(question.slot)) {
+    if (!knownSlots.includes(question.slot)) {
       throw new Error(`slot not in admin catalog: ${question.slot}`);
     }
-    if (!ADMIN_KNOWN_SLOTS.includes(question.id)) {
+    if (!knownSlots.includes(question.id)) {
       throw new Error(`id not in admin catalog: ${question.id}`);
     }
     if (!ADMIN_JOURNEY_STAGES.includes(question.stage)) {
@@ -49,7 +49,7 @@ export function validateAdminJourneyQuestions(questions) {
       throw new Error(`dimension unit not in admin catalog: ${question.validation.unit}`);
     }
     if (question.dependsOn) {
-      if (!ADMIN_KNOWN_SLOTS.includes(question.dependsOn.slot)) {
+      if (!knownSlots.includes(question.dependsOn.slot)) {
         throw new Error(`dependsOn.slot not in admin catalog: ${question.dependsOn.slot}`);
       }
       if (!ADMIN_DEPENDS_ON_OPERATORS.includes(question.dependsOn.operator)) {
@@ -64,9 +64,10 @@ export function validateAdminJourneyQuestions(questions) {
 
 /**
  * @param {import('zod').infer<typeof import('@homecraft/contracts').AtomicConditionSchema>} atomic
+ * @param {string[]} conditionFields
  */
-function assertAtomicCondition(atomic) {
-  if (!ADMIN_CONDITION_FIELDS.includes(atomic.field)) {
+function assertAtomicCondition(atomic, conditionFields) {
+  if (!conditionFields.includes(atomic.field)) {
     throw new Error(`condition.field not in admin catalog: ${atomic.field}`);
   }
   if (!ADMIN_CONDITION_OPERATORS.includes(atomic.operator)) {
@@ -76,19 +77,23 @@ function assertAtomicCondition(atomic) {
 
 /**
  * @param {unknown[]} rules
+ * @param {string} [productType]
  */
-export function validateAdminRecommendationRules(rules) {
+export async function validateAdminRecommendationRules(rules, productType = 'kitchen') {
+  const { filterSkus, filterCategories, finishIds } =
+    await getAdminCatalogFields(productType);
+  const conditionFields = getAdminConditionFields(productType);
   const parsed = RecommendationRuleTableSchema.parse(rules);
   for (const rule of parsed) {
     const condition = rule.condition;
     if ('always' in condition) {
       // ok
     } else if ('allOf' in condition) {
-      for (const item of condition.allOf) assertAtomicCondition(item);
+      for (const item of condition.allOf) assertAtomicCondition(item, conditionFields);
     } else if ('anyOf' in condition) {
-      for (const item of condition.anyOf) assertAtomicCondition(item);
+      for (const item of condition.anyOf) assertAtomicCondition(item, conditionFields);
     } else {
-      assertAtomicCondition(condition);
+      assertAtomicCondition(condition, conditionFields);
     }
 
     if (!ADMIN_ACTION_TYPES.includes(rule.action.type)) {
@@ -104,16 +109,16 @@ export function validateAdminRecommendationRules(rules) {
         if (!ADMIN_FILTER_KEYS.includes(key)) {
           throw new Error(`filter key not in admin catalog: ${key}`);
         }
-        if (key === 'sku' && !ADMIN_FILTER_SKUS.includes(value)) {
+        if (key === 'sku' && !filterSkus.includes(value)) {
           throw new Error(`sku not in admin catalog: ${value}`);
         }
-        if (key === 'category' && !ADMIN_FILTER_CATEGORIES.includes(value)) {
+        if (key === 'category' && !filterCategories.includes(value)) {
           throw new Error(`category not in admin catalog: ${value}`);
         }
         if (key === 'preferFrom' && !ADMIN_FILTER_PREFER_FROM.includes(value)) {
           throw new Error(`preferFrom not in admin catalog: ${value}`);
         }
-        if (key === 'finishId' && !ADMIN_FINISH_IDS.includes(value)) {
+        if (key === 'finishId' && !finishIds.includes(value)) {
           throw new Error(`finishId not in admin catalog: ${value}`);
         }
       }

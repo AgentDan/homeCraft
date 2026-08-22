@@ -3,6 +3,8 @@
  * Field names are closed lists; the UI must not accept free-text field entry.
  */
 
+import { registry } from './manifest-registry.js';
+
 /** @type {readonly string[]} */
 export const ADMIN_JOURNEY_STAGES = Object.freeze(['intro', 'brief', 'survey']);
 
@@ -35,31 +37,13 @@ export const ADMIN_CONDITION_OPERATORS = Object.freeze([
   'lte'
 ]);
 
-/** Kitchen journey slots allowed in the admin UI (Ф1 seed + closed kitchen set). */
-export const ADMIN_KNOWN_SLOTS = Object.freeze([
-  'clientName',
-  'projectGoal',
-  'roomWidthMm',
-  'roomDepthMm',
-  'hasKidsOrPets',
-  'facadeMaterialPreference',
-  'shoppingHabit',
-  'socialStyle',
-  'budgetEur'
-]);
-
-/** Kitchen condition `field` paths for recommendation rules (Ф2/Ф3 context). */
-export const ADMIN_CONDITION_FIELDS = Object.freeze([
+/**
+ * Platform DecisionState / ClientProfile condition paths (not domain nouns).
+ * Concatenated with `known.${slot}` from the registered manifest.
+ * @type {readonly string[]}
+ */
+const ADMIN_PLATFORM_CONDITION_FIELDS = Object.freeze([
   'phase',
-  'known.clientName',
-  'known.projectGoal',
-  'known.roomWidthMm',
-  'known.roomDepthMm',
-  'known.hasKidsOrPets',
-  'known.facadeMaterialPreference',
-  'known.shoppingHabit',
-  'known.socialStyle',
-  'known.budgetEur',
   'decisionState.phase',
   'decisionState.journeyMode',
   'decisionState.focusVariantIds',
@@ -93,31 +77,7 @@ export const ADMIN_FILTER_KEYS = Object.freeze([
 ]);
 
 /** @type {readonly string[]} */
-export const ADMIN_FILTER_SKUS = Object.freeze([
-  'BASE-400',
-  'BASE-600',
-  'BASE-800',
-  'DRAWER-400',
-  'DRAWER-600',
-  'SINK-600',
-  'WALL-600',
-  'WALL-800'
-]);
-
-/** @type {readonly string[]} */
-export const ADMIN_FILTER_CATEGORIES = Object.freeze([
-  'base_cabinet',
-  'drawer_cabinet',
-  'sink_cabinet',
-  'wall_cabinet',
-  'tall_cabinet'
-]);
-
-/** @type {readonly string[]} */
 export const ADMIN_FILTER_PREFER_FROM = Object.freeze(['known']);
-
-/** @type {readonly string[]} */
-export const ADMIN_FINISH_IDS = Object.freeze(['white', 'oak']);
 
 /** @type {readonly string[]} */
 export const ADMIN_DIALOGUE_TOPICS = Object.freeze([
@@ -142,35 +102,66 @@ export const ADMIN_I18N_KEYS = Object.freeze([
 /** @type {readonly string[]} */
 export const ADMIN_DIMENSION_UNITS = Object.freeze(['mm', 'm']);
 
-/** Enum option pools keyed by slot (for dependsOn value + enum validation). */
-export const ADMIN_ENUM_OPTIONS_BY_SLOT = Object.freeze({
-  hasKidsOrPets: Object.freeze(['yes', 'no']),
-  facadeMaterialPreference: Object.freeze(['durable', 'soft', 'mixed']),
-  shoppingHabit: Object.freeze(['browse', 'decide_fast', 'research']),
-  socialStyle: Object.freeze(['private', 'hosting', 'family'])
-});
+/**
+ * Journey-question slot names for the registered domain.
+ * Unregistered productType throws from registry.get — admin must not silently
+ * accept an unknown domain.
+ * @param {string} productType
+ * @returns {string[]}
+ */
+export function getAdminKnownSlots(productType) {
+  return registry.get(productType).journeyQuestions.map((question) => question.slot);
+}
 
 /**
- * Full catalog payload for GET /api/admin/schema-catalog.
+ * Closed condition.field list: platform DecisionState/ClientProfile paths plus
+ * `known.${slot}` for each journey slot of the registered domain.
+ * @param {string} productType
+ * @returns {string[]}
  */
-export function getAdminSchemaCatalog() {
+export function getAdminConditionFields(productType) {
+  return [
+    ...ADMIN_PLATFORM_CONDITION_FIELDS,
+    ...getAdminKnownSlots(productType).map((slot) => `known.${slot}`)
+  ];
+}
+
+/**
+ * Enum option pools keyed by slot, taken from JourneyQuestion.validation.options.
+ * @param {string} productType
+ * @returns {Record<string, string[]>}
+ */
+export function getAdminEnumOptionsBySlot(productType) {
+  /** @type {Record<string, string[]>} */
+  const bySlot = {};
+  for (const question of registry.get(productType).journeyQuestions) {
+    if (question.validation?.type === 'enum') {
+      bySlot[question.slot] = [...question.validation.options];
+    }
+  }
+  return bySlot;
+}
+
+/**
+ * Synchronous schema catalog (Bucket A + Bucket B). Catalog SKUs/categories/
+ * finishes are merged in by apps/server after catalog file I/O.
+ * @param {string} productType
+ */
+export function getAdminSchemaCatalog(productType) {
   return {
     journeyStages: [...ADMIN_JOURNEY_STAGES],
     validationTypes: [...ADMIN_VALIDATION_TYPES],
     dependsOnOperators: [...ADMIN_DEPENDS_ON_OPERATORS],
-    knownSlots: [...ADMIN_KNOWN_SLOTS],
+    knownSlots: getAdminKnownSlots(productType),
     i18nKeys: [...ADMIN_I18N_KEYS],
     dimensionUnits: [...ADMIN_DIMENSION_UNITS],
-    enumOptionsBySlot: structuredClone(ADMIN_ENUM_OPTIONS_BY_SLOT),
+    enumOptionsBySlot: getAdminEnumOptionsBySlot(productType),
     conditionKinds: [...ADMIN_CONDITION_KINDS],
-    conditionFields: [...ADMIN_CONDITION_FIELDS],
+    conditionFields: getAdminConditionFields(productType),
     conditionOperators: [...ADMIN_CONDITION_OPERATORS],
     actionTypes: [...ADMIN_ACTION_TYPES],
     filterKeys: [...ADMIN_FILTER_KEYS],
-    filterSkus: [...ADMIN_FILTER_SKUS],
-    filterCategories: [...ADMIN_FILTER_CATEGORIES],
     filterPreferFrom: [...ADMIN_FILTER_PREFER_FROM],
-    finishIds: [...ADMIN_FINISH_IDS],
     dialogueTopics: [...ADMIN_DIALOGUE_TOPICS]
   };
 }

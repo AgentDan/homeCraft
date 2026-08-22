@@ -4,8 +4,7 @@ import express from 'express';
 import {
   BehaviorSignalInputSchema,
   ClientOutcomeInputSchema,
-  ClientProfileSchema,
-  getAdminSchemaCatalog
+  ClientProfileSchema
 } from '@homecraft/contracts';
 import { route } from '../orchestrator.js';
 import { getStorageStatus } from '../../storage/local-storage.js';
@@ -34,6 +33,7 @@ import {
   validateAdminJourneyQuestions,
   validateAdminRecommendationRules
 } from '../admin-validate.js';
+import { buildAdminSchemaCatalog } from '../admin-catalog-live.js';
 import { saveRecommendationRulesToStore } from '../../storage/recommendation-rules-store.js';
 import { isProduction, runtimeLabel } from '../../config/runtime.js';
 import { sendJson } from '../../lib/send-json.js';
@@ -249,9 +249,16 @@ export function mountRoutes(app) {
     })
   );
 
-  app.get('/api/admin/schema-catalog', (_req, res) => {
-    sendJson(res, 200, { status: 'ok', catalog: getAdminSchemaCatalog() });
-  });
+  app.get(
+    '/api/admin/schema-catalog',
+    wrapAsync(async (req, res) => {
+      const productType = queryProductType(req);
+      sendJson(res, 200, {
+        status: 'ok',
+        catalog: await buildAdminSchemaCatalog(productType)
+      });
+    })
+  );
 
   app.get('/api/admin/journey-questions', (req, res) => {
     const productType = queryProductType(req);
@@ -265,7 +272,10 @@ export function mountRoutes(app) {
     '/api/admin/journey-questions',
     wrapAsync(async (req, res) => {
       const productType = queryProductType(req);
-      const questions = validateAdminJourneyQuestions(req.body?.questions ?? req.body);
+      const questions = validateAdminJourneyQuestions(
+        req.body?.questions ?? req.body,
+        productType
+      );
       replaceJourneyQuestions(productType, questions);
       const mongoOk = await replaceJourneyQuestionsInMongo(productType, questions);
       sendJson(res, 200, {
@@ -288,7 +298,10 @@ export function mountRoutes(app) {
     '/api/admin/recommendation-rules',
     wrapAsync(async (req, res) => {
       const productType = queryProductType(req);
-      const rules = validateAdminRecommendationRules(req.body?.rules ?? req.body);
+      const rules = await validateAdminRecommendationRules(
+        req.body?.rules ?? req.body,
+        productType
+      );
       const saved = await saveRecommendationRulesToStore(rules, productType);
       sendJson(res, 200, { status: 'ok', rules: saved, persisted: 'file' });
     })
