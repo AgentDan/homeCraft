@@ -62,11 +62,20 @@ function extractBranchName(rawText, kind) {
 }
 
 /**
+ * @typedef {object} SlotVocabulary
+ * @property {string[]} [skuPrefixes]
+ * @property {Array<{ category: string, patterns: RegExp[] }>} [categoryKeywords]
+ * @property {Array<{ finishId: string, patterns: RegExp[] }>} [finishKeywords]
+ * @property {Array<{ layout: string, patterns: RegExp[] }>} [layoutKeywords]
+ */
+
+/**
  * @param {string} rawText
  * @param {string} kind
+ * @param {SlotVocabulary} [vocabulary]
  * @returns {IntentSlots}
  */
-function extractSlots(rawText, kind) {
+function extractSlots(rawText, kind, vocabulary = {}) {
   /** @type {IntentSlots} */
   const slots = {};
   const widthMatch = rawText.match(
@@ -75,9 +84,11 @@ function extractSlots(rawText, kind) {
   const budgetMatch = rawText.match(
     /(?:budget|up\s+to|бюджет|буџет|budžet|budzet|до|do)\s*(?:of\s*|до\s*|do\s*)?[$£€]?([\d\s,]{3,})/i
   );
-  const skuMatch = rawText.match(
-    /\b(?:BASE|WALL|SINK|HOB|OVEN|CORNER|TALL|FRIDGE|DISHWASHER)-\d+\b/i
-  );
+  const prefixes = vocabulary.skuPrefixes;
+  const skuMatch =
+    Array.isArray(prefixes) && prefixes.length > 0
+      ? rawText.match(new RegExp(`\\b(?:${prefixes.join('|')})-\\d+\\b`, 'i'))
+      : null;
   const instanceMatch = rawText.match(/\bmodule-\d+\b/i);
   const branchName = extractBranchName(rawText, kind);
 
@@ -86,34 +97,28 @@ function extractSlots(rawText, kind) {
   if (skuMatch) slots.sku = skuMatch[0].toUpperCase();
   if (instanceMatch) slots.instanceId = instanceMatch[0].toLowerCase();
   if (branchName) slots.branchName = branchName.toLowerCase();
-  if (/\boak\b|дуб|hrast|храст/i.test(rawText)) slots.finishId = 'oak';
-  if (/\bwhite\b|бел|bel[ae]|bijel/i.test(rawText)) slots.finishId = 'white';
-  if (/\bsink\b|мойк|sudoper|судопер/i.test(rawText)) slots.category = 'sink_cabinet';
-  if (
-    /\b(?:wall|wall-mounted|hanging)\b|навесн|верхн|zidn[ia]|viseć|viseci|зидн|висећ/i.test(
-      rawText
-    )
-  ) {
-    slots.category = 'wall_cabinet';
+
+  // Last matching entry wins — same overwrite order as the previous sequential if-blocks.
+  for (const entry of vocabulary.finishKeywords ?? []) {
+    if (entry.patterns.some((pattern) => pattern.test(rawText))) {
+      slots.finishId = entry.finishId;
+    }
   }
-  if (/\bcorner\b|углов|ugaon|угаон/i.test(rawText)) slots.category = 'corner_cabinet';
-  if (/\b(?:pantry|tall)\b|пенал|высок|visok|висок/i.test(rawText)) {
-    slots.category = 'tall_cabinet';
-  }
-  if (/\bdrawer\b|ящик|fiok|фиок/i.test(rawText)) slots.category = 'drawer_cabinet';
-  if (/\boven\b|духов|rern|рерн/i.test(rawText)) slots.category = 'oven_cabinet';
-  if (/\b(?:hob|cooktop)\b|варочн|ploč|ploc|плоч/i.test(rawText)) {
-    slots.category = 'hob_cabinet';
+  for (const entry of vocabulary.categoryKeywords ?? []) {
+    if (entry.patterns.some((pattern) => pattern.test(rawText))) {
+      slots.category = entry.category;
+    }
   }
 
-  if (
-    kind === 'add_module' &&
-    (/\bkitchen\b/i.test(rawText) || /кухн/i.test(rawText) || /kuhinj|кухињ/i.test(rawText))
-  ) {
-    slots.layout = 'starter_kitchen';
-    const room = parseMetricPair(rawText);
-    if (room.roomWidthMm != null) slots.roomWidthMm = room.roomWidthMm;
-    if (room.roomDepthMm != null) slots.roomDepthMm = room.roomDepthMm;
+  if (kind === 'add_module') {
+    for (const entry of vocabulary.layoutKeywords ?? []) {
+      if (entry.patterns.some((pattern) => pattern.test(rawText))) {
+        slots.layout = entry.layout;
+        const room = parseMetricPair(rawText);
+        if (room.roomWidthMm != null) slots.roomWidthMm = room.roomWidthMm;
+        if (room.roomDepthMm != null) slots.roomDepthMm = room.roomDepthMm;
+      }
+    }
   }
   return slots;
 }
@@ -135,7 +140,7 @@ function assertIntentRules(rules) {
 /**
  * @param {string} text
  * @param {IntentRule[]} rules
- * @param {{ language?: 'en' | 'ru' | 'sr' }} [options]
+ * @param {{ language?: 'en' | 'ru' | 'sr', vocabulary?: SlotVocabulary }} [options]
  * @returns {import('zod').infer<typeof import('@homecraft/contracts').IntentResultSchema>}
  */
 export function matchIntent(text, rules, options = {}) {
@@ -160,7 +165,7 @@ export function matchIntent(text, rules, options = {}) {
           language,
           rawText,
           /** @type {IntentSlots} */
-          slots: extractSlots(rawText, rule.kind)
+          slots: extractSlots(rawText, rule.kind, options.vocabulary)
         };
       }
     }

@@ -51,6 +51,10 @@ export const ProductManifestSchema = z.object({
   // matchIntent() requires this table; missing/empty throws at the call site.
   intentRules: z.array(z.record(z.unknown())).optional(),
 
+  // Domain slot-extraction vocabulary (SKU prefixes, category/finish/layout keywords).
+  // If omitted, extractSlots skips sku/category/finishId/layout keyword detection.
+  slotVocabulary: z.record(z.unknown()).optional(),
+
   // Вопросы Discovery-фазы (Journey).
   journeyQuestions: z.array(z.record(z.unknown())),
 

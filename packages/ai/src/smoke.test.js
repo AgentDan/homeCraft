@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { matchIntent } from './index.js';
 import { kitchenIntentRules } from '../../manifests/kitchen/intent-rules.js';
+import { kitchenSlotVocabulary } from '../../manifests/kitchen/slot-vocabulary.js';
 import { deskIntentRules } from '../../manifests/desk/intent-rules.js';
 
 /**
@@ -9,7 +10,10 @@ import { deskIntentRules } from '../../manifests/desk/intent-rules.js';
  * @param {{ language?: 'en' | 'ru' | 'sr' }} [options]
  */
 function match(text, options = {}) {
-  return matchIntent(text, kitchenIntentRules, options);
+  return matchIntent(text, kitchenIntentRules, {
+    vocabulary: kitchenSlotVocabulary,
+    ...options
+  });
 }
 
 describe('@homecraft/ai smoke', () => {
@@ -105,6 +109,40 @@ describe('@homecraft/ai smoke', () => {
     assert.equal(matchIntent(phrase, kitchenIntentRules).kind, 'unknown');
     assert.equal(matchIntent('add a cabinet', kitchenIntentRules).kind, 'add_module');
     assert.equal(matchIntent('add a cabinet', deskIntentRules).kind, 'unknown');
+  });
+
+  it('does not fill kitchen sku/category/finishId without slot vocabulary', () => {
+    const withVocab = match('replace module-2 with BASE-400');
+    assert.equal(withVocab.kind, 'replace_module');
+    assert.equal(withVocab.slots?.sku, 'BASE-400');
+
+    const withoutVocab = matchIntent(
+      'replace module-2 with BASE-400',
+      kitchenIntentRules
+    );
+    assert.equal(withoutVocab.kind, 'replace_module');
+    assert.equal(withoutVocab.slots?.sku, undefined);
+    assert.equal(withoutVocab.slots?.category, undefined);
+    assert.equal(withoutVocab.slots?.finishId, undefined);
+
+    const deskPhrase = matchIntent('replace the desk', deskIntentRules);
+    assert.equal(deskPhrase.slots?.sku, undefined);
+    assert.equal(deskPhrase.slots?.category, undefined);
+    assert.equal(deskPhrase.slots?.finishId, undefined);
+
+    const oakWithout = matchIntent('oak color', kitchenIntentRules);
+    assert.equal(oakWithout.kind, 'change_finish');
+    assert.equal(oakWithout.slots?.finishId, undefined);
+
+    const oakWith = match('oak color');
+    assert.equal(oakWith.slots?.finishId, 'oak');
+
+    const sinkWithout = matchIntent('install a sink cabinet', kitchenIntentRules);
+    assert.equal(sinkWithout.kind, 'add_module');
+    assert.equal(sinkWithout.slots?.category, undefined);
+
+    const sinkWith = match('install a sink cabinet');
+    assert.equal(sinkWith.slots?.category, 'sink_cabinet');
   });
 
   it('reaches at least 85% accuracy on the Phase 1 English corpus', () => {

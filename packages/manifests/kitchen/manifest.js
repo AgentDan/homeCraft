@@ -8,6 +8,7 @@ import { check as overlapRule } from './compatibility-rules/overlap.js';
 import { check as utilitiesRule } from './compatibility-rules/utilities.js';
 import { check as clearancesRule } from './compatibility-rules/clearances.js';
 import { kitchenIntentRules } from './intent-rules.js';
+import { kitchenSlotVocabulary } from './slot-vocabulary.js';
 import { kitchenJourneyQuestions } from './journey-questions.js';
 import { kitchenDp4Rules } from './dp4-rules.js';
 
@@ -39,6 +40,7 @@ export const kitchenManifest = {
     calculateBOM(plan, /** @type {string} */ (args[0])),
 
   intentRules: kitchenIntentRules,
+  slotVocabulary: kitchenSlotVocabulary,
 
   journeyQuestions: kitchenJourneyQuestions,
   dp4Rules: kitchenDp4Rules,

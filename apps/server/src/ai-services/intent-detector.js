@@ -23,7 +23,8 @@ export async function detectIntent(text, language, options = {}) {
   const { matchIntent } = await import('@homecraft/ai');
   const productType = options.productType ?? 'kitchen';
   const rules = registry.get(productType).intentRules;
-  const ruleIntent = matchIntent(text, rules, { language });
+  const vocabulary = registry.get(productType).slotVocabulary;
+  const ruleIntent = matchIntent(text, rules, { language, vocabulary });
   if (ruleIntent.kind === 'help') {
     return ruleIntent;
   }
