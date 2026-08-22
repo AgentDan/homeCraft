@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
+import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { ConfigurationPlanSchema } from '@homecraft/contracts';
+import { ConfigurationPlanSchema, registry } from '@homecraft/contracts';
 import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import { assertCompatible } from './compatibility-engine/assertCompatible.js';
 
@@ -45,6 +45,12 @@ function add(sku, position) {
 }
 
 describe('@homecraft/server compatibility rules', () => {
+  before(() => {
+    if (!registry.registeredTypes().includes('kitchen')) {
+      registry.register(kitchenManifest);
+    }
+  });
+
   it('throws when compatibilityRules are missing or empty', async () => {
     const plan = planWith([]);
     const context = roomContext();

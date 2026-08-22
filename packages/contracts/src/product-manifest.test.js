@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { z } from 'zod';
 import {
@@ -8,7 +8,32 @@ import {
   registry
 } from './index.js';
 
+/**
+ * @param {string} productType
+ */
+function stubManifest(productType) {
+  return ProductManifestSchema.parse({
+    productType,
+    version: '1.0.0',
+    slotsSchema: z.object({}),
+    assertCompatible: (_plan) => ({ valid: true }),
+    calculateBOM: (_plan) => ({ lines: [] }),
+    journeyQuestions: [],
+    dp4Rules: [],
+    starterPlan: () => ({})
+  });
+}
+
 describe('ProductManifest contracts', () => {
+  before(() => {
+    if (!registry.registeredTypes().includes('kitchen')) {
+      registry.register(stubManifest('kitchen'));
+    }
+    if (!registry.registeredTypes().includes('desk')) {
+      registry.register(stubManifest('desk'));
+    }
+  });
+
   it('defaults legacy plans to kitchen', () => {
     const plan = createEmptyPlan({
       planId: 'plan-1',
@@ -17,8 +42,15 @@ describe('ProductManifest contracts', () => {
     });
 
     assert.equal(plan.productType, 'kitchen');
+  });
+
+  it('ProductTypeSchema accepts registered types and rejects unknown domains', () => {
+    assert.equal(ProductTypeSchema.parse('kitchen'), 'kitchen');
     assert.equal(ProductTypeSchema.parse('desk'), 'desk');
-    assert.throws(() => ProductTypeSchema.parse('unknown'));
+    assert.throws(
+      () => ProductTypeSchema.parse('made-up-domain'),
+      /Unknown productType: not registered in ManifestRegistry/
+    );
   });
 
   it('parses a domain manifest', () => {

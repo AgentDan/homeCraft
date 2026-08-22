@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
+import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { ConfigurationPlanSchema } from '@homecraft/contracts';
+import { ConfigurationPlanSchema, registry } from '@homecraft/contracts';
 import { deskManifest } from '@homecraft/manifests/desk';
 import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import { assertCompatible } from './assertCompatible.js';
@@ -39,6 +39,12 @@ function roomContext() {
 }
 
 describe('candidate-generator', () => {
+  before(() => {
+    if (!registry.registeredTypes().includes('kitchen')) {
+      registry.register(kitchenManifest);
+    }
+  });
+
   it('produces valid priced candidates for an overlap conflict', async () => {
     const plan = planWith([
       add('BASE-800', { x: 0, y: 0, z: 0 }),

@@ -1,6 +1,7 @@
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it, before, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { ConfigurationPlanSchema } from '@homecraft/contracts';
+import { ConfigurationPlanSchema, registry } from '@homecraft/contracts';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import {
   buildBomCacheKey,
   getBomCacheStats,
@@ -22,6 +23,12 @@ function planWith(operations) {
 }
 
 describe('Phase 3 BOM cache + catalog snapshots', () => {
+  before(() => {
+    if (!registry.registeredTypes().includes('kitchen')) {
+      registry.register(kitchenManifest);
+    }
+  });
+
   beforeEach(() => {
     resetBomCacheForTests();
   });

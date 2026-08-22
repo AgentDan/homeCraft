@@ -112,4 +112,29 @@ describe('configuration-plan-generator domain data', () => {
     assert.equal(plan.operations[0].sku, 'DESK-1200');
     assert.deepEqual(plan.operations[0].position, { x: 0, y: 0, z: 0 });
   });
+
+  it('writes context.productType desk onto the generated plan', async () => {
+    const deskCandidate = {
+      sku: 'DESK-1200',
+      category: 'desk',
+      mounting: 'floor',
+      dimensions: { widthMm: 1200, heightMm: 750, depthMm: 600 }
+    };
+
+    const { plan, outcome } = await generatePlan(planInput({
+      intent: {
+        kind: 'add_module',
+        rawText: 'add a desk',
+        slots: { sku: 'DESK-1200' }
+      },
+      context: {
+        productType: 'desk',
+        catalogSnapshotId: 'desk-demo-v1'
+      },
+      candidates: [deskCandidate]
+    }));
+
+    assert.equal(outcome.kind, 'applied');
+    assert.equal(plan.productType, 'desk');
+  });
 });

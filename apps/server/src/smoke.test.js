@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -6,7 +6,8 @@ import path from 'node:path';
 import {
   ClientResponseSchema,
   ConfigurationPlanSchema,
-  createEmptyPlan
+  createEmptyPlan,
+  registry
 } from '@homecraft/contracts';
 import { assertCompatible } from './compatibility-engine/assertCompatible.js';
 import { closeMongo } from './storage/mongo.js';
@@ -14,6 +15,12 @@ import { retrieve } from './ai-services/catalog-rag-retriever.js';
 import { kitchenManifest } from '@homecraft/manifests/kitchen';
 
 describe('@homecraft/server smoke', () => {
+  before(() => {
+    if (!registry.registeredTypes().includes('kitchen')) {
+      registry.register(kitchenManifest);
+    }
+  });
+
   it('retrieves grounded modules from the demo catalog', async () => {
     const modules = await retrieve(
       'add sink cabinet 800',

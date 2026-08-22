@@ -1,6 +1,11 @@
 import { z } from 'zod';
+import { registry } from './manifest-registry.js';
 
-export const ProductTypeSchema = z.enum(['kitchen', 'desk', 'wardrobe']);
+/** Valid when the id is currently registered in ManifestRegistry (checked at parse time). */
+export const ProductTypeSchema = z.string().min(1).refine(
+  (value) => registry.registeredTypes().includes(value),
+  { message: 'Unknown productType: not registered in ManifestRegistry' }
+);
 
 export const PlanOperationSchema = z.discriminatedUnion('type', [
   z.object({

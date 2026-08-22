@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { ConfigurationPlanSchema } from '@homecraft/contracts';
+import { ConfigurationPlanSchema, registry } from '@homecraft/contracts';
 import { deskManifest } from '@homecraft/manifests/desk';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import {
   loadPolicy,
   parsePolicyYaml,
@@ -15,6 +16,12 @@ import { scoreCandidates, selectByConfidence } from './score-candidates.js';
 import { decideCandidates } from './decide-candidates.js';
 
 const SNAPSHOT = 'kitchen-demo-v1';
+
+// planWith() runs while describe() bodies are collected (before hooks), so
+// kitchen must be registered at load time — a before() hook is too late here.
+if (!registry.registeredTypes().includes('kitchen')) {
+  registry.register(kitchenManifest);
+}
 
 function planWith(operations) {
   return ConfigurationPlanSchema.parse({

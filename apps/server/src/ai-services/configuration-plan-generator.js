@@ -14,12 +14,13 @@ function stablePlanId(projectId, operations) {
   return `plan-${projectId}-${digest}`;
 }
 
-function createPlan(input, operations) {
+function createPlan(input, operations, productType) {
   const projectId = input.context.projectId;
   return ConfigurationPlanSchema.parse({
     ...createEmptyPlan({
       planId: stablePlanId(projectId, operations),
       projectId,
+      productType,
       catalogSnapshotId: input.context.catalogSnapshotId
     }),
     operations
@@ -88,7 +89,7 @@ export async function generatePlan(input) {
     if (slots.layout === 'starter_kitchen' && starterOperations.length > 0) {
       operations.push(.../** @type {typeof operations} */ (starterOperations));
       return {
-        plan: createPlan(input, operations),
+        plan: createPlan(input, operations, productType),
         outcome: { kind: 'applied', addedCount: starterOperations.length }
       };
     }
@@ -96,7 +97,7 @@ export async function generatePlan(input) {
     const candidate = chooseCandidate(input.candidates, slots);
     if (!candidate) {
       return {
-        plan: createPlan(input, operations),
+        plan: createPlan(input, operations, productType),
         outcome: {
           kind: 'clarify',
           prompt: t(language, 'clarifyAddModule')
@@ -118,7 +119,7 @@ export async function generatePlan(input) {
       rotationY: 0
     });
     return {
-      plan: createPlan(input, operations),
+      plan: createPlan(input, operations, productType),
       outcome: { kind: 'applied', sku: candidate.sku, addedCount: 1 }
     };
   }
@@ -128,7 +129,7 @@ export async function generatePlan(input) {
     const target = slots.instanceId ?? active.at(-1)?.instanceId;
     if (!target) {
       return {
-        plan: createPlan(input, operations),
+        plan: createPlan(input, operations, productType),
         outcome: {
           kind: 'clarify',
           prompt: t(language, 'clarifyNothingToRemove')
@@ -137,7 +138,7 @@ export async function generatePlan(input) {
     }
     operations.push({ type: 'remove_module', instanceId: target });
     return {
-      plan: createPlan(input, operations),
+      plan: createPlan(input, operations, productType),
       outcome: { kind: 'applied', instanceId: target }
     };
   }
@@ -150,7 +151,7 @@ export async function generatePlan(input) {
       ?? null;
     if (!target || !sku) {
       return {
-        plan: createPlan(input, operations),
+        plan: createPlan(input, operations, productType),
         outcome: {
           kind: 'clarify',
           prompt: t(language, 'clarifyReplace')
@@ -159,7 +160,7 @@ export async function generatePlan(input) {
     }
     if (!active.some((module) => module.instanceId === target)) {
       return {
-        plan: createPlan(input, operations),
+        plan: createPlan(input, operations, productType),
         outcome: {
           kind: 'clarify',
           prompt: t(language, 'clarifyMissingModule', { target })
@@ -168,7 +169,7 @@ export async function generatePlan(input) {
     }
     operations.push({ type: 'replace_module', instanceId: target, sku });
     return {
-      plan: createPlan(input, operations),
+      plan: createPlan(input, operations, productType),
       outcome: { kind: 'applied', instanceId: target, sku }
     };
   }
@@ -178,7 +179,7 @@ export async function generatePlan(input) {
     const target = slots.instanceId ?? active.at(-1)?.instanceId;
     if (!target || !slots.finishId) {
       return {
-        plan: createPlan(input, operations),
+        plan: createPlan(input, operations, productType),
         outcome: {
           kind: 'clarify',
           prompt: t(language, 'clarifyFinish')
@@ -191,13 +192,13 @@ export async function generatePlan(input) {
       finishId: slots.finishId
     });
     return {
-      plan: createPlan(input, operations),
+      plan: createPlan(input, operations, productType),
       outcome: { kind: 'applied', instanceId: target, finishId: slots.finishId }
     };
   }
 
   return {
-    plan: createPlan(input, operations),
+    plan: createPlan(input, operations, productType),
     outcome: { kind: 'read_only' }
   };
 }
