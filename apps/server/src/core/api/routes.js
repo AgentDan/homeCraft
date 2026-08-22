@@ -129,9 +129,9 @@ export function mountRoutes(app) {
 
   app.get(
     '/api/catalog/snapshots',
-    wrapAsync(async (_req, res) => {
+    wrapAsync(async (req, res) => {
       sendJson(res, 200, {
-        snapshots: await listCatalogSnapshots()
+        snapshots: await listCatalogSnapshots(queryProductType(req))
       });
     })
   );

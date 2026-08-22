@@ -27,8 +27,8 @@ function cosineSimilarity(left, right) {
   );
 }
 
-export async function retrieve(query, catalogId, k = 5, ragOptions = {}) {
-  const index = await loadCatalogIndex();
+export async function retrieve(query, catalogId, k = 5, ragOptions = {}, productType = 'kitchen') {
+  const index = await loadCatalogIndex(productType);
   if (index.catalogVersion !== catalogId) {
     throw new Error(`Catalog index "${catalogId}" was not found.`);
   }

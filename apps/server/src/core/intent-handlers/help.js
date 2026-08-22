@@ -13,10 +13,12 @@ const RESPOND = /** @type {const} */ ('respond');
  */
 export async function handleHelp(input) {
   const { request, context, language } = input;
+  const productType = context.productType ?? 'kitchen';
   const message = await getHelpOrCatalogMessage(
     request.command,
     language,
-    context.catalogSnapshotId ?? 'kitchen-demo-v1'
+    context.catalogSnapshotId,
+    productType
   );
   return {
     kind: RESPOND,

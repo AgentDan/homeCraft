@@ -91,6 +91,13 @@ export const ProductManifestSchema = z.object({
   ragStopWords: z.array(z.string()).optional(),
   ragFallbackSku: z.string().optional(),
 
+  // Filesystem path to this domain's manufacturer catalog JSON.
+  // Loading stays in apps/server; the manifest only names the file.
+  catalogPath: z.string().optional(),
+
+  // Canonical catalog snapshot id for this domain (not a frozen plan reference).
+  catalogSnapshotId: z.string().optional(),
+
   minEnforcedClearanceMm: z.number().optional(),
   maxConnectionDistanceMm: z.number().optional(),
   spatialIndexCellMm: z.number().optional(),

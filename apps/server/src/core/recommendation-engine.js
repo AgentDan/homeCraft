@@ -418,7 +418,7 @@ export async function runDp4Recommendation({ request, context, language }) {
     dp4SkuMap
   );
 
-  const snapshot = await getCatalogSnapshot(context.catalogSnapshotId);
+  const snapshot = await getCatalogSnapshot(context.catalogSnapshotId, productType);
   const candidates = snapshot?.modules ?? [];
 
   const { plan, outcome } = await generatePlan({

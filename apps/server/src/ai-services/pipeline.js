@@ -21,7 +21,7 @@ export async function runAiPipeline(request, context) {
     retrieve(dialogText, context.catalogSnapshotId, runtimeConfig.kbTopK, {
       stopWords: manifest.ragStopWords,
       fallbackSku: manifest.ragFallbackSku
-    }),
+    }, productType),
     retrievePlatformRules(dialogText, 3)
   ]);
   const { plan, outcome } = await generatePlan({

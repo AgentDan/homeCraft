@@ -1,7 +1,10 @@
 import { getCatalogSnapshot } from '../../knowledge-base/catalog-store.js';
 
 export async function materializePlan(plan) {
-  const catalog = await getCatalogSnapshot(plan.catalogSnapshotId);
+  const catalog = await getCatalogSnapshot(
+    plan.catalogSnapshotId,
+    plan.productType ?? 'kitchen'
+  );
   const catalogBySku = new Map(catalog.modules.map((module) => [module.sku, module]));
   const modules = new Map();
   let addIndex = 0;

@@ -36,7 +36,12 @@ export async function assertCompatible(plan, context, options = {}) {
     conflicts.push(...rule(ruleContext));
   }
 
-  await enrichWithSuggestions(conflicts, modules, plan.catalogSnapshotId);
+  await enrichWithSuggestions(
+    conflicts,
+    modules,
+    plan.catalogSnapshotId,
+    plan.productType ?? 'kitchen'
+  );
 
   return CompatibilityReportSchema.parse({
     valid: conflicts.length === 0,
@@ -50,11 +55,17 @@ export async function assertCompatible(plan, context, options = {}) {
  * @param {import('@homecraft/engine').Conflict[]} conflicts
  * @param {import('@homecraft/engine').PlacedModule[]} modules
  * @param {string} catalogSnapshotId
+ * @param {string} [productType]
  */
-async function enrichWithSuggestions(conflicts, modules, catalogSnapshotId) {
+async function enrichWithSuggestions(
+  conflicts,
+  modules,
+  catalogSnapshotId,
+  productType = 'kitchen'
+) {
   if (conflicts.length === 0) return;
 
-  const catalog = await getCatalogSnapshot(catalogSnapshotId);
+  const catalog = await getCatalogSnapshot(catalogSnapshotId, productType);
   const byId = new Map(modules.map((module) => [module.instanceId, module]));
 
   for (const conflict of conflicts) {

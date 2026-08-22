@@ -4,12 +4,20 @@ import path from 'node:path';
 import { loadDemoCatalog } from './catalog-store.js';
 import { getMongoDb } from '../storage/mongo.js';
 
-const indexPath = fileURLToPath(
-  new URL('./data/index/catalog-index.json', import.meta.url)
-);
 const platformRulesPath = fileURLToPath(
   new URL('./data/source/platform-rules.md', import.meta.url)
 );
+
+/**
+ * Per-domain index files. Kitchen uses the same suffix as desk — loadCatalogIndex
+ * self-heals a missing file, so dropping the unsuffixed catalog-index.json is safe.
+ * @param {string} productType
+ */
+function catalogIndexPath(productType) {
+  return fileURLToPath(
+    new URL(`./data/index/catalog-index-${productType}.json`, import.meta.url)
+  );
+}
 
 export function tokenize(value) {
   return String(value)
@@ -63,9 +71,9 @@ function splitMarkdown(markdown) {
     }));
 }
 
-export async function buildCatalogIndex() {
+export async function buildCatalogIndex(productType = 'kitchen') {
   const [catalog, platformRules] = await Promise.all([
-    loadDemoCatalog(),
+    loadDemoCatalog(productType),
     readFile(platformRulesPath, 'utf8')
   ]);
 
@@ -100,14 +108,15 @@ async function seedMongo(catalog) {
   return true;
 }
 
-export async function runCatalogIndexer() {
+export async function runCatalogIndexer(productType = 'kitchen') {
+  const indexFile = catalogIndexPath(productType);
   const [catalog, index] = await Promise.all([
-    loadDemoCatalog(),
-    buildCatalogIndex()
+    loadDemoCatalog(productType),
+    buildCatalogIndex(productType)
   ]);
 
-  await mkdir(path.dirname(indexPath), { recursive: true });
-  await writeFile(indexPath, `${JSON.stringify(index, null, 2)}\n`);
+  await mkdir(path.dirname(indexFile), { recursive: true });
+  await writeFile(indexFile, `${JSON.stringify(index, null, 2)}\n`);
   const mongoSeeded = await seedMongo(catalog);
 
   const summary = {
@@ -115,19 +124,19 @@ export async function runCatalogIndexer() {
     moduleCount: index.modules.length,
     platformRuleCount: index.platformRules.length,
     mongoSeeded,
-    indexPath
+    indexPath: indexFile
   };
   console.log('[catalog:index]', summary);
   return summary;
 }
 
-export async function loadCatalogIndex() {
+export async function loadCatalogIndex(productType = 'kitchen') {
   try {
-    const index = JSON.parse(await readFile(indexPath, 'utf8'));
-    return index.indexVersion === 2 ? index : buildCatalogIndex();
+    const index = JSON.parse(await readFile(catalogIndexPath(productType), 'utf8'));
+    return index.indexVersion === 2 ? index : buildCatalogIndex(productType);
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      return buildCatalogIndex();
+      return buildCatalogIndex(productType);
     }
     throw error;
   }

@@ -2,8 +2,7 @@
  * Desk intent rules.
  *
  * add_module / replace_module use desk product nouns (desk, table, workstation /
- * стол / sto). There is no desk catalog file in the repo, so SKU-prefix regexes
- * are omitted rather than inventing prefixes that do not exist.
+ * стол / sto). SKU prefixes match desk-catalog.json (DESK-, PED-).
  *
  * The other 10 kinds start as copies of kitchen patterns; they may diverge later.
  */

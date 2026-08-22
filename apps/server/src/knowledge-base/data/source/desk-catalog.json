@@ -1,0 +1,64 @@
+{
+  "manufacturerId": "homecraft-desk-demo",
+  "catalogVersion": "desk-demo-v1",
+  "currency": "EUR",
+  "importedAt": "2026-08-22T00:00:00.000Z",
+  "modules": [
+    {
+      "sku": "DESK-800",
+      "name": "Desk 800",
+      "category": "desk",
+      "dimensions": { "widthMm": 800, "heightMm": 750, "depthMm": 600 },
+      "priceEur": 18900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 0, "rightMm": 0, "backMm": 0 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 2400 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "DESK-1200",
+      "name": "Desk 1200",
+      "category": "desk",
+      "dimensions": { "widthMm": 1200, "heightMm": 750, "depthMm": 600 },
+      "priceEur": 24900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 0, "rightMm": 0, "backMm": 0 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 3200 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "DESK-1600",
+      "name": "Desk 1600",
+      "category": "desk",
+      "dimensions": { "widthMm": 1600, "heightMm": 750, "depthMm": 600 },
+      "priceEur": 29900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 0, "rightMm": 0, "backMm": 0 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 3800 }
+      ],
+      "utilities": []
+    },
+    {
+      "sku": "PED-400",
+      "name": "Pedestal Drawer 400",
+      "category": "pedestal",
+      "dimensions": { "widthMm": 400, "heightMm": 720, "depthMm": 600 },
+      "priceEur": 9900,
+      "mounting": "floor",
+      "clearances": { "topMm": 0, "bottomMm": 0, "leftMm": 0, "rightMm": 0, "backMm": 0 },
+      "finishes": [
+        { "id": "white", "name": "White", "priceDeltaEur": 0 },
+        { "id": "oak", "name": "Oak", "priceDeltaEur": 1200 }
+      ],
+      "utilities": []
+    }
+  ]
+}

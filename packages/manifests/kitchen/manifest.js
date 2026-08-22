@@ -30,6 +30,11 @@ const policyPath = path.join(
   './policy.yaml'
 );
 
+const catalogPath = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../../apps/server/src/knowledge-base/data/source/kitchen-catalog.json'
+);
+
 /**
  * Первый доменный манифест. Здесь только ссылки на существующую
  * детерминированную кухонную реализацию — без новой бизнес-логики.
@@ -45,6 +50,8 @@ export const kitchenManifest = {
   compatibilityRules,
 
   policyPath,
+  catalogPath,
+  catalogSnapshotId: 'kitchen-demo-v1',
 
   assertCompatible: (plan, ...args) =>
     assertCompatible(plan, args[0], { compatibilityRules, manifest: kitchenManifest }),

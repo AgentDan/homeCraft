@@ -27,13 +27,16 @@ import { getCatalogSnapshot } from '../knowledge-base/catalog-store.js';
  *
  * @param {Candidate[]} candidates
  * @param {{ weights: { price: number, ergonomics: number, style: number } }} policy
- * @param {{ catalogSnapshotId: string, rejectedPlan: { operations: unknown[] } }} context
+ * @param {{ catalogSnapshotId: string, rejectedPlan: { operations: unknown[], productType?: string } }} context
  * @returns {Promise<ScoredCandidate[]>}
  */
 export async function scoreCandidates(candidates, policy, context) {
   if (candidates.length === 0) return [];
 
-  const catalog = await getCatalogSnapshot(context.catalogSnapshotId);
+  const catalog = await getCatalogSnapshot(
+    context.catalogSnapshotId,
+    context.rejectedPlan?.productType ?? 'kitchen'
+  );
   const bySku = new Map(catalog.modules.map((module) => [module.sku, module]));
 
   const originalWidths = new Map();

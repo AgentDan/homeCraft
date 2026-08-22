@@ -20,6 +20,11 @@ const policyPath = path.join(
   './policy.yaml'
 );
 
+const catalogPath = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../../apps/server/src/knowledge-base/data/source/desk-catalog.json'
+);
+
 /**
  * Stub desk journey questions.
  * Минимум для валидного манифеста — заменить реальными вопросами позже.
@@ -68,6 +73,8 @@ export const deskManifest = {
   compatibilityRules,
 
   policyPath,
+  catalogPath,
+  catalogSnapshotId: 'desk-demo-v1',
 
   // assertCompatible и calculateBOM универсальны — работают через catalog SKU.
   assertCompatible: (plan, context) =>
@@ -96,6 +103,6 @@ export const deskManifest = {
     planId: crypto.randomUUID(),
     projectId: 'starter',
     productType: 'desk',
-    catalogSnapshotId: 'default'
+    catalogSnapshotId: 'desk-demo-v1'
   })
 };
