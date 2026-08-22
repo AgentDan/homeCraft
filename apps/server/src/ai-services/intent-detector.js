@@ -22,8 +22,14 @@ import { parseIntentWithLlm } from './llm-intent-parser.js';
 export async function detectIntent(text, language, options = {}) {
   const { matchIntent } = await import('@homecraft/ai');
   const productType = options.productType ?? 'kitchen';
-  const rules = registry.get(productType).intentRules;
-  const vocabulary = registry.get(productType).slotVocabulary;
+  const manifest = registry.get(productType);
+  const rules = manifest.intentRules;
+  const vocabulary = manifest.slotVocabulary;
+  if (!Array.isArray(rules) || rules.length === 0) {
+    throw new Error(
+      `detectIntent: intentRules is required for productType "${productType}"`
+    );
+  }
   const ruleIntent = matchIntent(text, rules, { language, vocabulary });
   if (ruleIntent.kind === 'help') {
     return ruleIntent;

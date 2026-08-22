@@ -139,7 +139,7 @@ function assertIntentRules(rules) {
 
 /**
  * @param {string} text
- * @param {IntentRule[]} rules
+ * @param {unknown} rules
  * @param {{ language?: 'en' | 'ru' | 'sr', vocabulary?: SlotVocabulary }} [options]
  * @returns {import('zod').infer<typeof import('@homecraft/contracts').IntentResultSchema>}
  */
