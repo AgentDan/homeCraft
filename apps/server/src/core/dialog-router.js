@@ -5,6 +5,7 @@
 import { buildClarifyResponse } from './output-builder.js';
 import { t } from '../i18n/messages.js';
 import { appendJourneyEvent } from '../storage/journey-events.js';
+import { applySiteBindings } from './room-context-builder.js';
 import {
   JOURNEY_QUESTIONS,
   applyJourneyAnswer,
@@ -17,7 +18,7 @@ import {
   parseJourneyAnswer,
   refreshMissing
 } from './journey-table.js';
-import { ProjectJourneyStateSchema } from '@homecraft/contracts';
+import { ProjectJourneyStateSchema, registry } from '@homecraft/contracts';
 
 /**
  * @param {import('./intent-handlers/types.js').RoomContext} context
@@ -26,30 +27,6 @@ function withJourney(context, journey) {
   return {
     ...context,
     journey: refreshMissing(ProjectJourneyStateSchema.parse(journey))
-  };
-}
-
-/**
- * Sync survey dimensions from journey.known into roomShape.
- * @param {import('./intent-handlers/types.js').RoomContext} context
- */
-export function applyJourneyRoomDimensions(context) {
-  const known = context.journey?.known ?? {};
-  const widthMm =
-    typeof known.roomWidthMm === 'number' ? known.roomWidthMm : null;
-  const depthMm =
-    typeof known.roomDepthMm === 'number' ? known.roomDepthMm : null;
-  if (!widthMm && !depthMm) return context;
-  return {
-    ...context,
-    roomShape: {
-      ...context.roomShape,
-      dimensions: {
-        ...context.roomShape.dimensions,
-        ...(widthMm ? { widthMm } : {}),
-        ...(depthMm ? { depthMm } : {})
-      }
-    }
   };
 }
 
@@ -155,7 +132,13 @@ export async function routeJourneyDialog({
 
     const prevStage = journey.stage;
     journey = applyJourneyAnswer(journey, pendingId, parsed.value);
-    nextContext = applyJourneyRoomDimensions(withJourney(nextContext, journey));
+    const productType = 'kitchen';
+    const manifest = registry.get(productType);
+    nextContext = applySiteBindings(
+      manifest,
+      withJourney(nextContext, journey),
+      { slots: {}, known: journey.known ?? {} }
+    );
     await appendJourneyEvent({
       type: 'slot_filled',
       projectId: request.projectId,

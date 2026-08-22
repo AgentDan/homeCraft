@@ -7,6 +7,7 @@ import { calculateBOM } from '../../../apps/server/src/pricing-engine/calculateB
 import { check as dimensionsRule } from './compatibility-rules/dimensions.js';
 import { check as overlapRule } from './compatibility-rules/overlap.js';
 import { deskIntentRules } from './intent-rules.js';
+import { deskDefaultSite, deskSiteBindings } from './site.js';
 
 /** Desk catalog has no mounting/utilities/clearances fields — only spatial rules. */
 const compatibilityRules = [
@@ -74,6 +75,9 @@ export const deskManifest = {
   calculateBOM: (plan, catalogSnapshotId) => calculateBOM(plan, catalogSnapshotId),
 
   intentRules: deskIntentRules,
+
+  defaultSite: deskDefaultSite,
+  siteBindings: deskSiteBindings,
 
   journeyQuestions: DESK_JOURNEY_QUESTIONS,
 

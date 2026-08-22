@@ -27,9 +27,7 @@ export const IntentSlotsSchema = z
     finishId: z.string().optional(),
     category: z.string().optional(),
     layout: z.string().optional(),
-    branchName: z.string().optional(),
-    roomWidthMm: z.number().positive().optional(),
-    roomDepthMm: z.number().positive().optional()
+    branchName: z.string().optional()
   })
   .passthrough()
   .default({});

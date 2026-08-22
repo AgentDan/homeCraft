@@ -50,17 +50,8 @@ export function createDefaultJourneyState() {
     stage: 'intro',
     mode: 'guided',
     known: {},
-    // Active slots without unmet dependsOn at start (facade skipped until kids/pets=yes).
-    missing: [
-      'clientName',
-      'projectGoal',
-      'roomWidthMm',
-      'roomDepthMm',
-      'hasKidsOrPets',
-      'shoppingHabit',
-      'socialStyle',
-      'budgetEur'
-    ],
+    // refreshMissing() recomputes this from the live manifest JOURNEY_QUESTIONS immediately after, so an empty default here is safe and correct.
+    missing: [],
     deferred: ['openings', 'utilities'],
     pendingQuestionId: null,
     questionHistory: [],

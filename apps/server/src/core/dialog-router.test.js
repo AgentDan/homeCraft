@@ -13,9 +13,12 @@ import {
   replaceJourneyQuestions
 } from './journey-table.js';
 import { routeJourneyDialog } from './dialog-router.js';
-import { createDefaultJourneyState } from '@homecraft/contracts';
+import { createDefaultJourneyState, registry } from '@homecraft/contracts';
 
 before(() => {
+  if (!registry.registeredTypes().includes('kitchen')) {
+    registry.register(kitchenManifest);
+  }
   replaceJourneyQuestions(kitchenManifest.journeyQuestions);
 });
 
@@ -241,6 +244,7 @@ describe('dialog-router', () => {
       language: 'en'
     });
     assert.equal(result.context.roomShape.dimensions.depthMm, 4000);
+    assert.equal(result.context.site.dimensions.depthMm, 4000);
     assert.equal(result.context.journey.known.roomDepthMm, 4000);
     assert.equal(result.context.journey.pendingQuestionId, 'hasKidsOrPets');
     assert.notEqual(result.context.journey.stage, 'done');

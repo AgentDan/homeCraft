@@ -125,6 +125,7 @@ export async function saveRoomContextState(sessionId, context) {
       projectId: context.projectId,
       catalogSnapshotId: context.catalogSnapshotId,
       roomShape: structuredClone(context.roomShape),
+      site: context.site != null ? structuredClone(context.site) : undefined,
       budgetEur: context.budgetEur,
       dialogTurns: structuredClone(context.dialogTurns),
       journey: context.journey

@@ -9,6 +9,12 @@ import {
 } from './llm-intent-parser.js';
 import { buildIntentParsePrompt } from './llm-provider.js';
 
+before(() => {
+  if (!registry.registeredTypes().includes('kitchen')) {
+    registry.register(kitchenManifest);
+  }
+});
+
 describe('llm-intent-parser helpers', () => {
   it('extracts JSON from raw and fenced completions', () => {
     assert.deepEqual(extractJsonObject('{"kind":"help","confidence":0.9,"language":"en","slots":{}}'), {
@@ -31,6 +37,8 @@ describe('llm-intent-parser helpers', () => {
     assert.match(prompt, /add_module/);
     assert.match(prompt, /create_branch/);
     assert.match(prompt, /add base 600/);
+    assert.match(prompt, /roomWidthMm/);
+    assert.match(prompt, /roomDepthMm/);
   });
 });
 

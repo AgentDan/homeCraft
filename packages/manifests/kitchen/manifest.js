@@ -12,6 +12,7 @@ import { kitchenSlotVocabulary } from './slot-vocabulary.js';
 import { kitchenStarterOperations } from './starter-operations.js';
 import { kitchenJourneyQuestions } from './journey-questions.js';
 import { kitchenDp4Rules } from './dp4-rules.js';
+import { kitchenDefaultSite, kitchenSiteBindings } from './site.js';
 
 const compatibilityRules = [
   dimensionsRule,
@@ -45,6 +46,9 @@ export const kitchenManifest = {
   starterOperations: kitchenStarterOperations,
   wallMountHeightMm: 1400,
   defaultModuleWidthMm: 600,
+
+  defaultSite: kitchenDefaultSite,
+  siteBindings: kitchenSiteBindings,
 
   journeyQuestions: kitchenJourneyQuestions,
   dp4Rules: kitchenDp4Rules,

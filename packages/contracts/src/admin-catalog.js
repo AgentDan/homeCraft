@@ -35,7 +35,7 @@ export const ADMIN_CONDITION_OPERATORS = Object.freeze([
   'lte'
 ]);
 
-/** Slots allowed for journey questions (Ф1 seed + closed set). */
+/** Kitchen journey slots allowed in the admin UI (Ф1 seed + closed kitchen set). */
 export const ADMIN_KNOWN_SLOTS = Object.freeze([
   'clientName',
   'projectGoal',
@@ -48,7 +48,7 @@ export const ADMIN_KNOWN_SLOTS = Object.freeze([
   'budgetEur'
 ]);
 
-/** Condition `field` paths for recommendation rules (Ф2/Ф3 context). */
+/** Kitchen condition `field` paths for recommendation rules (Ф2/Ф3 context). */
 export const ADMIN_CONDITION_FIELDS = Object.freeze([
   'phase',
   'known.clientName',

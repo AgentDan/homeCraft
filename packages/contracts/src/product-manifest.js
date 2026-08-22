@@ -65,6 +65,14 @@ export const ProductManifestSchema = z.object({
   // Default module width fallback in mm when a SKU is missing from the candidate list.
   defaultModuleWidthMm: z.number().optional(),
 
+  // Default site/environment payload for this domain (room shell, niche, etc.).
+  // If omitted, the server falls back to a generic defaultRoomShape().
+  defaultSite: z.function().optional(),
+
+  // Declarative slot → site path bindings (e.g. roomWidthMm → dimensions.widthMm).
+  // Core applySiteBindings() walks this table; empty/omitted is a no-op.
+  siteBindings: z.array(z.record(z.unknown())).optional(),
+
   // Вопросы Discovery-фазы (Journey).
   journeyQuestions: z.array(z.record(z.unknown())),
 

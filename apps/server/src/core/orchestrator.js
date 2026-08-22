@@ -1,12 +1,13 @@
 import {
   CommandOutcomeKindSchema,
-  IntentKindSchema
+  IntentKindSchema,
+  registry
 } from '@homecraft/contracts';
 import { runAiPipeline } from '../ai-services/pipeline.js';
 import { buildClarifyResponse, buildChangeSummary } from './output-builder.js';
 import {
   appendDialogTurn,
-  applyRoomDimensionSlots,
+  applySiteBindings,
   buildRoomContext,
   persistRoomContext
 } from './room-context-builder.js';
@@ -227,7 +228,12 @@ async function resolveRoutedCommand(request, context) {
     journey: ensureJourneyState(context.journey)
   };
   const { intent, plan, outcome } = await runAiPipeline(request, withJourney);
-  let nextContext = applyRoomDimensionSlots(withJourney, intent);
+  const productType = 'kitchen';
+  const manifest = registry.get(productType);
+  let nextContext = applySiteBindings(manifest, withJourney, {
+    slots: 'slots' in intent ? intent.slots : {},
+    known: {}
+  });
   const language = normalizeLanguage(request.language ?? intent.language);
 
   // Journey router before intent handlers: answer vs command (commands not blocked).
