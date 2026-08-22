@@ -9,6 +9,7 @@ import { check as utilitiesRule } from './compatibility-rules/utilities.js';
 import { check as clearancesRule } from './compatibility-rules/clearances.js';
 import { kitchenIntentRules } from './intent-rules.js';
 import { kitchenSlotVocabulary } from './slot-vocabulary.js';
+import { kitchenStarterOperations } from './starter-operations.js';
 import { kitchenJourneyQuestions } from './journey-questions.js';
 import { kitchenDp4Rules } from './dp4-rules.js';
 
@@ -41,6 +42,9 @@ export const kitchenManifest = {
 
   intentRules: kitchenIntentRules,
   slotVocabulary: kitchenSlotVocabulary,
+  starterOperations: kitchenStarterOperations,
+  wallMountHeightMm: 1400,
+  defaultModuleWidthMm: 600,
 
   journeyQuestions: kitchenJourneyQuestions,
   dp4Rules: kitchenDp4Rules,

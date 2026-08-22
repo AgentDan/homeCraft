@@ -55,6 +55,16 @@ export const ProductManifestSchema = z.object({
   // If omitted, extractSlots skips sku/category/finishId/layout keyword detection.
   slotVocabulary: z.record(z.unknown()).optional(),
 
+  // Starter-layout operations for slots.layout === 'starter_kitchen' (or domain equivalent).
+  // If omitted/empty, generatePlan falls through to the single-candidate add_module flow.
+  starterOperations: z.array(z.record(z.unknown())).optional(),
+
+  // Wall-cabinet mount height in mm. If omitted, wall modules are placed at y = 0.
+  wallMountHeightMm: z.number().optional(),
+
+  // Default module width fallback in mm when a SKU is missing from the candidate list.
+  defaultModuleWidthMm: z.number().optional(),
+
   // Вопросы Discovery-фазы (Journey).
   journeyQuestions: z.array(z.record(z.unknown())),
 

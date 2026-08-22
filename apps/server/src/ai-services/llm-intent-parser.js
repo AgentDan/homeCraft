@@ -21,7 +21,7 @@ export async function parseIntentWithLlm(text, language, options) {
     buildIntentParsePrompt(rawText, language)
   );
   const json = extractJsonObject(completion);
-  if (!json) return null;
+  if (!json || typeof json !== 'object' || Array.isArray(json)) return null;
 
   const candidate = normalizeLlmPayload(json, rawText, language);
   const parsed = IntentResultSchema.safeParse(candidate);
@@ -53,13 +53,15 @@ export function extractJsonObject(text) {
 }
 
 /**
- * @param {Record<string, unknown>} json
+ * @param {unknown} json
  * @param {string} rawText
  * @param {string | undefined} language
  */
 function normalizeLlmPayload(json, rawText, language) {
-  if (!json || typeof json !== 'object') return json;
-  const payload = /** @type {Record<string, unknown>} */ ({ ...json });
+  if (!json || typeof json !== 'object' || Array.isArray(json)) return json;
+  const payload = /** @type {Record<string, unknown>} */ ({
+    .../** @type {Record<string, unknown>} */ (json)
+  });
   payload.rawText = rawText;
   if (!payload.language && language) {
     payload.language = language;

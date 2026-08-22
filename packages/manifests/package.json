@@ -6,6 +6,7 @@
   "exports": {
     "./kitchen": "./kitchen/manifest.js",
     "./kitchen/intent-rules": "./kitchen/intent-rules.js",
+    "./kitchen/starter-operations": "./kitchen/starter-operations.js",
     "./desk": "./desk/manifest.js",
     "./desk/intent-rules": "./desk/intent-rules.js"
   }

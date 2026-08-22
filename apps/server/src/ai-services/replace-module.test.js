@@ -1,8 +1,16 @@
-import { describe, it } from 'node:test';
+import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
+import { registry } from '@homecraft/contracts';
+import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import { generatePlan } from './configuration-plan-generator.js';
 
 describe('configuration-plan-generator replace_module', () => {
+  before(() => {
+    if (!registry.registeredTypes().includes('kitchen')) {
+      registry.register(kitchenManifest);
+    }
+  });
+
   it('appends replace_module for a conflict-resolution swap', async () => {
     const { plan, outcome } = await generatePlan({
       intent: {

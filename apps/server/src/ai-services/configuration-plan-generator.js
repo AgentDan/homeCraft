@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
 import {
   ConfigurationPlanSchema,
-  createEmptyPlan
+  createEmptyPlan,
+  registry
 } from '@homecraft/contracts';
 import { normalizeLanguage, t } from '../i18n/messages.js';
 
@@ -61,44 +62,15 @@ function activeInstances(operations) {
   return [...modules.values()];
 }
 
-function nextPosition(operations, candidates) {
+function nextPosition(operations, candidates, defaultWidthMm = 600) {
   const widths = new Map(candidates.map((module) => [module.sku, module.dimensions.widthMm]));
   return operations
     .filter((operation) => operation.type === 'add_module')
     .reduce(
       (rightEdge, operation) =>
-        Math.max(rightEdge, operation.position.x + (widths.get(operation.sku) ?? 600)),
+        Math.max(rightEdge, operation.position.x + (widths.get(operation.sku) ?? defaultWidthMm)),
       0
     );
-}
-
-function starterKitchenOperations() {
-  return [
-    {
-      type: 'add_module',
-      sku: 'SINK-600',
-      position: { x: 0, y: 0, z: 0 },
-      rotationY: 0
-    },
-    {
-      type: 'add_module',
-      sku: 'BASE-600',
-      position: { x: 600, y: 0, z: 0 },
-      rotationY: 0
-    },
-    {
-      type: 'add_module',
-      sku: 'DRAWER-400',
-      position: { x: 1200, y: 0, z: 0 },
-      rotationY: 0
-    },
-    {
-      type: 'add_module',
-      sku: 'WALL-600',
-      position: { x: 600, y: 1400, z: 0 },
-      rotationY: 0
-    }
-  ];
 }
 
 /**
@@ -108,13 +80,16 @@ export async function generatePlan(input) {
   const operations = structuredClone(input.context.planOperations ?? []);
   const slots = input.intent.slots ?? {};
   const language = normalizeLanguage(input.intent.language);
+  const productType = input.context.productType ?? 'kitchen';
+  const manifest = registry.get(productType);
 
   if (input.intent.kind === 'add_module') {
-    if (slots.layout === 'starter_kitchen') {
-      operations.push(...starterKitchenOperations());
+    const starterOperations = manifest.starterOperations ?? [];
+    if (slots.layout === 'starter_kitchen' && starterOperations.length > 0) {
+      operations.push(.../** @type {typeof operations} */ (starterOperations));
       return {
         plan: createPlan(input, operations),
-        outcome: { kind: 'applied', addedCount: 4 }
+        outcome: { kind: 'applied', addedCount: starterOperations.length }
       };
     }
 
@@ -132,8 +107,12 @@ export async function generatePlan(input) {
       type: 'add_module',
       sku: candidate.sku,
       position: {
-        x: nextPosition(operations, input.candidates),
-        y: candidate.mounting === 'wall' ? 1400 : 0,
+        x: nextPosition(
+          operations,
+          input.candidates,
+          manifest.defaultModuleWidthMm ?? 600
+        ),
+        y: candidate.mounting === 'wall' ? (manifest.wallMountHeightMm ?? 0) : 0,
         z: 0
       },
       rotationY: 0
