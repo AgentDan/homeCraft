@@ -95,7 +95,18 @@ describe('ProductManifest contracts', () => {
   });
 
   it('initDomain invokes journey and DP4 callbacks from the manifest', () => {
-    const questions = [{ id: 'q1' }];
+    const questions = [
+      {
+        id: 'clientName',
+        slot: 'clientName',
+        stage: 'intro',
+        order: 10,
+        i18nKey: 'journeyAskClientName',
+        validation: { type: 'text', minLength: 1, maxLength: 80 },
+        dependsOn: null,
+        active: true
+      }
+    ];
     const rules = [{ ruleId: 'r1' }];
     const manifest = ProductManifestSchema.parse({
       productType: 'init-domain-test',

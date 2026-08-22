@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { JourneyQuestionTableSchema } from './journey-question.js';
 
 export { ProductTypeSchema } from './configuration-plan.js';
 
@@ -74,7 +75,7 @@ export const ProductManifestSchema = z.object({
   siteBindings: z.array(z.record(z.unknown())).optional(),
 
   // Вопросы Discovery-фазы (Journey).
-  journeyQuestions: z.array(z.record(z.unknown())),
+  journeyQuestions: JourneyQuestionTableSchema,
 
   // Правила DP4-рекомендаций для этого домена.
   dp4Rules: z.array(z.record(z.unknown())),

@@ -224,12 +224,14 @@ async function runDefaultIntentPath(input) {
  */
 async function resolveRoutedCommand(request, context) {
   const productType = context.productType ?? 'kitchen';
+  /** @type {import('./intent-handlers/types.js').RoomContext} */
   const withJourney = {
     ...context,
     journey: ensureJourneyState(context.journey, productType)
   };
   const { intent, plan, outcome } = await runAiPipeline(request, withJourney);
   const manifest = registry.get(productType);
+  /** @type {import('./intent-handlers/types.js').RoomContext} */
   let nextContext = applySiteBindings(manifest, withJourney, {
     slots: 'slots' in intent ? intent.slots : {},
     known: {}

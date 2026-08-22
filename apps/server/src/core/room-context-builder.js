@@ -47,15 +47,18 @@ function setPath(target, path, value) {
  * Applies manifest.siteBindings onto context.site / context.roomShape.
  * No-op (same object) when the table is missing or empty.
  *
+ * @template T
  * @param {{ siteBindings?: Array<{ slot?: string, path?: string }> } | null | undefined} manifest
- * @param {Record<string, unknown>} context
- * @param {{ slots?: Record<string, unknown>, known?: Record<string, unknown> }} sources
+ * @param {T} context
+ * @param {{ slots?: Record<string, unknown>, known?: Record<string, unknown> }} [sources]
+ * @returns {T}
  */
 export function applySiteBindings(manifest, context, { slots, known } = {}) {
   const bindings = manifest?.siteBindings ?? [];
   if (bindings.length === 0) return context;
 
-  const source = context.site ?? context.roomShape;
+  const record = /** @type {{ site?: unknown, roomShape?: unknown }} */ (context);
+  const source = record.site ?? record.roomShape;
   if (source == null) return context;
 
   const site = structuredClone(source);
@@ -67,7 +70,7 @@ export function applySiteBindings(manifest, context, { slots, known } = {}) {
     if (value == null) continue;
     setPath(/** @type {Record<string, unknown>} */ (site), path, value);
   }
-  return { ...context, site, roomShape: site };
+  return /** @type {T} */ ({ ...context, site, roomShape: site });
 }
 
 /**

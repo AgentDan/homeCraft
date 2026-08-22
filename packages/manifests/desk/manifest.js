@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createEmptyPlan } from '@homecraft/contracts';
+import { createEmptyPlan, JourneyQuestionTableSchema } from '@homecraft/contracts';
 import { assertCompatible } from '../../../apps/server/src/compatibility-engine/assertCompatible.js';
 import { calculateBOM } from '../../../apps/server/src/pricing-engine/calculateBOM.js';
 import { check as dimensionsRule } from './compatibility-rules/dimensions.js';
@@ -29,7 +29,7 @@ const catalogPath = path.join(
  * Stub desk journey questions.
  * Минимум для валидного манифеста — заменить реальными вопросами позже.
  */
-const DESK_JOURNEY_QUESTIONS = [
+const DESK_JOURNEY_QUESTIONS = JourneyQuestionTableSchema.parse([
   {
     id: 'clientName',
     slot: 'clientName',
@@ -60,7 +60,7 @@ const DESK_JOURNEY_QUESTIONS = [
     dependsOn: null,
     active: true
   }
-];
+]);
 
 /** @type {import('zod').infer<typeof import('@homecraft/contracts').ProductManifestSchema>} */
 export const deskManifest = {
