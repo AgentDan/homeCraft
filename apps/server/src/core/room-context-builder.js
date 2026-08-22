@@ -108,6 +108,7 @@ export async function buildRoomContext(
     userId,
     inputChannel,
     catalogSnapshotId: persisted.catalogSnapshotId ?? DEFAULT_SNAPSHOT,
+    productType,
     roomShape,
     site,
     budgetEur: persisted.budgetEur,

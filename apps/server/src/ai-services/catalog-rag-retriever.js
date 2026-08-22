@@ -5,15 +5,6 @@ import {
   vectorize
 } from '../knowledge-base/indexer.js';
 
-const STOP_WORDS = new Set([
-  'module',
-  'add',
-  'please',
-  'my',
-  'for',
-  'kitchen'
-]);
-
 function tokenMatches(queryToken, indexedToken) {
   if (queryToken === indexedToken) return true;
   if (queryToken.length < 4 || indexedToken.length < 4) return false;
@@ -36,13 +27,14 @@ function cosineSimilarity(left, right) {
   );
 }
 
-export async function retrieve(query, catalogId, k = 5) {
+export async function retrieve(query, catalogId, k = 5, ragOptions = {}) {
   const index = await loadCatalogIndex();
   if (index.catalogVersion !== catalogId) {
     throw new Error(`Catalog index "${catalogId}" was not found.`);
   }
 
-  const queryTokens = tokenize(query).filter((token) => !STOP_WORDS.has(token));
+  const stopWords = new Set(ragOptions.stopWords ?? []);
+  const queryTokens = tokenize(query).filter((token) => !stopWords.has(token));
   const queryVector = vectorize(queryTokens);
   const ranked = index.modules
     .map((entry) => ({
@@ -62,9 +54,12 @@ export async function retrieve(query, catalogId, k = 5) {
 
   if (
     ranked.length === 0
+    && ragOptions.fallbackSku
     && /module|cabinet/i.test(query)
   ) {
-    const fallback = index.modules.find((entry) => entry.module.sku === 'BASE-600');
+    const fallback = index.modules.find(
+      (entry) => entry.module.sku === ragOptions.fallbackSku
+    );
     if (fallback) {
       ranked.push({
         ...fallback.module,

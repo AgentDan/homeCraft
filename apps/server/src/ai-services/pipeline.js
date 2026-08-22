@@ -5,6 +5,7 @@ import {
   retrievePlatformRules
 } from './catalog-rag-retriever.js';
 import { runtimeConfig } from '../config/runtime.js';
+import { registry } from '@homecraft/contracts';
 
 /**
  * AI pipeline: intent → retrieve → plan.
@@ -12,10 +13,15 @@ import { runtimeConfig } from '../config/runtime.js';
  */
 export async function runAiPipeline(request, context) {
   const dialogText = request.command;
-  const intent = await detectIntent(dialogText, request.language);
+  const productType = context.productType ?? 'kitchen';
+  const manifest = registry.get(productType);
+  const intent = await detectIntent(dialogText, request.language, { productType });
 
   const [candidates, platformRules] = await Promise.all([
-    retrieve(dialogText, context.catalogSnapshotId, runtimeConfig.kbTopK),
+    retrieve(dialogText, context.catalogSnapshotId, runtimeConfig.kbTopK, {
+      stopWords: manifest.ragStopWords,
+      fallbackSku: manifest.ragFallbackSku
+    }),
     retrievePlatformRules(dialogText, 3)
   ]);
   const { plan, outcome } = await generatePlan({

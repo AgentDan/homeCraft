@@ -79,6 +79,23 @@ export const ProductManifestSchema = z.object({
   // Правила DP4-рекомендаций для этого домена.
   dp4Rules: z.array(z.record(z.unknown())),
 
+  // Deterministic DP4 SKU/category mapping (kitchen today; omitted = no DP4 catalog map).
+  dp4SkuMap: z.object({
+    defaultSku: z.string(),
+    defaultCategory: z.string(),
+    byFacade: z.record(z.string()).optional(),
+    lowBudgetSku: z.string().optional(),
+    lowBudgetEur: z.number().optional()
+  }).optional(),
+
+  ragStopWords: z.array(z.string()).optional(),
+  ragFallbackSku: z.string().optional(),
+
+  minEnforcedClearanceMm: z.number().optional(),
+  maxConnectionDistanceMm: z.number().optional(),
+  spatialIndexCellMm: z.number().optional(),
+  vatInclusivePercent: z.number().optional(),
+
   // Начальный план при старте сессии (аналог starterKitchenOperations).
   starterPlan: z.function()
     .args()

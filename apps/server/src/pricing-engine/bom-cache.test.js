@@ -72,6 +72,10 @@ describe('Phase 3 BOM cache + catalog snapshots', () => {
     assert.equal(afterMiss.misses, 1);
     assert.equal(afterMiss.hits, 0);
     assert.ok(first.totalEur > 0);
+    assert.equal(first.subtotalEur, 14900);
+    assert.equal(first.vatEur, Math.round((14900 * 20) / 120));
+    assert.equal(first.vatEur, 2483);
+    assert.equal(first.totalEur, 14900);
 
     const second = await getCachedBOM(plan, SNAPSHOT);
     const afterHit = getBomCacheStats();

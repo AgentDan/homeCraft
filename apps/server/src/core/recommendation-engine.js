@@ -218,8 +218,15 @@ export function evaluateRecommendationRules(ctx, rules = activeRules) {
  * Map known survey answers → catalog slots (deterministic; no LLM).
  * @param {Record<string, string>} filters
  * @param {Record<string, unknown>} known
+ * @param {{
+ *   defaultSku?: string,
+ *   defaultCategory?: string,
+ *   byFacade?: Record<string, string>,
+ *   lowBudgetSku?: string,
+ *   lowBudgetEur?: number
+ * } | null | undefined} dp4SkuMap
  */
-export function resolveCatalogSlotsFromFilters(filters, known) {
+export function resolveCatalogSlotsFromFilters(filters, known, dp4SkuMap) {
   /** @type {Record<string, string | number>} */
   const slots = {};
   for (const [key, value] of Object.entries(filters)) {
@@ -229,23 +236,24 @@ export function resolveCatalogSlotsFromFilters(filters, known) {
     slots[key] = value;
   }
 
+  const map = dp4SkuMap ?? {};
   if (filters.preferFrom === 'known') {
     const facade = known.facadeMaterialPreference;
-    if (facade === 'durable') slots.sku = 'BASE-600';
-    else if (facade === 'soft') slots.sku = 'DRAWER-600';
-    else if (facade === 'mixed') slots.sku = 'BASE-800';
+    if (facade && map.byFacade?.[/** @type {string} */ (facade)]) {
+      slots.sku = map.byFacade[/** @type {string} */ (facade)];
+    }
 
     const budget = known.budgetEur;
-    if (typeof budget === 'number' && budget < 15000) {
-      slots.sku = 'BASE-400';
+    if (typeof budget === 'number' && map.lowBudgetEur != null && budget < map.lowBudgetEur) {
+      slots.sku = map.lowBudgetSku;
     }
-    if (!slots.sku) slots.sku = 'BASE-600';
-    if (!slots.category) slots.category = 'base_cabinet';
+    if (!slots.sku) slots.sku = map.defaultSku;
+    if (!slots.category) slots.category = map.defaultCategory;
   }
 
   if (!slots.sku && filters.sku) slots.sku = filters.sku;
   if (!slots.category && filters.category) slots.category = filters.category;
-  if (!slots.sku) slots.sku = 'BASE-600';
+  if (!slots.sku) slots.sku = map.defaultSku;
 
   return slots;
 }
@@ -255,12 +263,21 @@ export function resolveCatalogSlotsFromFilters(filters, known) {
  * @param {{
  *   known: Record<string, unknown>,
  *   decisionState: import('zod').infer<typeof import('@homecraft/contracts').DecisionStateSchema>,
- *   language: string
+ *   language: string,
+ *   dp4SkuMap?: {
+ *     defaultSku?: string,
+ *     defaultCategory?: string,
+ *     byFacade?: Record<string, string>,
+ *     lowBudgetSku?: string,
+ *     lowBudgetEur?: number
+ *   } | null
  * }} ctx
  */
 export function buildConfigurationIntent(decision, ctx) {
-  const slots = resolveCatalogSlotsFromFilters(decision.filters, ctx.known);
-  const primarySku = String(slots.sku);
+  const slots = resolveCatalogSlotsFromFilters(decision.filters, ctx.known, ctx.dp4SkuMap);
+  const primarySku = typeof slots.sku === 'string' && slots.sku
+    ? String(slots.sku)
+    : undefined;
   const rejected = new Set(
     (ctx.decisionState.rejectedIds ?? []).map((entry) => entry.variantId)
   );
@@ -286,9 +303,10 @@ export function buildConfigurationIntent(decision, ctx) {
  * @param {string[]} topics
  * @param {{ primarySku?: string, alternativeSkus?: string[] }} intent
  * @param {import('../i18n/messages.js').Language} language
+ * @param {{ defaultSku?: string } | null | undefined} [dp4SkuMap]
  */
-export function buildDialogueSpeech(topics, intent, language) {
-  const sku = intent.primarySku ?? 'BASE-600';
+export function buildDialogueSpeech(topics, intent, language, dp4SkuMap) {
+  const sku = intent.primarySku ?? dp4SkuMap?.defaultSku;
   const alts = intent.alternativeSkus ?? [];
   const parts = [t(language, 'dp4PrimaryRecommendation', { sku })];
 
@@ -331,6 +349,8 @@ export function shouldTriggerDp4(request, intent, journey) {
  * }} input
  */
 export async function runDp4Recommendation({ request, context, language }) {
+  const manifest = registry.get(context.productType ?? 'kitchen');
+  const dp4SkuMap = manifest.dp4SkuMap;
   const clientId = request.projectId;
   const journey = context.journey;
   await updateDecisionStateFromEventSafe(clientId, null, {
@@ -355,17 +375,35 @@ export async function runDp4Recommendation({ request, context, language }) {
   };
 
   const decision = evaluateRecommendationRules(ruleCtx);
+
+  // Domains without a catalog SKU map (desk today) skip configuration — no kitchen SKU invented.
+  if (!dp4SkuMap) {
+    return {
+      context,
+      response: buildClarifyResponse(
+        request,
+        t(language, 'clarifyAddModule'),
+        context.planVersion
+      ),
+      outcomeKind: OUTCOME.clarify,
+      createdVersion: false,
+      decision
+    };
+  }
+
   const configIntent = buildConfigurationIntent(decision, {
     known: ruleCtx.known,
     decisionState,
-    language
+    language,
+    dp4SkuMap
   });
 
   // Dialogue Action — can leave immediately (message ready before config gate).
   const dialogueSpeech = buildDialogueSpeech(
     decision.dialogueTopics,
     configIntent,
-    language
+    language,
+    dp4SkuMap
   );
 
   const snapshot = await getCatalogSnapshot(context.catalogSnapshotId);
@@ -395,7 +433,6 @@ export async function runDp4Recommendation({ request, context, language }) {
   }
 
   // Configuration Action — only after positive assertCompatible.
-  const manifest = registry.get(plan.productType ?? 'kitchen');
   const compatibility = await manifest.assertCompatible(plan, context);
   if (!compatibility.valid) {
     const reason =
@@ -434,7 +471,7 @@ export async function runDp4Recommendation({ request, context, language }) {
 
   const message = t(language, 'dp4ConfigApplied', {
     speech: dialogueSpeech,
-    sku: configIntent.primarySku ?? 'BASE-600',
+    sku: configIntent.primarySku ?? dp4SkuMap.defaultSku,
     totalEur: bom.totalEur
   });
 

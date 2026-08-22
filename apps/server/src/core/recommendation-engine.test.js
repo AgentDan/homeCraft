@@ -13,6 +13,7 @@ import {
 } from './recommendation-engine.js';
 import { createDefaultJourneyState, registry } from '@homecraft/contracts';
 import { kitchenManifest } from '@homecraft/manifests/kitchen';
+import { deskManifest } from '@homecraft/manifests/desk';
 import { ensureStorage } from '../storage/local-storage.js';
 import { loadObservationTimeline } from '../storage/journey-events.js';
 import { updateDecisionStateFromEvent } from './decision-state.js';
@@ -28,6 +29,9 @@ describe('recommendation-engine DP4', () => {
     replaceRecommendationRules(kitchenManifest.dp4Rules);
     if (!registry.registeredTypes().includes('kitchen')) {
       registry.register(kitchenManifest);
+    }
+    if (!registry.registeredTypes().includes('desk')) {
+      registry.register(deskManifest);
     }
   });
 
@@ -138,7 +142,8 @@ describe('recommendation-engine DP4', () => {
         readinessScore: 0.8,
         lastSignals: []
       },
-      language: 'en'
+      language: 'en',
+      dp4SkuMap: kitchenManifest.dp4SkuMap
     });
     assert.equal(intent.primarySku, 'DRAWER-600');
     assert.deepEqual(intent.alternativeSkus, ['DRAWER-400', 'WALL-600']);
@@ -226,5 +231,54 @@ describe('recommendation-engine DP4', () => {
     });
     const timeline = await loadObservationTimeline(projectId);
     assert.ok(timeline.some((event) => event.kind === 'outcome'));
+  });
+
+  it('skips configuration without throwing when the manifest has no dp4SkuMap', async () => {
+    const projectId = `proj-dp4-desk-${Date.now()}`;
+    const sessionId = `sess-dp4-desk-${Date.now()}`;
+    const request = {
+      requestId: `req-dp4-desk-${Date.now()}`,
+      sessionId,
+      projectId,
+      command: 'recommend a desk',
+      language: /** @type {const} */ ('en'),
+      expectedVersion: 0,
+      inputChannel: /** @type {const} */ ('text'),
+      clientState: { dp4: true }
+    };
+    const context = {
+      projectId,
+      sessionId,
+      productType: 'desk',
+      inputChannel: /** @type {const} */ ('text'),
+      catalogSnapshotId: 'kitchen-demo-v1',
+      roomShape: {
+        dimensions: { widthMm: 3000, depthMm: 4000, heightMm: 2700 },
+        walls: [],
+        openings: [],
+        utilities: []
+      },
+      planOperations: [],
+      planVersion: 0,
+      dialogTurns: [],
+      journey: {
+        ...createDefaultJourneyState(),
+        stage: 'done',
+        mode: 'guided',
+        known: {},
+        missing: [],
+        pendingQuestionId: null
+      },
+      updatedAt: new Date().toISOString()
+    };
+
+    const result = await runDp4Recommendation({
+      request,
+      context,
+      language: 'en'
+    });
+    assert.equal(result.outcomeKind, 'clarify');
+    assert.equal(result.createdVersion, false);
+    assert.equal(result.configurationIntent, undefined);
   });
 });

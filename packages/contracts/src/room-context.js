@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PlanOperationSchema } from './configuration-plan.js';
+import { PlanOperationSchema, ProductTypeSchema } from './configuration-plan.js';
 import {
   ProjectJourneyStateSchema,
   createDefaultJourneyState
@@ -46,6 +46,7 @@ export const RoomContextSchema = z.object({
   userId: z.string().optional(),
   inputChannel: z.enum(['text', 'voice']).default('text'),
   catalogSnapshotId: z.string().min(1),
+  productType: ProductTypeSchema.optional(),
   roomShape: RoomShapeSchema,
   // Manifest-owned site payload (same data as roomShape during the transition).
   site: z.unknown().optional(),

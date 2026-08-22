@@ -71,10 +71,18 @@ export const deskManifest = {
 
   // assertCompatible и calculateBOM универсальны — работают через catalog SKU.
   assertCompatible: (plan, context) =>
-    assertCompatible(plan, context, { compatibilityRules }),
-  calculateBOM: (plan, catalogSnapshotId) => calculateBOM(plan, catalogSnapshotId),
+    assertCompatible(plan, context, { compatibilityRules, manifest: deskManifest }),
+  calculateBOM: (plan, catalogSnapshotId) =>
+    calculateBOM(plan, catalogSnapshotId, deskManifest),
 
   intentRules: deskIntentRules,
+
+  // Same numbers as kitchen for now — desk has no domain-specific
+  // clearances/utilities/VAT of its own yet (same precedent as defaultSite).
+  minEnforcedClearanceMm: 20,
+  maxConnectionDistanceMm: 900,
+  spatialIndexCellMm: 1000,
+  vatInclusivePercent: 20,
 
   defaultSite: deskDefaultSite,
   siteBindings: deskSiteBindings,

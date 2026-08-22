@@ -2,7 +2,7 @@ import { BOMSchema } from '@homecraft/contracts';
 import { materializePlan } from '../domain-modules/kitchen/materialize-plan.js';
 
 /** Pure BOM calculator — never rejects plans for budget. */
-export async function calculateBOM(plan, catalogSnapshotId) {
+export async function calculateBOM(plan, catalogSnapshotId, manifest) {
   const modules = await materializePlan(plan);
   const grouped = new Map();
 
@@ -28,7 +28,8 @@ export async function calculateBOM(plan, catalogSnapshotId) {
 
   const lines = [...grouped.values()];
   const subtotalEur = lines.reduce((sum, line) => sum + line.lineTotalEur, 0);
-  const vatEur = Math.round((subtotalEur * 20) / 120);
+  const vat = manifest?.vatInclusivePercent ?? 20;
+  const vatEur = Math.round((subtotalEur * vat) / (100 + vat));
   return BOMSchema.parse({
     catalogSnapshotId,
     lines,

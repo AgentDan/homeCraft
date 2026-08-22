@@ -12,6 +12,7 @@ import { kitchenSlotVocabulary } from './slot-vocabulary.js';
 import { kitchenStarterOperations } from './starter-operations.js';
 import { kitchenJourneyQuestions } from './journey-questions.js';
 import { kitchenDp4Rules } from './dp4-rules.js';
+import { kitchenDp4SkuMap } from './dp4-sku-map.js';
 import { kitchenDefaultSite, kitchenSiteBindings } from './site.js';
 
 const compatibilityRules = [
@@ -37,21 +38,28 @@ export const kitchenManifest = {
   compatibilityRules,
 
   assertCompatible: (plan, ...args) =>
-    assertCompatible(plan, args[0], { compatibilityRules }),
+    assertCompatible(plan, args[0], { compatibilityRules, manifest: kitchenManifest }),
   calculateBOM: (plan, ...args) =>
-    calculateBOM(plan, /** @type {string} */ (args[0])),
+    calculateBOM(plan, /** @type {string} */ (args[0]), kitchenManifest),
 
   intentRules: kitchenIntentRules,
   slotVocabulary: kitchenSlotVocabulary,
   starterOperations: kitchenStarterOperations,
   wallMountHeightMm: 1400,
   defaultModuleWidthMm: 600,
+  minEnforcedClearanceMm: 20,
+  maxConnectionDistanceMm: 900,
+  spatialIndexCellMm: 1000,
+  vatInclusivePercent: 20,
+  ragStopWords: ['module', 'add', 'please', 'my', 'for', 'kitchen'],
+  ragFallbackSku: 'BASE-600',
 
   defaultSite: kitchenDefaultSite,
   siteBindings: kitchenSiteBindings,
 
   journeyQuestions: kitchenJourneyQuestions,
   dp4Rules: kitchenDp4Rules,
+  dp4SkuMap: kitchenDp4SkuMap,
 
   starterPlan: () => createEmptyPlan({
     planId: crypto.randomUUID(),

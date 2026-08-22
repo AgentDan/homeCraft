@@ -31,6 +31,31 @@ describe('@homecraft/server smoke', () => {
     assert.ok(modules.every((module) => module.source === 'catalog:kitchen-demo-v1'));
   });
 
+  it('retrieve with no ragOptions skips stop-word filtering and SKU fallback', async () => {
+    const catalogId = 'kitchen-demo-v1';
+
+    const cabinetHits = await retrieve('cabinet', catalogId, 5);
+    assert.ok(cabinetHits.length > 0, 'unfiltered query should match catalog tokens');
+
+    const stoppedNoFallback = await retrieve('cabinet', catalogId, 5, {
+      stopWords: ['cabinet']
+    });
+    assert.equal(stoppedNoFallback.length, 0);
+
+    const stoppedWithFallback = await retrieve('cabinet', catalogId, 5, {
+      stopWords: ['cabinet'],
+      fallbackSku: 'BASE-600'
+    });
+    assert.equal(stoppedWithFallback.length, 1);
+    assert.equal(stoppedWithFallback[0].sku, 'BASE-600');
+
+    const oakUnfiltered = await retrieve('oak', catalogId, 5);
+    assert.ok(oakUnfiltered.length > 0);
+
+    const oakStopped = await retrieve('oak', catalogId, 5, { stopWords: ['oak'] });
+    assert.equal(oakStopped.length, 0);
+  });
+
   it('compatibility accepts an empty Phase 1 plan', async () => {
     const plan = createEmptyPlan({
       planId: 'p1',

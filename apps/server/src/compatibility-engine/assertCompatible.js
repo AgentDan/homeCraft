@@ -24,8 +24,8 @@ export async function assertCompatible(plan, context, options = {}) {
     });
   }
 
-  const index = buildSpatialIndex(modules);
-  const ruleContext = { modules, context, index };
+  const index = buildSpatialIndex(modules, options.manifest?.spatialIndexCellMm ?? 1000);
+  const ruleContext = { modules, context, index, manifest: options.manifest };
 
   const rules = options.compatibilityRules;
   if (!Array.isArray(rules) || rules.length === 0) {

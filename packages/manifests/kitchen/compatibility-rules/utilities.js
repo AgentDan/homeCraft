@@ -8,13 +8,13 @@ import { centerXZ } from '../../../../apps/server/src/compatibility-engine/rules
  * kind, that requirement is treated as "not modeled yet" and skipped rather than
  * rejected — this keeps Phase 1 rooms (empty utilities) valid.
  */
-const MAX_UTILITY_DISTANCE_MM = 900;
 
 /**
  * @param {import('../../../../apps/server/src/compatibility-engine/rules/types.js').RuleContext} ctx
  * @returns {import('../../../../apps/server/src/compatibility-engine/rules/types.js').Conflict[]}
  */
-export function check({ modules, context }) {
+export function check({ modules, context, manifest }) {
+  const maxDistance = manifest?.maxConnectionDistanceMm ?? 900;
   const conflicts = [];
   const points = context.roomShape.utilities ?? [];
   if (points.length === 0) return conflicts;
@@ -32,7 +32,7 @@ export function check({ modules, context }) {
 
       const withinReach = pointsOfKind.some((point) => {
         const distance = Math.hypot(point.position.x - center.x, point.position.z - center.z);
-        return distance <= MAX_UTILITY_DISTANCE_MM;
+        return distance <= maxDistance;
       });
 
       if (!withinReach) missing.push(kind);

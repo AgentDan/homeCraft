@@ -49,6 +49,7 @@
  * @property {PlacedModule[]} modules
  * @property {{ roomShape: RoomShapeLike }} context
  * @property {ReturnType<import('../spatial-index.js').buildSpatialIndex>} index
+ * @property {object} [manifest]
  */
 
 export {};

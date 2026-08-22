@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { BOMSchema } from '@homecraft/contracts';
+import { BOMSchema, registry } from '@homecraft/contracts';
 import { calculateBOM } from './calculateBOM.js';
 import { getRedisClient, redisConfigured } from '../storage/redis.js';
 import { runtimeConfig } from '../config/runtime.js';
@@ -71,7 +71,8 @@ export async function getCachedBOM(plan, catalogSnapshotId) {
   }
 
   stats.misses += 1;
-  const bom = await calculateBOM(plan, catalogSnapshotId);
+  const manifest = registry.get(plan.productType ?? 'kitchen');
+  const bom = await calculateBOM(plan, catalogSnapshotId, manifest);
   const serialized = JSON.stringify(bom);
   rememberMemory(key, serialized);
 

@@ -9,13 +9,13 @@ import { footprint } from '../../../../apps/server/src/compatibility-engine/rule
  * not be treated as required gaps — otherwise a normal run of base cabinets would
  * be rejected. Values below the threshold are considered cosmetic and ignored.
  */
-const MIN_ENFORCED_CLEARANCE_MM = 20;
 
 /**
  * @param {import('../../../../apps/server/src/compatibility-engine/rules/types.js').RuleContext} ctx
  * @returns {import('../../../../apps/server/src/compatibility-engine/rules/types.js').Conflict[]}
  */
-export function check({ modules }) {
+export function check({ modules, manifest }) {
+  const minEnforced = manifest?.minEnforcedClearanceMm ?? 20;
   const conflicts = [];
   const reported = new Set();
 
@@ -40,7 +40,7 @@ export function check({ modules }) {
         left.clearances?.rightMm ?? 0,
         right.clearances?.leftMm ?? 0
       );
-      if (required < MIN_ENFORCED_CLEARANCE_MM || gap >= required) continue;
+      if (required < minEnforced || gap >= required) continue;
 
       const pair = [left.instanceId, right.instanceId].sort().join(':');
       if (reported.has(pair)) continue;

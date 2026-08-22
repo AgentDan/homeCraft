@@ -28,7 +28,8 @@ async function respondWithBranchPlan(input, entry, message, intentKind) {
     createEmptyPlan({
       planId: `plan-${request.projectId}-empty`,
       projectId: request.projectId,
-      catalogSnapshotId: context.catalogSnapshotId
+      catalogSnapshotId: context.catalogSnapshotId,
+      productType: context.productType
     });
   const version = entry?.version ?? 0;
 

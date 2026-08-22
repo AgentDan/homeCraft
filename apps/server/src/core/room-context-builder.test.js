@@ -1,6 +1,6 @@
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { registry } from '@homecraft/contracts';
+import { createEmptyPlan, registry, RoomContextSchema } from '@homecraft/contracts';
 import { kitchenManifest } from '@homecraft/manifests/kitchen';
 import { deskManifest } from '@homecraft/manifests/desk';
 import { applySiteBindings } from './room-context-builder.js';
@@ -116,5 +116,26 @@ describe('applySiteBindings + manifest site', () => {
     assert.equal(next.roomShape.dimensions.widthMm, 3200);
     assert.equal(next.roomShape.dimensions.depthMm, 4100);
     assert.equal(next.site, next.roomShape);
+  });
+
+  it('carries desk productType through to a branch empty-plan fallback', () => {
+    const context = RoomContextSchema.parse({
+      projectId: 'proj-desk-ctx',
+      sessionId: 'sess-desk-ctx',
+      catalogSnapshotId: 'kitchen-demo-v1',
+      productType: 'desk',
+      roomShape: baseSite(),
+      dialogTurns: [],
+      updatedAt: new Date().toISOString()
+    });
+    assert.equal(context.productType, 'desk');
+
+    const plan = createEmptyPlan({
+      planId: `plan-${context.projectId}-empty`,
+      projectId: context.projectId,
+      catalogSnapshotId: context.catalogSnapshotId,
+      productType: context.productType
+    });
+    assert.equal(plan.productType, 'desk');
   });
 });
