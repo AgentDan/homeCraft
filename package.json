@@ -11,6 +11,7 @@
     "packages/ai",
     "packages/catalog-schema",
     "packages/contracts",
+    "packages/engine",
     "packages/manifests"
   ],
   "scripts": {

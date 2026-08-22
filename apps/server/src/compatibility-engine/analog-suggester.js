@@ -15,9 +15,9 @@ const SPATIAL_KINDS = new Set([
 ]);
 
 /**
- * @param {import('./rules/types.js').PlacedModule | null | undefined} module
+ * @param {import('@homecraft/engine').PlacedModule | null | undefined} module
  * @param {{ modules: Array<{ sku: string, category: string, dimensions: { widthMm: number }, utilities?: string[] }> }} catalog
- * @param {import('./rules/types.js').ConflictKind} conflictKind
+ * @param {import('@homecraft/engine').ConflictKind} conflictKind
  * @returns {string[]}
  */
 export function suggestAnalogs(module, catalog, conflictKind) {

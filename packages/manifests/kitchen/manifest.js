@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createEmptyPlan } from '@homecraft/contracts';
 import { assertCompatible } from '../../../apps/server/src/compatibility-engine/assertCompatible.js';
 import { calculateBOM } from '../../../apps/server/src/pricing-engine/calculateBOM.js';
@@ -23,6 +25,11 @@ const compatibilityRules = [
   clearancesRule
 ];
 
+const policyPath = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  './policy.yaml'
+);
+
 /**
  * Первый доменный манифест. Здесь только ссылки на существующую
  * детерминированную кухонную реализацию — без новой бизнес-логики.
@@ -36,6 +43,8 @@ export const kitchenManifest = {
   slotsSchema: z.object({}),
 
   compatibilityRules,
+
+  policyPath,
 
   assertCompatible: (plan, ...args) =>
     assertCompatible(plan, args[0], { compatibilityRules, manifest: kitchenManifest }),

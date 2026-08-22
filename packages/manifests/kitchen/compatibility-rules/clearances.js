@@ -1,4 +1,4 @@
-import { footprint } from '../../../../apps/server/src/compatibility-engine/rules/geometry.js';
+import { footprint } from '@homecraft/engine';
 
 /**
  * Clearance rule: appliances that need breathing room must keep a side gap from
@@ -11,8 +11,8 @@ import { footprint } from '../../../../apps/server/src/compatibility-engine/rule
  */
 
 /**
- * @param {import('../../../../apps/server/src/compatibility-engine/rules/types.js').RuleContext} ctx
- * @returns {import('../../../../apps/server/src/compatibility-engine/rules/types.js').Conflict[]}
+ * @param {import('@homecraft/engine').RuleContext} ctx
+ * @returns {import('@homecraft/engine').Conflict[]}
  */
 export function check({ modules, manifest }) {
   const minEnforced = manifest?.minEnforcedClearanceMm ?? 20;

@@ -10,7 +10,8 @@
     "paths": {
       "@homecraft/ai": ["./packages/ai/src/index.js"],
       "@homecraft/contracts": ["./packages/contracts/src/index.js"],
-      "@homecraft/catalog-schema": ["./packages/catalog-schema/src/index.js"]
+      "@homecraft/catalog-schema": ["./packages/catalog-schema/src/index.js"],
+      "@homecraft/engine": ["./packages/engine/src/index.js"]
     },
     "esModuleInterop": true,
     "jsx": "react-jsx",

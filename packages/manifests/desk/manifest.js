@@ -17,7 +17,7 @@ const compatibilityRules = [
 
 const policyPath = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
-  '../../../apps/server/src/policy/desk-policy.yaml'
+  './policy.yaml'
 );
 
 /**

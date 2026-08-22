@@ -1,6 +1,7 @@
 /**
  * Shared JSDoc types for compatibility rules. This module intentionally exports
- * no runtime values — it only carries typedefs referenced via `import('./types.js')`.
+ * no runtime values — it only carries typedefs referenced via
+ * `import('@homecraft/engine').RuleContext` (aliased from `./index.js`).
  */
 
 /**
@@ -48,7 +49,7 @@
  * @typedef {object} RuleContext
  * @property {PlacedModule[]} modules
  * @property {{ roomShape: RoomShapeLike }} context
- * @property {ReturnType<import('../spatial-index.js').buildSpatialIndex>} index
+ * @property {{ getNeighbors: (instanceId: string) => string[] }} index
  * @property {object} [manifest]
  */
 

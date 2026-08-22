@@ -47,8 +47,8 @@ export async function assertCompatible(plan, context, options = {}) {
 
 /**
  * Populates `suggestedSkus` on each conflict from the frozen catalog snapshot.
- * @param {import('./rules/types.js').Conflict[]} conflicts
- * @param {import('./rules/types.js').PlacedModule[]} modules
+ * @param {import('@homecraft/engine').Conflict[]} conflicts
+ * @param {import('@homecraft/engine').PlacedModule[]} modules
  * @param {string} catalogSnapshotId
  */
 async function enrichWithSuggestions(conflicts, modules, catalogSnapshotId) {

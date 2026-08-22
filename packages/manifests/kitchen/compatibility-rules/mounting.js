@@ -1,8 +1,8 @@
 /** Mounting rule: wall units hang above the floor, everything else stands on it. */
 
 /**
- * @param {import('../../../../apps/server/src/compatibility-engine/rules/types.js').RuleContext} ctx
- * @returns {import('../../../../apps/server/src/compatibility-engine/rules/types.js').Conflict[]}
+ * @param {import('@homecraft/engine').RuleContext} ctx
+ * @returns {import('@homecraft/engine').Conflict[]}
  */
 export function check({ modules }) {
   const conflicts = [];

@@ -44,7 +44,7 @@ export const ProductManifestSchema = z.object({
   ).optional(),
 
   // Путь к policy.yaml для скоринга кандидатов при конфликте.
-  // Если не задан — используется дефолтный apps/server/src/policy/policy.yaml.
+  // Если не задан — loadPolicy() берёт kitchen default из packages/manifests.
   policyPath: z.string().optional(),
 
   // Intent-matching rules for this domain (kind + language matchers).

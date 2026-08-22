@@ -3,9 +3,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
+// Implicit kitchen default for loadPolicy() callers that omit `path`
+// (decide-candidates, policy tests). The file lives with the kitchen
+// manifest; desk (and kitchen via run-downstream) pass manifest.policyPath.
 const DEFAULT_POLICY_PATH = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
-  'policy.yaml'
+  '../../../../packages/manifests/kitchen/policy.yaml'
 );
 
 export const PolicySchema = z

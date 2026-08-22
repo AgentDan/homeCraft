@@ -1,4 +1,4 @@
-import { centerXZ } from '../../../../apps/server/src/compatibility-engine/rules/geometry.js';
+import { centerXZ } from '@homecraft/engine';
 
 /**
  * Utilities rule: a module that needs a connection (water, gas, electric, drain)
@@ -10,8 +10,8 @@ import { centerXZ } from '../../../../apps/server/src/compatibility-engine/rules
  */
 
 /**
- * @param {import('../../../../apps/server/src/compatibility-engine/rules/types.js').RuleContext} ctx
- * @returns {import('../../../../apps/server/src/compatibility-engine/rules/types.js').Conflict[]}
+ * @param {import('@homecraft/engine').RuleContext} ctx
+ * @returns {import('@homecraft/engine').Conflict[]}
  */
 export function check({ modules, context, manifest }) {
   const maxDistance = manifest?.maxConnectionDistanceMm ?? 900;

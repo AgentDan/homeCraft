@@ -1,10 +1,10 @@
-import { boundingBox, boxesOverlap } from '../../../../apps/server/src/compatibility-engine/rules/geometry.js';
+import { boundingBox, boxesOverlap } from '@homecraft/engine';
 
 /** Overlap rule: two modules must not occupy the same volume (broad-phase via spatial index). */
 
 /**
- * @param {import('../../../../apps/server/src/compatibility-engine/rules/types.js').RuleContext} ctx
- * @returns {import('../../../../apps/server/src/compatibility-engine/rules/types.js').Conflict[]}
+ * @param {import('@homecraft/engine').RuleContext} ctx
+ * @returns {import('@homecraft/engine').Conflict[]}
  */
 export function check({ modules, index }) {
   const conflicts = [];
