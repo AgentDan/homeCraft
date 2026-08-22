@@ -1,14 +1,12 @@
 import { runCatalogIndexer } from './indexer.js';
 import { closeMongo } from '../storage/mongo.js';
 import { registry } from '@homecraft/contracts';
-import { kitchenManifest } from '@homecraft/manifests/kitchen';
-import { deskManifest } from '@homecraft/manifests/desk';
+import { allManifests } from '@homecraft/manifests';
 
-if (!registry.registeredTypes().includes('kitchen')) {
-  registry.register(kitchenManifest);
-}
-if (!registry.registeredTypes().includes('desk')) {
-  registry.register(deskManifest);
+for (const manifest of allManifests) {
+  if (!registry.registeredTypes().includes(manifest.productType)) {
+    registry.register(manifest);
+  }
 }
 
 Promise.all(registry.registeredTypes().map((productType) => runCatalogIndexer(productType)))

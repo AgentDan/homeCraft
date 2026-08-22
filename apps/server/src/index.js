@@ -1,16 +1,16 @@
 import './config/load-env.js';
 
 import { registry } from '@homecraft/contracts';
-import { kitchenManifest } from '@homecraft/manifests/kitchen';
-import { deskManifest } from '@homecraft/manifests/desk';
+import { allManifests } from '@homecraft/manifests';
 import { replaceJourneyQuestions } from './core/journey-table.js';
 import { replaceRecommendationRules } from './core/recommendation-engine.js';
 import { startServer } from './server.js';
 
 // Регистрация всех доменов — must run before startServer() so the per-domain
 // seed loop in server.js can call registry.registeredTypes() / registry.get().
-registry.register(kitchenManifest);
-registry.register(deskManifest);
+for (const manifest of allManifests) {
+  registry.register(manifest);
+}
 
 for (const productType of registry.registeredTypes()) {
   registry.initDomain(productType, {
