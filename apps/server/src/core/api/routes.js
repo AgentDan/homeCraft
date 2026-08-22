@@ -28,7 +28,7 @@ import {
   saveClientProfile,
   createDefaultDecisionState
 } from '../decision-state.js';
-import { JOURNEY_QUESTIONS, replaceJourneyQuestions } from '../journey-table.js';
+import { getJourneyQuestions, replaceJourneyQuestions } from '../journey-table.js';
 import { getRecommendationRules } from '../recommendation-engine.js';
 import {
   validateAdminJourneyQuestions,
@@ -48,6 +48,15 @@ import {
 const __dirnameRoutes = path.dirname(fileURLToPath(import.meta.url));
 const serverRoot = path.join(__dirnameRoutes, '..', '..', '..');
 const gltfDir = path.join(serverRoot, 'gltf');
+
+/**
+ * @param {import('express').Request} req
+ */
+function queryProductType(req) {
+  const value = req.query?.productType;
+  const raw = Array.isArray(value) ? value[0] : value;
+  return typeof raw === 'string' && raw.trim() ? raw.trim() : 'kitchen';
+}
 
 /**
  * Registers HTTP routes and static assets (API Layer).
@@ -244,39 +253,43 @@ export function mountRoutes(app) {
     sendJson(res, 200, { status: 'ok', catalog: getAdminSchemaCatalog() });
   });
 
-  app.get('/api/admin/journey-questions', (_req, res) => {
+  app.get('/api/admin/journey-questions', (req, res) => {
+    const productType = queryProductType(req);
     sendJson(res, 200, {
       status: 'ok',
-      questions: structuredClone(JOURNEY_QUESTIONS)
+      questions: structuredClone(getJourneyQuestions(productType))
     });
   });
 
   app.put(
     '/api/admin/journey-questions',
     wrapAsync(async (req, res) => {
+      const productType = queryProductType(req);
       const questions = validateAdminJourneyQuestions(req.body?.questions ?? req.body);
-      replaceJourneyQuestions(questions);
-      const mongoOk = await replaceJourneyQuestionsInMongo(questions);
+      replaceJourneyQuestions(productType, questions);
+      const mongoOk = await replaceJourneyQuestionsInMongo(productType, questions);
       sendJson(res, 200, {
         status: 'ok',
-        questions: structuredClone(JOURNEY_QUESTIONS),
+        questions: structuredClone(getJourneyQuestions(productType)),
         persisted: mongoOk ? 'mongo' : 'memory'
       });
     })
   );
 
-  app.get('/api/admin/recommendation-rules', (_req, res) => {
+  app.get('/api/admin/recommendation-rules', (req, res) => {
+    const productType = queryProductType(req);
     sendJson(res, 200, {
       status: 'ok',
-      rules: structuredClone(getRecommendationRules())
+      rules: structuredClone(getRecommendationRules(productType))
     });
   });
 
   app.put(
     '/api/admin/recommendation-rules',
     wrapAsync(async (req, res) => {
+      const productType = queryProductType(req);
       const rules = validateAdminRecommendationRules(req.body?.rules ?? req.body);
-      const saved = await saveRecommendationRulesToStore(rules);
+      const saved = await saveRecommendationRulesToStore(rules, productType);
       sendJson(res, 200, { status: 'ok', rules: saved, persisted: 'file' });
     })
   );

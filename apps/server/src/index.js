@@ -7,22 +7,27 @@ import { replaceJourneyQuestions } from './core/journey-table.js';
 import { replaceRecommendationRules } from './core/recommendation-engine.js';
 import { startServer } from './server.js';
 
-// Регистрация всех доменов
+// Регистрация всех доменов — must run before startServer() so the per-domain
+// seed loop in server.js can call registry.registeredTypes() / registry.get().
 registry.register(kitchenManifest);
 registry.register(deskManifest);
 
-// Активный домен при старте — kitchen
-registry.initDomain('kitchen', {
-  onJourneyQuestions: replaceJourneyQuestions,
-  onDp4Rules: replaceRecommendationRules
-});
+for (const productType of registry.registeredTypes()) {
+  registry.initDomain(productType, {
+    onJourneyQuestions: (questions) => replaceJourneyQuestions(productType, questions),
+    onDp4Rules: (rules) => replaceRecommendationRules(productType, rules)
+  });
+}
 
 console.log(`[HomeCraft] Registered domains: ${registry.registeredTypes().join(', ')}`);
-console.log(
-  `[HomeCraft] Active domain: kitchen`,
-  `| questions: ${kitchenManifest.journeyQuestions.length}`,
-  `| dp4Rules: ${kitchenManifest.dp4Rules.length}`
-);
+for (const productType of registry.registeredTypes()) {
+  const manifest = registry.get(productType);
+  console.log(
+    `[HomeCraft] Domain ${productType}`,
+    `| questions: ${manifest.journeyQuestions.length}`,
+    `| dp4Rules: ${manifest.dp4Rules.length}`
+  );
+}
 
 startServer().catch((err) => {
   console.error(err);

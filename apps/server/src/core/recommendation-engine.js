@@ -31,19 +31,27 @@ import { t } from '../i18n/messages.js';
 
 const OUTCOME = CommandOutcomeKindSchema.enum;
 
-/** @type {import('zod').infer<typeof import('@homecraft/contracts').RecommendationRuleSchema>[]} */
-let activeRules = [];
+/** Last-resort default for callers that omit productType — production call sites pass it. */
+const DEFAULT_PRODUCT_TYPE = 'kitchen';
+
+/** @type {Map<string, import('zod').infer<typeof import('@homecraft/contracts').RecommendationRuleSchema>[]>} */
+const activeRulesByDomain = new Map();
 
 /**
+ * @param {string} productType
  * @param {import('zod').infer<typeof import('@homecraft/contracts').RecommendationRuleSchema>[]} rules
  */
-export function replaceRecommendationRules(rules) {
-  activeRules = RecommendationRuleTableSchema.parse(rules);
-  return activeRules;
+export function replaceRecommendationRules(productType, rules) {
+  const parsed = RecommendationRuleTableSchema.parse(rules);
+  activeRulesByDomain.set(productType, parsed);
+  return parsed;
 }
 
-export function getRecommendationRules() {
-  return activeRules;
+/**
+ * @param {string} [productType]
+ */
+export function getRecommendationRules(productType = DEFAULT_PRODUCT_TYPE) {
+  return activeRulesByDomain.get(productType) ?? [];
 }
 
 /**
@@ -114,10 +122,13 @@ export function matchCondition(condition, ctx) {
 }
 
 /**
- * @param {import('zod').infer<typeof import('@homecraft/contracts').RecommendationRuleSchema>[]} [rules]
  * @param {Record<string, unknown>} ctx
+ * @param {string | import('zod').infer<typeof import('@homecraft/contracts').RecommendationRuleSchema>[]} [productTypeOrRules]
  */
-export function evaluateRecommendationRules(ctx, rules = activeRules) {
+export function evaluateRecommendationRules(ctx, productTypeOrRules = DEFAULT_PRODUCT_TYPE) {
+  const rules = Array.isArray(productTypeOrRules)
+    ? productTypeOrRules
+    : getRecommendationRules(productTypeOrRules);
   const matching = rules
     .filter((rule) => rule.active && matchCondition(rule.condition, ctx))
     .sort((a, b) => {
@@ -349,7 +360,8 @@ export function shouldTriggerDp4(request, intent, journey) {
  * }} input
  */
 export async function runDp4Recommendation({ request, context, language }) {
-  const manifest = registry.get(context.productType ?? 'kitchen');
+  const productType = context.productType ?? DEFAULT_PRODUCT_TYPE;
+  const manifest = registry.get(productType);
   const dp4SkuMap = manifest.dp4SkuMap;
   const clientId = request.projectId;
   const journey = context.journey;
@@ -374,7 +386,7 @@ export async function runDp4Recommendation({ request, context, language }) {
         : decisionState.phase
   };
 
-  const decision = evaluateRecommendationRules(ruleCtx);
+  const decision = evaluateRecommendationRules(ruleCtx, productType);
 
   // Domains without a catalog SKU map (desk today) skip configuration — no kitchen SKU invented.
   if (!dp4SkuMap) {

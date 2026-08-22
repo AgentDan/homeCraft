@@ -9,7 +9,8 @@ import {
   buildConfigurationIntent,
   runDp4Recommendation,
   shouldTriggerDp4,
-  replaceRecommendationRules
+  replaceRecommendationRules,
+  getRecommendationRules
 } from './recommendation-engine.js';
 import { createDefaultJourneyState, registry } from '@homecraft/contracts';
 import { kitchenManifest } from '@homecraft/manifests/kitchen';
@@ -26,7 +27,7 @@ describe('recommendation-engine DP4', () => {
     storageRoot = await mkdtemp(path.join(tmpdir(), 'homecraft-dp4-'));
     process.env.SERVER_STORAGE_DIR = storageRoot;
     await ensureStorage();
-    replaceRecommendationRules(kitchenManifest.dp4Rules);
+    replaceRecommendationRules('kitchen', kitchenManifest.dp4Rules);
     if (!registry.registeredTypes().includes('kitchen')) {
       registry.register(kitchenManifest);
     }
@@ -72,7 +73,7 @@ describe('recommendation-engine DP4', () => {
         lastSignals: []
       },
       phase: 'post_survey'
-    });
+    }, 'kitchen');
     assert.ok(decision.appliedRuleIds.includes('explicit_answer_wins_over_behavior'));
     assert.ok(decision.appliedRuleIds.includes('default_no_special_conditions'));
     assert.equal(decision.filters.preferFrom, 'known');
@@ -124,7 +125,7 @@ describe('recommendation-engine DP4', () => {
         lastSignals: []
       },
       phase: 'post_survey'
-    });
+    }, 'kitchen');
     assert.ok(
       decision.appliedRuleIds.includes('conflicting_behavior_becomes_alternative')
     );
@@ -280,5 +281,44 @@ describe('recommendation-engine DP4', () => {
     assert.equal(result.outcomeKind, 'clarify');
     assert.equal(result.createdVersion, false);
     assert.equal(result.configurationIntent, undefined);
+  });
+
+  it('keeps kitchen and desk recommendation rules independent in one process', () => {
+    replaceRecommendationRules('kitchen', kitchenManifest.dp4Rules);
+    replaceRecommendationRules('desk', [
+      {
+        ruleId: 'desk_only_rule',
+        priority: 1,
+        condition: { always: true },
+        action: { type: 'filterCatalog', filters: { sku: 'BASE-400' } },
+        active: true
+      }
+    ]);
+
+    assert.ok(
+      getRecommendationRules('kitchen').some(
+        (rule) => rule.ruleId === 'default_no_special_conditions'
+      )
+    );
+    assert.equal(getRecommendationRules('desk').length, 1);
+    assert.equal(getRecommendationRules('desk')[0].ruleId, 'desk_only_rule');
+    assert.ok(
+      !getRecommendationRules('kitchen').some((rule) => rule.ruleId === 'desk_only_rule')
+    );
+
+    const emptyCtx = {
+      known: {},
+      decisionState: { focusVariantIds: [] },
+      phase: 'post_survey'
+    };
+    const kitchenDecision = evaluateRecommendationRules(emptyCtx, 'kitchen');
+    const deskDecision = evaluateRecommendationRules(emptyCtx, 'desk');
+    assert.ok(kitchenDecision.appliedRuleIds.includes('default_no_special_conditions'));
+    assert.deepEqual(deskDecision.appliedRuleIds, ['desk_only_rule']);
+    assert.equal(deskDecision.filters.sku, 'BASE-400');
+    assert.equal(kitchenDecision.filters.sku, 'BASE-600');
+
+    replaceRecommendationRules('desk', deskManifest.dp4Rules);
+    replaceRecommendationRules('kitchen', kitchenManifest.dp4Rules);
   });
 });

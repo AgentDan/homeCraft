@@ -1,6 +1,7 @@
 /**
  * Project Journey typed question table + validation dispatcher (Ф1).
- * Deterministic; no LLM. `dialog-router.js` keeps using JOURNEY_QUESTIONS + parseJourneyAnswer.
+ * Deterministic; no LLM. Live tables are keyed by productType so kitchen and
+ * desk (and later domains) keep independently admin-editable question sets.
  */
 import {
   createDefaultJourneyState,
@@ -10,16 +11,28 @@ import {
 
 /** @typedef {import('zod').infer<typeof import('@homecraft/contracts').JourneyQuestionSchema>} JourneyQuestion */
 
-/** Live question table (empty until registry.initDomain / replaceJourneyQuestions). */
-export const JOURNEY_QUESTIONS = /** @type {JourneyQuestion[]} */ ([]);
+/** Last-resort default for callers that omit productType — production call sites pass it. */
+const DEFAULT_PRODUCT_TYPE = 'kitchen';
+
+/** @type {Map<string, JourneyQuestion[]>} */
+const journeyQuestionsByDomain = new Map();
 
 /**
+ * @param {string} [productType]
+ * @returns {JourneyQuestion[]}
+ */
+export function getJourneyQuestions(productType = DEFAULT_PRODUCT_TYPE) {
+  return journeyQuestionsByDomain.get(productType) ?? [];
+}
+
+/**
+ * @param {string} productType
  * @param {JourneyQuestion[]} questions
  */
-export function replaceJourneyQuestions(questions) {
+export function replaceJourneyQuestions(productType, questions) {
   const parsed = JourneyQuestionTableSchema.parse(questions);
-  JOURNEY_QUESTIONS.splice(0, JOURNEY_QUESTIONS.length, ...parsed);
-  return JOURNEY_QUESTIONS;
+  journeyQuestionsByDomain.set(productType, parsed);
+  return parsed;
 }
 
 /**
@@ -53,17 +66,21 @@ export function isQuestionApplicable(question, known) {
   return question.active && isDependsOnMet(question.dependsOn, known);
 }
 
-function activeOrderedQuestions() {
-  return [...JOURNEY_QUESTIONS]
+/**
+ * @param {string} [productType]
+ */
+function activeOrderedQuestions(productType = DEFAULT_PRODUCT_TYPE) {
+  return [...getJourneyQuestions(productType)]
     .filter((q) => q.active)
     .sort((a, b) => a.order - b.order);
 }
 
 /**
  * @param {import('zod').infer<typeof ProjectJourneyStateSchema>} journey
+ * @param {string} [productType]
  */
-export function refreshMissing(journey) {
-  const missing = activeOrderedQuestions()
+export function refreshMissing(journey, productType = DEFAULT_PRODUCT_TYPE) {
+  const missing = activeOrderedQuestions(productType)
     .filter((q) => isQuestionApplicable(q, journey.known))
     .filter((q) => journey.known[q.slot] == null)
     .map((q) => q.slot);
@@ -72,10 +89,11 @@ export function refreshMissing(journey) {
 
 /**
  * @param {import('zod').infer<typeof ProjectJourneyStateSchema>} journey
+ * @param {string} [productType]
  * @returns {JourneyQuestion | null}
  */
-export function nextQuestion(journey) {
-  for (const q of activeOrderedQuestions()) {
+export function nextQuestion(journey, productType = DEFAULT_PRODUCT_TYPE) {
+  for (const q of activeOrderedQuestions(productType)) {
     if (!isQuestionApplicable(q, journey.known)) continue;
     if (journey.known[q.slot] == null) return q;
   }
@@ -84,12 +102,13 @@ export function nextQuestion(journey) {
 
 /**
  * @param {Partial<import('zod').infer<typeof ProjectJourneyStateSchema>>} [partial]
+ * @param {string} [productType]
  */
-export function ensureJourneyState(partial) {
+export function ensureJourneyState(partial, productType = DEFAULT_PRODUCT_TYPE) {
   if (partial && typeof partial === 'object' && partial.stage) {
-    return refreshMissing(ProjectJourneyStateSchema.parse(partial));
+    return refreshMissing(ProjectJourneyStateSchema.parse(partial), productType);
   }
-  return refreshMissing(createDefaultJourneyState());
+  return refreshMissing(createDefaultJourneyState(), productType);
 }
 
 /**
@@ -304,10 +323,16 @@ export function validateAnswer(text, intent, validation, ctx = {}) {
  * @param {string} questionId
  * @param {string} text
  * @param {{ slots?: Record<string, unknown> }} [intent]
+ * @param {string} [productType]
  * @returns {{ ok: true, value: string | number } | { ok: false }}
  */
-export function parseJourneyAnswer(questionId, text, intent) {
-  const question = JOURNEY_QUESTIONS.find(
+export function parseJourneyAnswer(
+  questionId,
+  text,
+  intent,
+  productType = DEFAULT_PRODUCT_TYPE
+) {
+  const question = getJourneyQuestions(productType).find(
     (q) => q.id === questionId || q.slot === questionId
   );
   if (!question) return { ok: false };
@@ -319,8 +344,13 @@ export function parseJourneyAnswer(questionId, text, intent) {
 /**
  * @param {import('zod').infer<typeof ProjectJourneyStateSchema>} journey
  * @param {string} questionId
+ * @param {string} [productType]
  */
-export function markQuestionAsked(journey, questionId) {
+export function markQuestionAsked(
+  journey,
+  questionId,
+  productType = DEFAULT_PRODUCT_TYPE
+) {
   const now = new Date().toISOString();
   const history = [...journey.questionHistory];
   const existing = history.findIndex(
@@ -340,11 +370,12 @@ export function markQuestionAsked(journey, questionId) {
           ...journey.metrics,
           reAskTotal: journey.metrics.reAskTotal + 1
         }
-      })
+      }),
+      productType
     );
   }
   history.push({ questionId, askedAt: now, reAskCount: 0 });
-  const question = JOURNEY_QUESTIONS.find(
+  const question = getJourneyQuestions(productType).find(
     (q) => q.id === questionId || q.slot === questionId
   );
   const stage = question?.stage ?? journey.stage;
@@ -357,7 +388,8 @@ export function markQuestionAsked(journey, questionId) {
       pendingQuestionId: questionId,
       questionHistory: history,
       metrics: { ...journey.metrics, stageEnteredAt }
-    })
+    }),
+    productType
   );
 }
 
@@ -365,10 +397,16 @@ export function markQuestionAsked(journey, questionId) {
  * @param {import('zod').infer<typeof ProjectJourneyStateSchema>} journey
  * @param {string} questionId
  * @param {string | number} value
+ * @param {string} [productType]
  */
-export function applyJourneyAnswer(journey, questionId, value) {
+export function applyJourneyAnswer(
+  journey,
+  questionId,
+  value,
+  productType = DEFAULT_PRODUCT_TYPE
+) {
   const now = new Date().toISOString();
-  const question = JOURNEY_QUESTIONS.find(
+  const question = getJourneyQuestions(productType).find(
     (q) => q.id === questionId || q.slot === questionId
   );
   const known = { ...journey.known, [question?.slot ?? questionId]: value };
@@ -383,9 +421,10 @@ export function applyJourneyAnswer(journey, questionId, value) {
       known,
       pendingQuestionId: null,
       questionHistory: history
-    })
+    }),
+    productType
   );
-  const upcoming = nextQuestion(next);
+  const upcoming = nextQuestion(next, productType);
   if (!upcoming) {
     const stageEnteredAt = { ...next.metrics.stageEnteredAt };
     if (!stageEnteredAt.done) stageEnteredAt.done = now;
@@ -398,5 +437,5 @@ export function applyJourneyAnswer(journey, questionId, value) {
   } else {
     next = { ...next, stage: upcoming.stage };
   }
-  return refreshMissing(next);
+  return refreshMissing(next, productType);
 }
