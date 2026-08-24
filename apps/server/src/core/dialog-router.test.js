@@ -321,4 +321,46 @@ describe('dialog-router', () => {
     assert.equal(result.context.journey.pendingQuestionId, 'hasKidsOrPets');
     assert.notEqual(result.context.journey.stage, 'done');
   });
+
+  it('passes English help phrase through without consuming it as a journey answer', async () => {
+    let journey = ensureJourneyState(undefined, KITCHEN);
+    journey = markQuestionAsked(journey, 'clientName', KITCHEN);
+    const result = await routeJourneyDialog({
+      request: baseRequest('help'),
+      context: baseContext(journey),
+      intent: { kind: 'unknown', rawText: 'help' },
+      language: 'en'
+    });
+    assert.equal(result.handled, false);
+    assert.equal(result.context.journey.pendingQuestionId, 'clientName');
+    assert.equal(result.context.journey.known.clientName, undefined);
+  });
+
+  it('passes Russian catalog phrase through without consuming it as a journey answer', async () => {
+    let journey = ensureJourneyState(undefined, KITCHEN);
+    journey = markQuestionAsked(journey, 'clientName', KITCHEN);
+    const result = await routeJourneyDialog({
+      request: baseRequest('каталог'),
+      context: baseContext(journey),
+      intent: { kind: 'unknown', rawText: 'каталог' },
+      language: 'ru'
+    });
+    assert.equal(result.handled, false);
+    assert.equal(result.context.journey.pendingQuestionId, 'clientName');
+    assert.equal(result.context.journey.known.clientName, undefined);
+  });
+
+  it('passes "what can you do" through without consuming it as a journey answer', async () => {
+    let journey = ensureJourneyState(undefined, KITCHEN);
+    journey = markQuestionAsked(journey, 'clientName', KITCHEN);
+    const result = await routeJourneyDialog({
+      request: baseRequest('what can you do'),
+      context: baseContext(journey),
+      intent: { kind: 'unknown', rawText: 'what can you do' },
+      language: 'en'
+    });
+    assert.equal(result.handled, false);
+    assert.equal(result.context.journey.pendingQuestionId, 'clientName');
+    assert.equal(result.context.journey.known.clientName, undefined);
+  });
 });

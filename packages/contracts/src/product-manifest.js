@@ -4,6 +4,18 @@ import { JourneyQuestionTableSchema } from './journey-question.js';
 export { ProductTypeSchema } from './configuration-plan.js';
 
 /**
+ * Domain compatibility rule: check(RuleContext) → Conflict[].
+ * JSDoc-only import so contracts does not take a runtime dependency on engine.
+ * @typedef {(ctx: import('@homecraft/engine').RuleContext) => import('@homecraft/engine').Conflict[]} CompatibilityRule
+ */
+
+/** @type {import('zod').ZodType<CompatibilityRule>} */
+const CompatibilityRuleSchema = z.custom(
+  (value) => typeof value === 'function',
+  { message: 'compatibility rule must be a function' }
+);
+
+/**
  * Контракт доменного манифеста.
  *
  * Каждый домен (kitchen, desk, wardrobe) экспортирует объект,
@@ -38,11 +50,7 @@ export const ProductManifestSchema = z.object({
   // Набор правил compatibility-engine для этого домена.
   // Каждое правило: check({ modules, context, index }) → Conflict[].
   // Порядок массива определяет порядок conflicts в отчёте.
-  compatibilityRules: z.array(
-    z.function()
-      .args(z.record(z.unknown()))
-      .returns(z.array(z.record(z.unknown())))
-  ).optional(),
+  compatibilityRules: z.array(CompatibilityRuleSchema).optional(),
 
   // Путь к policy.yaml для скоринга кандидатов при конфликте.
   // Если не задан — loadPolicy() берёт kitchen default из packages/manifests.
@@ -111,8 +119,11 @@ export const ProductManifestSchema = z.object({
 });
 
 /**
- * JSDoc-typedef для использования в JS без TypeScript.
- * Выводится напрямую из схемы, чтобы registry и результат `.parse()`
- * всегда имели один тип.
- * @typedef {import('zod').infer<typeof ProductManifestSchema>} ProductManifest
+ * JSDoc-typedef for registry.get() / manifest objects.
+ * `compatibilityRules` is overridden: Zod's z.function() infers a wide
+ * `(Record<string, unknown>) => …` signature that real engine rules cannot
+ * assign to (parameter contravariance).
+ * @typedef {Omit<import('zod').infer<typeof ProductManifestSchema>, 'compatibilityRules'> & {
+ *   compatibilityRules?: CompatibilityRule[]
+ * }} ProductManifest
  */

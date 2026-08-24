@@ -62,7 +62,7 @@ const DESK_JOURNEY_QUESTIONS = JourneyQuestionTableSchema.parse([
   }
 ]);
 
-/** @type {import('zod').infer<typeof import('@homecraft/contracts').ProductManifestSchema>} */
+/** @type {import('@homecraft/contracts').ProductManifest} */
 export const deskManifest = {
   productType: 'desk',
   version: '0.1.0',
@@ -98,6 +98,8 @@ export const deskManifest = {
 
   // Пустые DP4 rules — добавить позже.
   dp4Rules: [],
+
+  starterLayoutId: 'starter_desk',
 
   starterPlan: () => createEmptyPlan({
     planId: crypto.randomUUID(),

@@ -23,6 +23,11 @@ export {
   ProductManifestSchema
 } from './product-manifest.js';
 
+/**
+ * @typedef {import('./product-manifest.js').ProductManifest} ProductManifest
+ * @typedef {import('./product-manifest.js').CompatibilityRule} CompatibilityRule
+ */
+
 export { registry } from './manifest-registry.js';
 
 export {

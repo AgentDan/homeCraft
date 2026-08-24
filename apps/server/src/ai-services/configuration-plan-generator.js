@@ -86,7 +86,7 @@ export async function generatePlan(input) {
 
   if (input.intent.kind === 'add_module') {
     const starterOperations = manifest.starterOperations ?? [];
-    if (slots.layout === 'starter_kitchen' && starterOperations.length > 0) {
+    if (slots.layout === manifest.starterLayoutId && starterOperations.length > 0) {
       operations.push(.../** @type {typeof operations} */ (starterOperations));
       return {
         plan: createPlan(input, operations, productType),

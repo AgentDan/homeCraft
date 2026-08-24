@@ -21,6 +21,15 @@ import {
 import { ProjectJourneyStateSchema, registry } from '@homecraft/contracts';
 
 /**
+ * JourneyQuestion.i18nKey is a plain string; t() only accepts catalog keys.
+ * @param {string} key
+ * @returns {Parameters<typeof t>[1]}
+ */
+function asMessageKey(key) {
+  return /** @type {Parameters<typeof t>[1]} */ (key);
+}
+
+/**
  * @param {import('./intent-handlers/types.js').RoomContext} context
  * @param {import('zod').infer<typeof ProjectJourneyStateSchema>} journey
  * @param {string} productType
@@ -123,7 +132,7 @@ export async function routeJourneyDialog({
         response: buildClarifyResponse(
           request,
           t(language, 'journeyReask', {
-            question: t(language, question?.i18nKey ?? 'journeyAskClientName')
+            question: t(language, asMessageKey(question?.i18nKey ?? 'journeyAskClientName'))
           }),
           nextContext.planVersion
         ),
@@ -185,7 +194,7 @@ export async function routeJourneyDialog({
       context: nextContext,
       response: buildClarifyResponse(
         request,
-        t(language, upcoming.i18nKey),
+        t(language, asMessageKey(upcoming.i18nKey)),
         nextContext.planVersion
       ),
       intentKind: intent.kind,
@@ -216,7 +225,7 @@ export async function routeJourneyDialog({
     context: nextContext,
     response: buildClarifyResponse(
       request,
-      t(language, upcoming.i18nKey),
+      t(language, asMessageKey(upcoming.i18nKey)),
       nextContext.planVersion
     ),
     intentKind: intent.kind,

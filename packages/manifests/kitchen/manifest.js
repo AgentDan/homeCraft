@@ -38,7 +38,7 @@ const catalogPath = path.join(
 /**
  * Первый доменный манифест. Здесь только ссылки на существующую
  * детерминированную кухонную реализацию — без новой бизнес-логики.
- * @type {import('zod').infer<typeof import('@homecraft/contracts').ProductManifestSchema>}
+ * @type {import('@homecraft/contracts').ProductManifest}
  */
 export const kitchenManifest = {
   productType: 'kitchen',
@@ -61,6 +61,7 @@ export const kitchenManifest = {
   intentRules: kitchenIntentRules,
   slotVocabulary: kitchenSlotVocabulary,
   starterOperations: kitchenStarterOperations,
+  starterLayoutId: 'starter_kitchen',
   wallMountHeightMm: 1400,
   defaultModuleWidthMm: 600,
   minEnforcedClearanceMm: 20,

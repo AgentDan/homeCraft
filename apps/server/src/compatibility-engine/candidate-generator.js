@@ -16,7 +16,7 @@ const MAX_CANDIDATES = 3;
  *   plan: import('zod').infer<typeof ConfigurationPlanSchema>,
  *   compatibility: { conflicts: Array<{ kind: string, instanceIds: string[], suggestedSkus: string[] }> },
  *   context: object,
- *   compatibilityRules?: Array<(ctx: object) => Array<object>>
+ *   compatibilityRules?: Array<(ctx: import('@homecraft/engine').RuleContext) => import('@homecraft/engine').Conflict[]>
  * }} input
  * @returns {Promise<Array<{
  *   label: string,

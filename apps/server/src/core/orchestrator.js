@@ -42,6 +42,10 @@ const OUTCOME = CommandOutcomeKindSchema.enum;
 const HANDLER_RESPOND = /** @type {const} */ ('respond');
 const PLAN_OUTCOME_CLARIFY = /** @type {const} */ ('clarify');
 
+/**
+ * @param {import('./intent-handlers/types.js').ClientRequest} request
+ * @param {number} currentVersion
+ */
 function buildVersionConflictResult(request, currentVersion) {
   const language = normalizeLanguage(request.language);
   return {
