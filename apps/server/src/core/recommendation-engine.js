@@ -28,6 +28,7 @@ import {
   updateDecisionStateFromEventSafe
 } from './decision-state.js';
 import { t } from '../i18n/messages.js';
+import { logPipelineDiff, snapshotPlanId } from '../lib/diffLog.js';
 
 const OUTCOME = CommandOutcomeKindSchema.enum;
 
@@ -468,6 +469,15 @@ export async function runDp4Recommendation({ request, context, language }) {
   }
 
   const bom = await manifest.calculateBOM(plan, plan.catalogSnapshotId);
+  logPipelineDiff(request, 'Ядро', snapshotPlanId(plan, context), {
+    'compatResult.valid': compatibility?.valid,
+    'compatResult.conflicts': compatibility?.conflicts,
+    'compatResult.suggestedSkus': (compatibility?.conflicts ?? []).flatMap(
+      (conflict) => conflict.suggestedSkus ?? []
+    ),
+    'bom.lines': bom?.lines,
+    'bom.totalWithVat': bom?.totalEur
+  });
   const scene = await runKitchenPipeline(plan, context);
   const versionEntry = await appendPlanVersion(
     request.sessionId,

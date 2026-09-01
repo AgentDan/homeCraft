@@ -64,9 +64,13 @@ export const ProductManifestSchema = z.object({
   // If omitted, extractSlots skips sku/category/finishId/layout keyword detection.
   slotVocabulary: z.record(z.unknown()).optional(),
 
-  // Starter-layout operations for slots.layout === 'starter_kitchen' (or domain equivalent).
+  // Starter-layout operations for slots.layout === starterLayoutId.
   // If omitted/empty, generatePlan falls through to the single-candidate add_module flow.
   starterOperations: z.array(z.record(z.unknown())).optional(),
+
+  // Domain layout slot that triggers starterOperations (e.g. 'starter_kitchen').
+  // If omitted, the starter shortcut in generatePlan never matches.
+  starterLayoutId: z.string().optional(),
 
   // Wall-cabinet mount height in mm. If omitted, wall modules are placed at y = 0.
   wallMountHeightMm: z.number().optional(),
@@ -124,6 +128,7 @@ export const ProductManifestSchema = z.object({
  * `(Record<string, unknown>) => …` signature that real engine rules cannot
  * assign to (parameter contravariance).
  * @typedef {Omit<import('zod').infer<typeof ProductManifestSchema>, 'compatibilityRules'> & {
- *   compatibilityRules?: CompatibilityRule[]
+ *   compatibilityRules?: CompatibilityRule[],
+ *   starterLayoutId?: string
  * }} ProductManifest
  */

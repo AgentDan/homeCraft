@@ -36,6 +36,7 @@ import {
   runDp4Recommendation,
   shouldTriggerDp4
 } from './recommendation-engine.js';
+import { beginRequestLog, logPipelineDiff, snapshotPlanId } from '../lib/diffLog.js';
 
 const INTENT = IntentKindSchema.enum;
 const OUTCOME = CommandOutcomeKindSchema.enum;
@@ -127,7 +128,7 @@ async function finalizeResponse({
   });
 
   // DecisionState outside dialog-router: journey.stage === 'done' → post_survey.
-  await updateDecisionStateFromEventSafe(clientId, null, {
+  const decisionState = await updateDecisionStateFromEventSafe(clientId, null, {
     journey: nextContext.journey
       ? {
           stage: nextContext.journey.stage,
@@ -162,6 +163,22 @@ async function finalizeResponse({
     request.requestId,
     statusCode,
     response
+  );
+  const rejected =
+    outcomeKind === OUTCOME.rejected
+    || response.compatibility?.valid === false
+    || response.status === 'error';
+  logPipelineDiff(
+    request,
+    'Сохранение',
+    snapshotPlanId(response.plan, request),
+    {
+      'response.rejected': rejected,
+      'persistResult.version': response.planVersion,
+      renderMode: response.view?.render,
+      decisionState,
+      idempotencyKey: `${request.sessionId}:${request.requestId}`
+    }
   );
   return result;
 }
@@ -240,6 +257,14 @@ async function resolveRoutedCommand(request, context) {
     slots: 'slots' in intent ? intent.slots : {},
     known: {}
   });
+  const planId = snapshotPlanId(plan, nextContext);
+  logPipelineDiff(request, 'АИ-пайплайн', planId, {
+    'intent.kind': intent.kind,
+    'intent.confidence': 'confidence' in intent ? intent.confidence : undefined,
+    'intent.slots': 'slots' in intent ? intent.slots : undefined,
+    'plan.operations': plan?.operations,
+    'outcome.kind': outcome?.kind
+  });
   const language = normalizeLanguage(request.language ?? intent.language);
 
   // Journey router before intent handlers: answer vs command (commands not blocked).
@@ -250,6 +275,13 @@ async function resolveRoutedCommand(request, context) {
     language
   });
   nextContext = journeyResult.context;
+  const journey = nextContext.journey;
+  logPipelineDiff(request, 'Диалог', planId, {
+    'journey.stage': journey?.stage,
+    pendingQuestion: journey?.pendingQuestionId,
+    known: journey?.known,
+    'journeyResult.handled': journeyResult.handled
+  });
   if (journeyResult.handled && journeyResult.response) {
     return {
       context: nextContext,
@@ -266,6 +298,11 @@ async function resolveRoutedCommand(request, context) {
       request,
       context: nextContext,
       language
+    });
+    logPipelineDiff(request, 'Оркестратор', planId, {
+      'dp4Result.kind': dp4.outcomeKind,
+      'dp4Result.missingSlots': dp4.context?.journey?.missing ?? nextContext.journey?.missing,
+      'outcome.kind': dp4.outcomeKind
     });
     return {
       context: dp4.context ?? nextContext,
@@ -319,6 +356,11 @@ async function resolveRoutedCommand(request, context) {
   }
 
   const defaultResult = await runDefaultIntentPath(handlerInput);
+  logPipelineDiff(request, 'Оркестратор', planId, {
+    'dp4Result.kind': undefined,
+    'dp4Result.missingSlots': undefined,
+    'outcome.kind': defaultResult.outcomeKind
+  });
   return {
     context: nextContext,
     response: defaultResult.response,
@@ -383,6 +425,15 @@ export async function route(request) {
     context = { ...context, planVersion: currentVersion };
     context = appendDialogTurn(context, 'user', request.command);
     await persistRoomContext(context);
+    beginRequestLog(request);
+    logPipelineDiff(request, 'Приём', snapshotPlanId(undefined, context), {
+      productType: context.productType,
+      sessionLock: true,
+      version: context.planVersion,
+      journey: context.journey,
+      catalogSnapshotId: context.catalogSnapshotId,
+      planId: snapshotPlanId(undefined, context)
+    });
 
     try {
       const resolved = await resolveRoutedCommand(request, context);

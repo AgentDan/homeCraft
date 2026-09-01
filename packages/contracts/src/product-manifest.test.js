@@ -62,10 +62,12 @@ describe('ProductManifest contracts', () => {
       calculateBOM: (_plan) => ({ lines: [] }),
       journeyQuestions: [],
       dp4Rules: [],
+      starterLayoutId: 'starter_test',
       starterPlan: () => ({ productType: 'test-domain' })
     });
 
     assert.equal(manifest.productType, 'test-domain');
+    assert.equal(manifest.starterLayoutId, 'starter_test');
   });
 
   it('rejects duplicate registrations and unknown lookups', () => {

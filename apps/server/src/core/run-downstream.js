@@ -10,6 +10,7 @@ import {
   getActiveBranchMeta
 } from '../storage/local-storage.js';
 import { normalizeLanguage, t } from '../i18n/messages.js';
+import { logPipelineDiff, snapshotPlanId } from '../lib/diffLog.js';
 
 /**
  * Runs compatibility, kitchen pipeline, BOM, and optional plan-version persistence.
@@ -42,6 +43,15 @@ export async function runDownstream({
   const compatibility = await manifest.assertCompatible(plan, context);
   const scene = await runKitchenPipeline(plan, context);
   const bom = await getCachedBOM(plan, plan.catalogSnapshotId);
+  logPipelineDiff(request, 'Ядро', snapshotPlanId(plan, context), {
+    'compatResult.valid': compatibility?.valid,
+    'compatResult.conflicts': compatibility?.conflicts,
+    'compatResult.suggestedSkus': (compatibility?.conflicts ?? []).flatMap(
+      (conflict) => conflict.suggestedSkus ?? []
+    ),
+    'bom.lines': bom?.lines,
+    'bom.totalWithVat': bom?.totalEur
+  });
   if (!compatibility.valid) {
     const candidates = await generateCandidates({
       plan,
